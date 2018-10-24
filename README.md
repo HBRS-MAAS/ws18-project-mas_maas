@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/HBRS-MAAS/ws18-project-mas_maas.svg?branch=master)](https://travis-ci.org/HBRS-MAAS/ws18-project-mas_maas)
-[![Coverage Status](https://coveralls.io/repos/github/HBRS-MAAS/ws18-project-jsw/badge.svg?branch=master)](https://coveralls.io/github/HBRS-MAAS/ws18-project-jsw?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/HBRS-MAAS/ws18-project-mas_maas/badge.svg?branch=master)](https://coveralls.io/github/HBRS-MAAS/ws18-project-mas_maas?branch=master)
 # MAAS Project - <Team mas_MAAS>
 
 Add a brief description of your project. Make sure to keep this README updated, particularly on how to run your project from the **command line**.
