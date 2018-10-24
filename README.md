@@ -4,7 +4,7 @@ Add a brief description of your project. Make sure to keep this README updated, 
 
 ## Team Members
 * Erick Kramer - [erickkramer](https://github.com/erickkramer)
-* Name2 LastName2 - [@githubusername](https://github.com/username)
+* Angela Enriquez - [anenriquez](https://github.com/anenriquez)
 * Ethan Massey - [emassey2](https://github.com/emassey2)
 
 ## Dependencies
