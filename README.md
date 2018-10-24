@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/HBRS-MAAS/ws18-project-mas_maas.svg?branch=integration)](https://travis-ci.org/HBRS-MAAS/ws18-project-mas_maas)
 # MAAS Project - <Team Name>
 
 Add a brief description of your project. Make sure to keep this README updated, particularly on how to run your project from the **command line**.
