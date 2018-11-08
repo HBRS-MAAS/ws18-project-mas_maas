@@ -2,22 +2,31 @@ package org.mas_maas.tests;
 import java.awt.geom.Point2D;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.Vector;
 
 import org.mas_maas.objects.BakedGood;
 import org.mas_maas.objects.Bakery;
 import org.mas_maas.objects.Batch;
 import org.mas_maas.objects.Client;
+import org.mas_maas.objects.DeliveryCompany;
 import org.mas_maas.objects.DoughPrepTable;
 import org.mas_maas.objects.Equipment;
 import org.mas_maas.objects.KneadingMachine;
+import org.mas_maas.objects.MetaInfo;
 import org.mas_maas.objects.Order;
 import org.mas_maas.objects.Oven;
 import org.mas_maas.objects.Packaging;
 import org.mas_maas.objects.Product;
 import org.mas_maas.objects.Recipe;
 import org.mas_maas.objects.Step;
+import org.mas_maas.objects.StreetLink;
+import org.mas_maas.objects.StreetNetwork;
+import org.mas_maas.objects.StreetNode;
+import org.mas_maas.objects.Truck;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -49,6 +58,21 @@ public class ParserTester
                 System.out.println(client);
             }
 
+            String deliveryCompanyFile = new Scanner(new File(jsonDir + "delivery.json")).useDelimiter("\\Z").next();
+            Vector<DeliveryCompany> deliveryCompanys = parseDeliveryCompany(deliveryCompanyFile);
+            for (DeliveryCompany deliveryCompany : deliveryCompanys)
+            {
+                System.out.println(deliveryCompany);
+            }
+
+            String metaInfoFile = new Scanner(new File(jsonDir + "meta.json")).useDelimiter("\\Z").next();
+            MetaInfo metaInfo = parseMetaInfo(metaInfoFile);
+            System.out.println(metaInfo);
+
+            String streetNetworkFile = new Scanner(new File(jsonDir + "street-network.json")).useDelimiter("\\Z").next();
+            StreetNetwork streetNetwork = parseStreetNetwork(streetNetworkFile);
+            System.out.println(streetNetwork);
+
 
         } catch (FileNotFoundException e) {
             // TODO Auto-generated catch block
@@ -71,7 +95,7 @@ public class ParserTester
             JsonObject json_location = (JsonObject) json_bakery.get("location");
             Double x = json_location.get("x").getAsDouble();
             Double y = json_location.get("y").getAsDouble();
-            Point2D location = new Point2D.Double(x,y);
+            Point2D location = new Point2D.Double(x, y);
 
             // products
             Vector<Product> products = new Vector<Product>();
@@ -193,7 +217,7 @@ public class ParserTester
             JsonObject json_location = (JsonObject) json_client.get("location");
             Double x = json_location.get("x").getAsDouble();
             Double y = json_location.get("y").getAsDouble();
-            Point2D location = new Point2D.Double(x,y);
+            Point2D location = new Point2D.Double(x, y);
 
             // orders
             Vector<Order> orders = new Vector<Order>();
@@ -231,5 +255,115 @@ public class ParserTester
         }
 
         return clients;
+    }
+
+    public static Vector<DeliveryCompany> parseDeliveryCompany(String jsonFile)
+    {
+        JsonElement root = new JsonParser().parse(jsonFile);
+        JsonArray arr = root.getAsJsonArray();
+
+        Vector<DeliveryCompany> companies = new Vector<DeliveryCompany>();
+        for (JsonElement element : arr)
+        {
+            JsonObject json_deliveryCompany = element.getAsJsonObject();
+            String guid = json_deliveryCompany.get("guid").getAsString();
+            JsonObject json_location = (JsonObject) json_deliveryCompany.get("location");
+            Double x = json_location.get("x").getAsDouble();
+            Double y = json_location.get("y").getAsDouble();
+            Point2D location = new Point2D.Double(x, y);
+
+            Vector<Truck> trucks = new Vector<Truck>();
+            JsonArray json_trucks = json_deliveryCompany.get("trucks").getAsJsonArray();
+            for (JsonElement truck : json_trucks)
+            {
+                JsonObject json_truck = truck.getAsJsonObject();
+                String truck_guid = json_truck.get("guid").getAsString();
+                int loadCapacity = json_truck.get("load_capacity").getAsInt();
+                JsonObject json_truck_location = (JsonObject) json_deliveryCompany.get("location");
+                Double truck_x = json_truck_location.get("x").getAsDouble();
+                Double truck_y = json_truck_location.get("y").getAsDouble();
+                Point2D truck_location = new Point2D.Double(truck_x, truck_y);
+
+
+                Truck aTruck = new Truck(truck_guid, loadCapacity, truck_location);
+                trucks.add(aTruck);
+            }
+
+            DeliveryCompany aCompany = new DeliveryCompany(guid, location, trucks);
+            companies.add(aCompany);
+        }
+
+        return companies;
+    }
+
+    public static MetaInfo parseMetaInfo(String jsonFile)
+    {
+        JsonElement root = new JsonParser().parse(jsonFile);
+
+        JsonObject json_metaInfo = root.getAsJsonObject();
+        int bakeries = json_metaInfo.get("bakeries").getAsInt();
+        int durationInDays = json_metaInfo.get("durationInDays").getAsInt();
+        int products = json_metaInfo.get("products").getAsInt();
+        int orders = json_metaInfo.get("orders").getAsInt();
+        Vector<Client> customers = new Vector<Client>(); // TODO this will change when the json changes
+
+        // TODO shouldn't the customers be in an array not an Object?
+        Set<Entry<String, JsonElement>> entrySet = json_metaInfo.get("customers").getAsJsonObject().entrySet();
+        for(Map.Entry<String,JsonElement> entry : entrySet)
+        {
+            Client customer = new Client();
+            customer.setGuid(entry.getKey());
+            // TODO fix, this is super hacky
+            customer.setType(entry.getValue().getAsInt());
+            customers.add(customer);
+        }
+
+        MetaInfo metaInfo = new MetaInfo(bakeries, customers, durationInDays, products, orders);
+
+        return metaInfo;
+    }
+
+    public static StreetNetwork parseStreetNetwork(String jsonFile)
+    {
+        JsonElement root = new JsonParser().parse(jsonFile);
+        JsonObject json_streetNetwork = root.getAsJsonObject();
+        boolean directed = json_streetNetwork.get("directed").getAsBoolean();
+
+        Vector<StreetNode> nodes = new Vector<StreetNode>();
+        JsonArray json_streetNodes = json_streetNetwork.get("nodes").getAsJsonArray();
+        for (JsonElement streetNode : json_streetNodes)
+        {
+            JsonObject json_streetNode = streetNode.getAsJsonObject();
+            String name = json_streetNode.get("name").getAsString();
+            String company = json_streetNode.get("company").getAsString();
+            String guid = json_streetNode.get("guid").getAsString();
+            String type = json_streetNode.get("type").getAsString();
+
+            JsonObject json_location = (JsonObject) json_streetNode.get("location");
+            Double x = json_location.get("x").getAsDouble();
+            Double y = json_location.get("y").getAsDouble();
+            Point2D location = new Point2D.Double(x, y);
+
+            StreetNode aStreetNode = new StreetNode(name, company, location, guid, type);
+            nodes.add(aStreetNode);
+        }
+
+        Vector<StreetLink> links = new Vector<StreetLink>();
+        JsonArray json_streetLinks = json_streetNetwork.get("links").getAsJsonArray();
+        for (JsonElement streetLink : json_streetLinks)
+        {
+            JsonObject json_streetLink = streetLink.getAsJsonObject();
+            String source = json_streetLink.get("source").getAsString();
+            String guid = json_streetLink.get("guid").getAsString();
+            double dist = json_streetLink.get("dist").getAsDouble();
+            String target = json_streetLink.get("target").getAsString();
+
+            StreetLink aStreetLink = new StreetLink(source, guid, dist, target);
+            links.add(aStreetLink);
+        }
+
+
+        StreetNetwork streetNetwork = new StreetNetwork(directed, nodes, links);
+        return streetNetwork;
     }
 }

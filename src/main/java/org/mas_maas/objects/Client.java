@@ -13,7 +13,6 @@ public class Client {
     public Client() {}
 
     public Client(String guid, int type, String name, Point2D location, Vector<Order> orders) {
-        super();
         this.guid = guid;
         this.type = type;
         this.name = name;
