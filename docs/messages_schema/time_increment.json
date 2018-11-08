@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "time_increment": {
+      "type": "array",
+      "items": [
+        {
+          "type": "object",
+          "properties": {
+            "time_increment": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "time_increment"
+          ]
+        }
+      ]
+    }
+  },
+  "required": [
+    "time_increment"
+  ]
+}

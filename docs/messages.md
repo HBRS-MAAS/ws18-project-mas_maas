@@ -1,61 +1,50 @@
-{
-     "order": [
-       {
-         "customer_id": 001,
-         "order_date": "00.00",
-         "delivery_date": "00.00",
-         "list_products": [1, 2, 3]
-       }
-       ]
- }
+## Messages
 
- Schema:
+#### Order
+- customer_id [String]
+- order_date [String]
+- delivery_date [String]
+- list_products [list]
 
- {
-  "$schema": "http://json-schema.org/draft-04/schema#",
-  "type": "object",
-  "properties": {
-    "order": {
-      "type": "array",
-      "items": [
-        {
-          "type": "object",
-          "properties": {
-            "customer_id": {
-              "type": "integer"
-            },
-            "order_date": {
-              "type": "string"
-            },
-            "delivery_date": {
-              "type": "string"
-            },
-            "list_products": {
-              "type": "array",
-              "items": [
-                {
-                  "type": "integer"
-                },
-                {
-                  "type": "integer"
-                },
-                {
-                  "type": "integer"
-                }
-              ]
-            }
-          },
-          "required": [
-            "customer_id",
-            "order_date",
-            "delivery_date",
-            "list_products"
-          ]
-        }
-      ]
-    }
-  },
-  "required": [
-    "order"
-  ]
-}
+#### Confirmation
+- accept [boolean]
+- customer_id [String]
+
+#### Time Left
+- time_to_complete_order [float]
+
+#### Time Increment
+- time_increment [float]
+
+#### Dough Order
+- product_type [int]
+- preparation_time [float]
+- volume [float]
+- resting_time [float]
+- customer_id [String]
+
+#### Baking Order
+- product_type [int]
+- quantity [int]
+- backing_temperature [float]
+- cooling_rate [float]
+- backing_time [float]
+- customer_id [String]
+- quantity_per_slot [int]
+
+#### Delivery Order
+- product_type [int]
+- quantity [int]
+- boxing temperature [float]
+- cooling_rate [float]
+- customer_id [String]
+- quantity per box [int]
+
+#### Notifications
+- order_finished [boolean]
+- product_type [int]
+- customer_id [String]
+
+#### BakedGoods
+- customer_id: '001'
+- list_products: [1, 2, 3]
