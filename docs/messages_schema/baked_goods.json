@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "baked_goods": {
+      "type": "array",
+      "items": [
+        {
+          "type": "object",
+          "properties": {
+            "customer_id": {
+              "type": "string"
+            },
+            "list_products": {
+              "type": "array",
+              "items": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            }
+          },
+          "required": [
+            "customer_id",
+            "list_products"
+          ]
+        }
+      ]
+    }
+  },
+  "required": [
+    "baked_goods"
+  ]
+}
