@@ -1,11 +1,5 @@
 package org.mas_maas.agents;
 
-
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Random;
-import java.util.Vector;
-
 import jade.content.lang.Codec;
 import jade.content.lang.sl.SLCodec;
 import jade.content.onto.basic.Action;
@@ -25,6 +19,13 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import org.json.JSONObject;
 import org.json.JSONArray;
+
+import jade.core.Runtime;
+import jade.core.Profile;
+import jade.core.ProfileImpl;
+import jade.wrapper.*;
+
+
 // import org.json.JSONParser;
 
 @SuppressWarnings("serial")
@@ -34,6 +35,8 @@ public class Scheduler extends Agent {
     private int nTaskManagers= 0;
     // orderMessage received from the OrderProcessingAgent. (In this case just one. TODO: have an array of received orderMessages)
     private String orderMessage;
+    private AgentContainer ac = null;
+    private AgentController taskManager = null;
 
     // Agent initialization
     protected void setup() {
@@ -50,8 +53,23 @@ public class Scheduler extends Agent {
            protected void onTick() {
 
                if (incomingOrder) {
-                   System.out.println("Creating TaskManager");
+                   System.out.println("Creating taskManager");
                    incomingOrder = false;
+
+                   // TODO get names dynamically. Probably link the name with the order id or with the number of existent TaskManagers
+                   String agentName = "taskManager";
+
+                   try {
+    				// create agent taskManager on the same container of the creator agent
+    				AgentContainer container = (AgentContainer)getContainerController(); // get a container controller for creating new agents
+    				taskManager = container.createNewAgent(agentName, "org.mas_maas.agents.TaskManager", null);
+    				taskManager.start();
+
+    				System.out.println(getLocalName()+" created and started:"+ taskManager + " ON CONTAINER "+container.getContainerName());
+    			} catch (Exception any) {
+    				any.printStackTrace();
+    			}
+
 
                }
            }
