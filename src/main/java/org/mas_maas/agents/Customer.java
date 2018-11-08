@@ -14,63 +14,59 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-
+import org.json.JSONObject;
+import org.json.JSONArray;
+// import org.json.JSONParser;
 
 @SuppressWarnings("serial")
 public class Customer extends Agent {
-    // catalogue of breads from which the customer can select from
-    private List<String> catalogueBreads;
 
-    // Bread for which the agent will place an order
-    private List<String> targetBreads;
-    private int nTargetBreads = 1;
-
-    // Orders placed by the customer
-    private List<String> ordersPlaced;
     // The list of known OrderProcessing Agents
     private AID [] orderProcessingAgents;
+    private int nOrders = 1;
+    private int nOrdersPlaced = 0;
 
     protected void setup() {
         // Welcome message
         System.out.println(getAID().getLocalName() + " is ready.");
 
-        initializecatalogueBreads();
-        initializeTargetBreads();
+        // Create order message
+        String orderMessage;
+        JSONObject order = new JSONObject();
+        order.put("customer_id","001");
+        order.put("order_date","12.04");
+        order.put("delivery_date", "13.04");
 
-        ordersPlaced = new Vector<>();
+        JSONArray list_products = new JSONArray();
+        JSONObject products =  new JSONObject();
+        products.put("Bagel", 2);
+        products.put("Berliner", 5);
+        list_products.put(products);
 
-        System.out.println(getAID().getName() + " will place an order for  " + targetBreads);
+        order.put("list_products", list_products);
+        orderMessage = order.toString();
 
-        // Register the customer in the yellow pages with the service "breadbuying"
+        System.out.println(getAID().getName() + " will place the order " + orderMessage);
+
+        // Register the customer in the yellow pages with the service "customer"
         registerCustomer();
 
-        // Add a TickerBehaviour for an order
-        for (String targetBread : targetBreads) {
-            addBehaviour(new TickerBehaviour(this, 2000) {
-                protected void onTick() {
-                    System.out.println(getAID().getLocalName() + "is placing an order for " + targetBread);
+        // Add a TickerBehaviour for the order message
+        addBehaviour(new TickerBehaviour(this, 2000) {
+            protected void onTick() {
+                System.out.println(getAID().getLocalName() + " is placing an order");
 
-                    // Update order processing agents
-                    getOrderProcessingAgents(myAgent);
+                // Update order processing agents
+                getOrderProcessingAgents(myAgent);
 
-                    if(ordersPlaced.contains(targetBread)){
-                        System.out.println(getAID().getLocalName() + " has placed and order for" + targetBread);
-                        printordersPlaced();
-                        // Check the number of orders placed so far
-                        checkNOrders();
-                        // Stop the TickerBehaviour that is trying to place an order for targetBread
-                        stop();
-                    }
-                    else{
-                        // Perform the request
-                        myAgent.addBehaviour(new PlaceOrder(targetBread));
+                // Check the number of orders placed so far
+                checkNOrders();
 
-                    }
-                }
+                // Perform the request
+                myAgent.addBehaviour(new PlaceOrder(orderMessage));
+            }
 
-            } );
-
-        }
+        } );
 
         try {
              Thread.sleep(3000);
@@ -80,9 +76,9 @@ public class Customer extends Agent {
     }
 
     public void checkNOrders(){
-        if(ordersPlaced.size() == nTargetBreads)
+        if(nOrdersPlaced == nOrders)
         {
-            System.out.println(getAID().getLocalName() + " has places " + ordersPlaced.size() + " orders");
+            System.out.println(getAID().getLocalName() + " has placed " + nOrdersPlaced + " orders");
             // Stop this agent
             doDelete();
         }
@@ -100,12 +96,12 @@ public class Customer extends Agent {
     }
 
     public void registerCustomer(){
-        // Register the bread-buying service in the yellow pages
+        // Register the customer service in the yellow pages
         DFAgentDescription dfd = new DFAgentDescription();
         dfd.setName(getAID());
 
         ServiceDescription sd = new ServiceDescription();
-        sd.setType("bread-buying");
+        sd.setType("customer");
         sd.setName("JADE-bakery");
         dfd.addServices(sd);
 
@@ -126,7 +122,7 @@ public class Customer extends Agent {
         template.addServices(sd);
         try {
             DFAgentDescription [] result = DFService.search(myAgent, template);
-            System.out.println("Found the following seller agents:");
+            System.out.println("Found the following order processing agents:");
             orderProcessingAgents = new AID [result.length];
 
             for (int i = 0; i < result.length; ++i) {
@@ -141,47 +137,19 @@ public class Customer extends Agent {
 
     }
 
-    public void printordersPlaced(){
-        System.out.println("Agent"+ getAID().getLocalName()+" placed an order for:");
-        System.out.println(ordersPlaced);
-    }
-
-    public void initializecatalogueBreads(){
-        catalogueBreads = new Vector<>();
-        catalogueBreads.add("Bagel");
-        catalogueBreads.add("Donut");
-        catalogueBreads.add("Berliner");
-        catalogueBreads.add("Baguette");
-    }
-
-    protected void initializeTargetBreads(){
-        targetBreads = new Vector<>();
-        Random rand = new Random();
-
-        // Get a random index of the catalogueBreads until the target books has nTargetBreads
-        while(targetBreads.size()< nTargetBreads){
-            int randomIndex = rand.nextInt(catalogueBreads.size());
-            boolean titleInTargetBreads = targetBreads.contains(catalogueBreads.get(randomIndex));
-            if (!titleInTargetBreads)
-                targetBreads.add(catalogueBreads.get(randomIndex));
-        }
-
-    }
-
     /**
        Inner class PlaceOrder.
        This is the behaviour used by a Customer to place an order
      */
     private class PlaceOrder extends Behaviour {
-        private AID bestSeller; // The agent who provides the best offer
-        private int bestPrice;  // The best offered price
-        private int repliesCnt = 0; // The counter of replies from seller agents
+        private AID orderProcesser; // The agent who provides the first confirmation
+        private int repliesCnt = 0; // The counter of replies from order processing agents
         private MessageTemplate mt; // The template to receive replies
         private int step = 0;
-        private String targetBread;
+        private String orderMessage;
 
-        public PlaceOrder(String targetBread){
-            this.targetBread = targetBread;
+        public PlaceOrder(String orderMessage){
+            this.orderMessage = orderMessage;
         }
 
         public void action() {
@@ -192,7 +160,7 @@ public class Customer extends Agent {
                 for (int i = 0; i < orderProcessingAgents.length; ++i) {
                     cfp.addReceiver(orderProcessingAgents[i]);
                 }
-                cfp.setContent(targetBread);
+                cfp.setContent(orderMessage);
                 cfp.setConversationId("place-order");
                 cfp.setReplyWith("cfp"+System.currentTimeMillis()); // Unique value
                 myAgent.send(cfp);
@@ -209,55 +177,17 @@ public class Customer extends Agent {
                     // Reply received
                     if (reply.getPerformative() == ACLMessage.PROPOSE) {
                         // This is an offer
-                        int price = Integer.parseInt(reply.getContent());
-                        if (bestSeller == null || price < bestPrice) {
-                            // This is the best offer at present
-                            bestPrice = price;
-                            bestSeller = reply.getSender();
-                        }
+                        // Get the sender of the first confirmation message
+                        orderProcesser = reply.getSender();
                     }
                     repliesCnt++;
                     if (repliesCnt >= orderProcessingAgents.length) {
                         // We received all replies
+                        System.out.println("Agent "+getAID().getLocalName()+ " received a confirmation from " + reply.getSender().getLocalName());
+                        nOrdersPlaced +=1;
                         step = 2;
+                        break;
                     }
-                }
-                else {
-                    block();
-                }
-                break;
-
-            case 2:
-                // Send the purchase order to the seller that provided the best offer
-                ACLMessage order = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
-                order.addReceiver(bestSeller);
-                order.setContent(targetBread);
-                order.setConversationId("place-order");
-                order.setReplyWith("order"+System.currentTimeMillis());
-                myAgent.send(order);
-                // Prepare the template to get the purchase order reply
-                mt = MessageTemplate.and(MessageTemplate.MatchConversationId("place-order"),
-                        MessageTemplate.MatchInReplyTo(order.getReplyWith()));
-                step = 3;
-                break;
-
-            case 3:
-                // Receive the purchase order reply
-                reply = myAgent.receive(mt);
-                if (reply != null) {
-                    // Purchase order reply received
-                    if (reply.getPerformative() == ACLMessage.INFORM) {
-                        // Purchase successful. We can terminate
-                        System.out.println("Agent "+getAID().getLocalName()+ " successfully purchased "+ targetBread+ " from agent "+reply.getSender().getLocalName());
-                        System.out.println("Bought at price = "+bestPrice);
-                        ordersPlaced.add(targetBread);
-                        //myAgent.doDelete();
-                    }
-                    else {
-                        System.out.println("Attempt failed: requested book already sold.");
-                    }
-
-                    step = 4;
                 }
                 else {
                     block();
@@ -272,10 +202,7 @@ public class Customer extends Agent {
         }
 
         public boolean done() {
-            if (step == 2 && bestSeller == null) {
-                System.out.println("Attempt failed: "+targetBread+" not available");
-            }
-            return ((step == 2 && bestSeller == null) || step == 4);
+            return (step == 2);
         }
     }  // End of inner class PlaceOrder
 }

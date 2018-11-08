@@ -25,11 +25,12 @@ import jade.domain.JADEAgentManagement.JADEManagementOntology;
 import jade.domain.JADEAgentManagement.ShutdownPlatform;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import org.json.JSONObject;
+import org.json.JSONArray;
+// import org.json.JSONParser;
 
 @SuppressWarnings("serial")
 public class OrderProcessing extends Agent {
-    // The catalog of breads
-    private Hashtable<String, Integer> catalogBreads;
 
     // The list of known Customer Agents
     private AID [] Customers;
@@ -39,17 +40,10 @@ public class OrderProcessing extends Agent {
 
         System.out.println(getAID().getLocalName() + " is ready.");
 
-        initializeCatalogue();
-
-        System.out.println(getAID().getLocalName() + "(bread, price): " + catalogBreads);
-
         registerOrderProcessing();
 
         // Add the behavior serving queries from customer agents
         addBehaviour(new OfferRequestsServer());
-
-        // Add the behavior serving purchase orders from buyer agents
-        addBehaviour(new PurchaseOrdersServer());
 
         try {
             Thread.sleep(3000);
@@ -61,7 +55,7 @@ public class OrderProcessing extends Agent {
             protected void onTick() {
                 getCustomers(myAgent);
                 if(Customers.length == 0){
-                    System.out.println("There are no buyers... terminating");
+                    System.out.println("There are no customers... terminating");
                     addBehaviour(new shutdown());
                 }
             }
@@ -93,7 +87,7 @@ public class OrderProcessing extends Agent {
         DFAgentDescription template = new DFAgentDescription();
         ServiceDescription sd = new ServiceDescription();
 
-        sd.setType("bread-buying");
+        sd.setType("customer");
         template.addServices(sd);
         try {
             DFAgentDescription [] result = DFService.search(myAgent, template);
@@ -119,33 +113,10 @@ public class OrderProcessing extends Agent {
         System.out.println(getAID().getLocalName() + ": Terminating.");
     }
 
-    protected void initializeCatalogue(){
-        List<String> breads = new Vector<>();
-        Random rand = new Random();
-
-        breads.add("Bagel");
-        breads.add("Donut");
-        breads.add("Berliner");
-        breads.add("Baguette");
-
-        // Create the catalog of books
-        catalogBreads = new Hashtable<String, Integer>();
-
-        // Fill in the catalog of breads.
-        // The price is an int random number between 1 and 3
-        for (int i=0; i<breads.size(); i++){
-            int price = rand.nextInt(3) +1;
-            catalogBreads.put(breads.get(i),price);
-        }
-    }
-
-
     /**
        Inner class OfferRequestsServer.
        This is the behaviour used by OrderProcessing agents to serve incoming orders from Customers.
-       If the bread requested is in the catalog, the OrderProcessing replies
-       with a PROPOSE message specifying the price. Otherwise a REFUSE message is
-       sent back.
+       Sends a confirmation message to the customer.
      */
     private class OfferRequestsServer extends CyclicBehaviour {
 
@@ -157,50 +128,15 @@ public class OrderProcessing extends Agent {
                 String order = msg.getContent();
                 ACLMessage reply = msg.createReply();
 
-                // Check if ordered bread exists in catalogBreads
-                boolean breadIncatalogBreads = catalogBreads.containsKey(order);
-
-                Integer price = (Integer) 0;
-
-                // Get the price for the bread
-                if  (breadIncatalogBreads){
-                    price = (Integer) catalogBreads.get(order);
-                    reply.setPerformative(ACLMessage.PROPOSE);
-                    reply.setContent(String.valueOf(price.intValue()));
-                }
-                else {
-                    // The requested bread is NOT available for sale.
-                    reply.setPerformative(ACLMessage.REFUSE);
-                    reply.setContent("not-available");
-                }
-
-                myAgent.send(reply);
-            }
-            else {
-                block();
-            }
-        }
-    }  // End of inner class OfferRequestsServer
-
-    /**
-       Inner class PurchaseOrdersServer.
-       This is the behaviour used by OrderProcessingr agents to serve incoming
-       offer acceptances (i.e. purchase orders) from Customer agents.
-
-       The OrderProcessing replies with an INFORM message to notify the buyer that the
-       purchase has been sucesfully completed.
-     */
-    private class PurchaseOrdersServer extends CyclicBehaviour {
-        public void action() {
-            MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL);
-            ACLMessage msg = myAgent.receive(mt);
-            if (msg != null) {
-                // ACCEPT_PROPOSAL Message received. Process it
-                String order = msg.getContent();
-                ACLMessage reply = msg.createReply();
-
-                reply.setPerformative(ACLMessage.INFORM);
-                System.out.println("Confirm order "+order+"from"+ msg.getSender().getName());
+                // Create confirmation message
+                String confirmationMessage;
+                JSONObject confirmation = new JSONObject();
+                confirmation.put("accept", true);
+                // confirmation.put("customer_id","001");
+                confirmationMessage = confirmation.toString();
+                // Send confirmation message
+                reply.setPerformative(ACLMessage.PROPOSE);
+                reply.setContent(confirmationMessage);
 
                 myAgent.send(reply);
             }
