@@ -8,6 +8,7 @@ import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.TickerBehaviour;
+import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -52,7 +53,7 @@ public class Customer extends Agent {
         registerCustomer();
 
         // Add a TickerBehaviour for the order message
-        addBehaviour(new TickerBehaviour(this, 2000) {
+        addBehaviour(new TickerBehaviour(this, 100) {
             protected void onTick() {
                 // Check the number of orders placed so far
                 if(nOrdersPlaced == nOrders){
@@ -70,6 +71,7 @@ public class Customer extends Agent {
             }
 
         } );
+        addBehaviour(new ReceiveGoods());
 
         try {
              Thread.sleep(3000);
@@ -208,4 +210,22 @@ public class Customer extends Agent {
             return (step == 2);
         }
     }  // End of inner class PlaceOrder
+
+    private class ReceiveGoods extends CyclicBehaviour {
+        String bakedGoodMessage;
+
+        public void action() {
+            MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
+            ACLMessage msg = myAgent.receive(mt);
+            if (msg != null) {
+                // CFP Message received. Process it
+                bakedGoodMessage = msg.getContent();
+				System.out.println(getAID().getLocalName() + " received" + bakedGoodMessage);
+                doDelete();
+            }
+            else {
+                block();
+            }
+        }
+    }  // End of inner class OrderRequestsServer
 }

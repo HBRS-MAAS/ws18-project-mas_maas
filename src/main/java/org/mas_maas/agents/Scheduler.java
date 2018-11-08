@@ -60,16 +60,26 @@ public class Scheduler extends Agent {
                    String agentName = "taskManager";
 
                    try {
+
     				// create agent taskManager on the same container of the creator agent
     				AgentContainer container = (AgentContainer)getContainerController(); // get a container controller for creating new agents
     				taskManager = container.createNewAgent(agentName, "org.mas_maas.agents.TaskManager", null);
     				taskManager.start();
 
-    				System.out.println(getLocalName()+" created and started:"+ taskManager + " ON CONTAINER "+container.getContainerName());
+    				System.out.println(getLocalName()+" created and started: "+ taskManager + " on container "+container.getContainerName());
     			} catch (Exception any) {
     				any.printStackTrace();
     			}
 
+                //Send the orderMessage to the TaskManager
+
+                ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+			    msg.setContent(orderMessage);
+			    msg.addReceiver(new AID(agentName, AID.ISLOCALNAME));
+
+    			send(msg);
+    			System.out.println(getLocalName()+" sent order message" + orderMessage + "to " +taskManager);
+                doDelete();
 
                }
            }
@@ -125,7 +135,7 @@ public class Scheduler extends Agent {
             ACLMessage msg = myAgent.receive(mt);
             if (msg != null) {
                 // CFP Message received. Process it
-                String order = msg.getContent();
+                orderMessage = msg.getContent();
                 ACLMessage reply = msg.createReply();
                 System.out.println(getAID().getLocalName() + " received an order request");
                 incomingOrder = true;

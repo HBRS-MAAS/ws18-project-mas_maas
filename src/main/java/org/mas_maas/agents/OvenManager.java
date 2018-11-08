@@ -19,13 +19,13 @@ import org.json.JSONArray;
 
 
 @SuppressWarnings("serial")
-public class DoughMaker extends Agent {
-	private String doughOrderMessage;
+public class OvenManager extends Agent {
+	private String bakingOrderMessage;
 
 	protected void setup() {
 	// Printout a welcome message
 		System.out.println(getAID().getLocalName() + " is ready.");
-		registerDoughMaker();
+		registerOvenManager();
 		// Add the behavior serving order requests
         addBehaviour(new OrderRequestsServer());
 
@@ -41,13 +41,13 @@ public class DoughMaker extends Agent {
 		System.out.println(getAID().getLocalName() + ": Terminating.");
 	}
 
-	public void registerDoughMaker(){
+	public void registerOvenManager(){
         // Register the customer service in the yellow pages
         DFAgentDescription dfd = new DFAgentDescription();
         dfd.setName(getAID());
 
         ServiceDescription sd = new ServiceDescription();
-        sd.setType("dough-maker");
+        sd.setType("oven-manager");
         sd.setName("JADE-bakery");
         dfd.addServices(sd);
 
@@ -66,9 +66,9 @@ public class DoughMaker extends Agent {
             ACLMessage msg = myAgent.receive(mt);
             if (msg != null) {
                 // CFP Message received. Process it
-                doughOrderMessage = msg.getContent();
+                bakingOrderMessage = msg.getContent();
                 ACLMessage reply = msg.createReply();
-                System.out.println(getAID().getLocalName() + " received the doughOrderMessage" + doughOrderMessage);
+                System.out.println(getAID().getLocalName() + " received the baking order message" + bakingOrderMessage);
 
                 // Create notification message
                 String notificationMessage;

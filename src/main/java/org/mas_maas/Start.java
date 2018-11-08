@@ -10,6 +10,9 @@ public class Start {
         agents.add("Customer:org.mas_maas.agents.Customer");
         agents.add("OrderProcessing:org.mas_maas.agents.OrderProcessing");
         agents.add("Scheduler:org.mas_maas.agents.Scheduler");
+        agents.add("DoughMaker:org.mas_maas.agents.DoughMaker");
+        agents.add("OvenManager:org.mas_maas.agents.OvenManager");
+        agents.add("DeliveryManager:org.mas_maas.agents.DeliveryManager");
 
         List<String> cmd = new Vector<>();
         cmd.add("-agents");
