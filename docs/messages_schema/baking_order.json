@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "baking_order": {
+      "type": "array",
+      "items": [
+        {
+          "type": "object",
+          "properties": {
+            "product_type": {
+              "type": "integer"
+            },
+            "quantity": {
+              "type": "integer"
+            },
+            "backing_temperature": {
+              "type": "number"
+            },
+            "cooling_rate": {
+              "type": "number"
+            },
+            "backing_time": {
+              "type": "number"
+            },
+            "customer_id": {
+              "type": "string"
+            },
+            "quantity_per_slot": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "product_type",
+            "quantity",
+            "backing_temperature",
+            "cooling_rate",
+            "backing_time",
+            "customer_id",
+            "quantity_per_slot"
+          ]
+        }
+      ]
+    }
+  },
+  "required": [
+    "baking_order"
+  ]
+}

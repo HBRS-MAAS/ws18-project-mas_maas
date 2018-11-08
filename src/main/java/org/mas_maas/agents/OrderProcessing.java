@@ -13,6 +13,7 @@ import jade.content.lang.sl.SLCodec;
 import jade.content.onto.basic.Action;
 import jade.core.AID;
 import jade.core.Agent;
+import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.TickerBehaviour;
@@ -25,31 +26,55 @@ import jade.domain.JADEAgentManagement.JADEManagementOntology;
 import jade.domain.JADEAgentManagement.ShutdownPlatform;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import org.json.JSONObject;
+import org.json.JSONArray;
+// import org.json.JSONParser;
 
 @SuppressWarnings("serial")
 public class OrderProcessing extends Agent {
-    // The catalog of breads
-    private Hashtable<String, Integer> catalogBreads;
 
     // The list of known Customer Agents
-    private AID [] Customers;
+    private AID [] customers;
+    // The list of known OrderProcessing Agents
+    private AID [] schedulerAgents;
+    private int nIncomingOrders = 0;
+    private int nSentOrders = 0;
+    // orderMessage received from the customer. (In this case just one. TODO: have an array of received orderMessages)
+    private String orderMessage;
 
     // Agent initialization
     protected void setup() {
 
         System.out.println(getAID().getLocalName() + " is ready.");
 
-        initializeCatalogue();
-
-        System.out.println(getAID().getLocalName() + "(bread, price): " + catalogBreads);
-
         registerOrderProcessing();
 
         // Add the behavior serving queries from customer agents
-        addBehaviour(new OfferRequestsServer());
+        addBehaviour(new OrderRequestsServer());
 
-        // Add the behavior serving purchase orders from buyer agents
-        addBehaviour(new PurchaseOrdersServer());
+         // Add a TickerBehaviour to send an order to the scheduler
+        addBehaviour(new TickerBehaviour(this, 2000) {
+            protected void onTick() {
+
+                if (nIncomingOrders > 0) {
+                    // Check the number of orders placed so far
+                    if (checkNOrders())
+                        stop();
+
+                    System.out.println(getAID().getLocalName() + " is sending an order to the scheduler");
+
+                    // Update order scheduler agents
+                    getSchedulerAgents(myAgent);
+
+
+                    // Perform the request
+                    myAgent.addBehaviour(new PlaceOrder(orderMessage));
+                    nIncomingOrders -= 1;
+                }
+            }
+
+        } );
+
 
         try {
             Thread.sleep(3000);
@@ -60,14 +85,24 @@ public class OrderProcessing extends Agent {
         addBehaviour(new TickerBehaviour(this, 2000) {
             protected void onTick() {
                 getCustomers(myAgent);
-                if(Customers.length == 0){
-                    System.out.println("There are no buyers... terminating");
+                if(customers.length == 0){
+                    System.out.println("There are no customers... terminating");
                     addBehaviour(new shutdown());
                 }
             }
 
         } );
 
+    }
+
+    public boolean checkNOrders(){
+        if(nIncomingOrders == nSentOrders)
+        {
+            System.out.println(getAID().getLocalName() + " has placed " + nSentOrders + " orders");
+            // Stop the behaviour
+            return true;
+        }
+        return false;
     }
 
     public void registerOrderProcessing(){
@@ -89,17 +124,39 @@ public class OrderProcessing extends Agent {
     }
 
     public void getCustomers(Agent myAgent){
-        // Update the list of buyer agents
+        // Get agents who provide the service "customer"
         DFAgentDescription template = new DFAgentDescription();
         ServiceDescription sd = new ServiceDescription();
 
-        sd.setType("bread-buying");
+        sd.setType("customer");
         template.addServices(sd);
         try {
             DFAgentDescription [] result = DFService.search(myAgent, template);
-            Customers = new AID [result.length];
+            customers = new AID [result.length];
             for (int i = 0; i < result.length; ++i) {
-                Customers[i] = result[i].getName();
+                customers[i] = result[i].getName();
+            }
+        }
+        catch (FIPAException fe) {
+            fe.printStackTrace();
+        }
+
+    }
+
+    public void getSchedulerAgents(Agent myAgent){
+        // Get agents who provide the service "scheduling"
+        DFAgentDescription template = new DFAgentDescription();
+        ServiceDescription sd = new ServiceDescription();
+
+        sd.setType("scheduling");
+        template.addServices(sd);
+        try {
+            DFAgentDescription [] result = DFService.search(myAgent, template);
+            System.out.println("Found the following scheduling agents:");
+            schedulerAgents= new AID [result.length];
+            for (int i = 0; i < result.length; ++i) {
+                schedulerAgents[i] = result[i].getName();
+                System.out.println(schedulerAgents[i].getName());
             }
         }
         catch (FIPAException fe) {
@@ -119,60 +176,32 @@ public class OrderProcessing extends Agent {
         System.out.println(getAID().getLocalName() + ": Terminating.");
     }
 
-    protected void initializeCatalogue(){
-        List<String> breads = new Vector<>();
-        Random rand = new Random();
-
-        breads.add("Bagel");
-        breads.add("Donut");
-        breads.add("Berliner");
-        breads.add("Baguette");
-
-        // Create the catalog of books
-        catalogBreads = new Hashtable<String, Integer>();
-
-        // Fill in the catalog of breads.
-        // The price is an int random number between 1 and 3
-        for (int i=0; i<breads.size(); i++){
-            int price = rand.nextInt(3) +1;
-            catalogBreads.put(breads.get(i),price);
-        }
-    }
-
-
     /**
-       Inner class OfferRequestsServer.
+       Inner class OrderRequestsServer.
        This is the behaviour used by OrderProcessing agents to serve incoming orders from Customers.
-       If the bread requested is in the catalog, the OrderProcessing replies
-       with a PROPOSE message specifying the price. Otherwise a REFUSE message is
-       sent back.
+       Sends a confirmation message to the customer.
      */
-    private class OfferRequestsServer extends CyclicBehaviour {
+    private class OrderRequestsServer extends CyclicBehaviour {
 
         public void action() {
             MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.CFP);
             ACLMessage msg = myAgent.receive(mt);
             if (msg != null) {
                 // CFP Message received. Process it
-                String order = msg.getContent();
+                orderMessage = msg.getContent();
                 ACLMessage reply = msg.createReply();
+                System.out.println(getAID().getLocalName() + " received an order request");
+                nIncomingOrders += 1;
 
-                // Check if ordered bread exists in catalogBreads
-                boolean breadIncatalogBreads = catalogBreads.containsKey(order);
-
-                Integer price = (Integer) 0;
-
-                // Get the price for the bread
-                if  (breadIncatalogBreads){
-                    price = (Integer) catalogBreads.get(order);
-                    reply.setPerformative(ACLMessage.PROPOSE);
-                    reply.setContent(String.valueOf(price.intValue()));
-                }
-                else {
-                    // The requested bread is NOT available for sale.
-                    reply.setPerformative(ACLMessage.REFUSE);
-                    reply.setContent("not-available");
-                }
+                // Create confirmation message
+                String confirmationMessage;
+                JSONObject confirmation = new JSONObject();
+                confirmation.put("accept", true);
+                // TODO put customer id in the confirmation message
+                confirmationMessage = confirmation.toString();
+                // Send confirmation message
+                reply.setPerformative(ACLMessage.PROPOSE);
+                reply.setContent(confirmationMessage);
 
                 myAgent.send(reply);
             }
@@ -180,56 +209,98 @@ public class OrderProcessing extends Agent {
                 block();
             }
         }
-    }  // End of inner class OfferRequestsServer
+    }  // End of inner class OrderRequestsServer
 
     /**
-       Inner class PurchaseOrdersServer.
-       This is the behaviour used by OrderProcessingr agents to serve incoming
-       offer acceptances (i.e. purchase orders) from Customer agents.
-
-       The OrderProcessing replies with an INFORM message to notify the buyer that the
-       purchase has been sucesfully completed.
+       Inner class PlaceOrder.
+       This is the behaviour used by an OrderProcessing agent to place an order
      */
-    private class PurchaseOrdersServer extends CyclicBehaviour {
+    private class PlaceOrder extends Behaviour {
+        private AID scheduler; // The agent who provides the first confirmation
+        private int repliesCnt = 0; // The counter of replies from order processing agents
+        private MessageTemplate mt; // The template to receive replies
+        private int step = 0;
+        private String orderMessage;
+
+        public PlaceOrder(String orderMessage){
+            this.orderMessage = orderMessage;
+        }
+
         public void action() {
-            MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL);
-            ACLMessage msg = myAgent.receive(mt);
-            if (msg != null) {
-                // ACCEPT_PROPOSAL Message received. Process it
-                String order = msg.getContent();
-                ACLMessage reply = msg.createReply();
+            switch (step) {
+            case 0:
+                // Send the cfp to all schedulerAgents
+                ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
+                for (int i = 0; i < schedulerAgents.length; ++i) {
+                    cfp.addReceiver(schedulerAgents[i]);
+                }
+                cfp.setContent(orderMessage);
+                cfp.setConversationId("place-order");
+                cfp.setReplyWith("cfp"+System.currentTimeMillis()); // Unique value
+                myAgent.send(cfp);
+                // Prepare the template to get proposals
+                mt = MessageTemplate.and(MessageTemplate.MatchConversationId("place-order"),
+                        MessageTemplate.MatchInReplyTo(cfp.getReplyWith()));
+                step = 1;
+                break;
 
-                reply.setPerformative(ACLMessage.INFORM);
-                System.out.println("Confirm order "+order+"from"+ msg.getSender().getName());
+            case 1:
+                // Receive all proposals/refusals from seller agents
+                ACLMessage reply = myAgent.receive(mt);
+                if (reply != null) {
+                    // Reply received
+                    if (reply.getPerformative() == ACLMessage.PROPOSE) {
+                        // This is an offer
+                        // Get the sender of the first confirmation message
+                        scheduler = reply.getSender();
+                    }
+                    repliesCnt++;
+                    if (repliesCnt >= schedulerAgents.length) {
+                        // We received all replies
+                        System.out.println("Agent "+getAID().getLocalName()+ " received a confirmation from " + reply.getSender().getLocalName());
+                        nSentOrders +=1;
+                        step = 2;
+                        break;
+                    }
+                }
+                else {
+                    block();
+                }
+                break;
 
-                myAgent.send(reply);
-            }
-            else {
-                block();
+            default:
+                System.out.println("INVALID CASE!");
+                break;
+
             }
         }
-    }  // End of inner class OfferRequestsServer
 
-    // Taken from http://www.rickyvanrijn.nl/2017/08/29/how-to-shutdown-jade-agent-platform-programmatically/
-    private class shutdown extends OneShotBehaviour{
-        public void action() {
-            ACLMessage shutdownMessage = new ACLMessage(ACLMessage.REQUEST);
-            Codec codec = new SLCodec();
+        public boolean done() {
+            return (step == 2);
+        }
+    }  // End of inner class PlaceOrder
 
-            myAgent.getContentManager().registerLanguage(codec);
-            myAgent.getContentManager().registerOntology(JADEManagementOntology.getInstance());
-            shutdownMessage.addReceiver(myAgent.getAMS());
-            shutdownMessage.setLanguage(FIPANames.ContentLanguage.FIPA_SL);
-            shutdownMessage.setOntology(JADEManagementOntology.getInstance().getName());
 
-            try {
-                myAgent.getContentManager().fillContent(shutdownMessage,new Action(myAgent.getAID(), new ShutdownPlatform()));
-                myAgent.send(shutdownMessage);
+        // Taken from http://www.rickyvanrijn.nl/2017/08/29/how-to-shutdown-jade-agent-platform-programmatically/
+        private class shutdown extends OneShotBehaviour{
+            public void action() {
+                ACLMessage shutdownMessage = new ACLMessage(ACLMessage.REQUEST);
+                Codec codec = new SLCodec();
+
+                myAgent.getContentManager().registerLanguage(codec);
+                myAgent.getContentManager().registerOntology(JADEManagementOntology.getInstance());
+                shutdownMessage.addReceiver(myAgent.getAMS());
+                shutdownMessage.setLanguage(FIPANames.ContentLanguage.FIPA_SL);
+                shutdownMessage.setOntology(JADEManagementOntology.getInstance().getName());
+
+                try {
+                    myAgent.getContentManager().fillContent(shutdownMessage,new Action(myAgent.getAID(), new ShutdownPlatform()));
+                    myAgent.send(shutdownMessage);
+                }
+                catch (Exception e) {
+                    //LOGGER.error(e);
+                }
+
             }
-            catch (Exception e) {
-                //LOGGER.error(e);
-            }
-
         }
     }
-}
