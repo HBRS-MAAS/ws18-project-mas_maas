@@ -9,6 +9,7 @@ public class Start {
         List<String> agents = new Vector<>();
         agents.add("Customer:org.mas_maas.agents.Customer");
         agents.add("OrderProcessing:org.mas_maas.agents.OrderProcessing");
+        agents.add("Scheduler:org.mas_maas.agents.Scheduler");
 
         List<String> cmd = new Vector<>();
         cmd.add("-agents");

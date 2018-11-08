@@ -54,16 +54,19 @@ public class Customer extends Agent {
         // Add a TickerBehaviour for the order message
         addBehaviour(new TickerBehaviour(this, 2000) {
             protected void onTick() {
-                System.out.println(getAID().getLocalName() + " is placing an order");
-
-                // Update order processing agents
-                getOrderProcessingAgents(myAgent);
-
                 // Check the number of orders placed so far
-                checkNOrders();
+                if(nOrdersPlaced == nOrders){
+                    System.out.println(getAID().getLocalName() + " has placed " + nOrdersPlaced + " orders");
+                    stop();
+                }
+                else{
+                    System.out.println(getAID().getLocalName() + " is placing an order");
+                    // Update order processing agents
+                    getOrderProcessingAgents(myAgent);
+                    // Perform the request
+                    myAgent.addBehaviour(new PlaceOrder(orderMessage));
+                }
 
-                // Perform the request
-                myAgent.addBehaviour(new PlaceOrder(orderMessage));
             }
 
         } );
@@ -75,13 +78,13 @@ public class Customer extends Agent {
          }
     }
 
-    public void checkNOrders(){
+    public boolean checkNOrders(){
         if(nOrdersPlaced == nOrders)
         {
             System.out.println(getAID().getLocalName() + " has placed " + nOrdersPlaced + " orders");
-            // Stop this agent
-            doDelete();
+            return true;
         }
+        return false;
     }
 
     protected void takeDown() {
@@ -183,7 +186,7 @@ public class Customer extends Agent {
                     repliesCnt++;
                     if (repliesCnt >= orderProcessingAgents.length) {
                         // We received all replies
-                        System.out.println("Agent "+getAID().getLocalName()+ " received a confirmation from " + reply.getSender().getLocalName());
+                        System.out.println("Agent "+getAID().getLocalName()+ " received a confirmation from " + orderProcesser.getLocalName());
                         nOrdersPlaced +=1;
                         step = 2;
                         break;
