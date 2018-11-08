@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "notifications": {
+      "type": "array",
+      "items": [
+        {
+          "type": "object",
+          "properties": {
+            "order_finished": {
+              "type": "boolean"
+            },
+            "product_type": {
+              "type": "integer"
+            },
+            "customer_id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "order_finished",
+            "product_type",
+            "customer_id"
+          ]
+        }
+      ]
+    }
+  },
+  "required": [
+    "notifications"
+  ]
+}

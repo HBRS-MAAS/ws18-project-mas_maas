@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "dough_order": {
+      "type": "array",
+      "items": [
+        {
+          "type": "object",
+          "properties": {
+            "product_type": {
+              "type": "integer"
+            },
+            "preparation_time": {
+              "type": "string"
+            },
+            "volume": {
+              "type": "number"
+            },
+            "resting_time": {
+              "type": "number"
+            },
+            "customer_id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "product_type",
+            "preparation_time",
+            "volume",
+            "resting_time",
+            "customer_id"
+          ]
+        }
+      ]
+    }
+  },
+  "required": [
+    "dough_order"
+  ]
+}
