@@ -1,0 +1,13 @@
+{
+   "baking_order":[
+      {
+         "product_type":1,
+         "quantity": 5,
+         "backing_temperature": 100.0,
+         "cooling_rate": 1.3,
+         "backing_time": 45.5,
+         "customer_id": "001",
+         "quantity_per_slot": 10
+      }
+   ]
+}
