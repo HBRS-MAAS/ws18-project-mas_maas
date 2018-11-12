@@ -1,9 +1,0 @@
-{
-   "notifications":[
-      {
-          "order_finished": true,
-         "product_type": 1,
-         "customer_id": "001"
-      }
-   ]
-}
