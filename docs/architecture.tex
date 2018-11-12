@@ -14,7 +14,7 @@
 	\section{Worflow of the system}
 	
 	\begin{figure}[h!]
-		\includegraphics[scale=0.4]{img/architecture-pipeline.png}
+		\includegraphics[scale=0.4]{img/architecture-workflow.png}
 		\caption{Workflow of the architecture.}
 		\label{fig: WF}
 	\end{figure}
@@ -162,4 +162,49 @@
 	 \end{figure}
 	
 	The Figure \ref{fig: ob} helps to illustrate the different objects that constitute our architecture, as well as the different attributes that are assigned to each of the objects. 
+	
+	\section{Visualization}
+	
+	\subsection{Overview}
+	
+	\begin{itemize}
+		\item Two part approach: 
+		\begin{itemize}
+			\item ``Live" visualization 
+			\item ``Historical Recreation" visualization
+		\end{itemize}
+		\item Focuses on showing information useful for debugging.
+		\item Not intended for end users but developers.
+	\end{itemize}
+	
+	\subsection{Live Visualization}
+	
+	\begin{itemize}
+		\item A ``main" window can be used to represent all agents (and objects) that are defined at run time.
+		\item Most notably this includes the Scheduler and Order Processor but also includes the Dough Maker, Oven Manager, and Delivery Manager.
+		\item Dynamic objects such as the Task Manager or Customers will be itemized by guid and name and when clicked on can be expanded (or popped out) into another window.
+		\item These windows will be updated as task proceed.
+		\item When dynamic objects no longer exist their windows will not be closed but updated to reflect their terminated status.
+	\end{itemize}
+	
+	\subsection{Historical Recreation}
+	
+	\begin{itemize}
+	\item Do to the fast an chaotic nature of real time running, the ability to recreate a simulation is desired.
+	\item Recreating a simulation can be done by storing the initial state of all our agents and recording messages as they are passed.
+	\item Assuming this is done, a type of debug mode can be designed that allows for stepping through the simulation message by message.
+	\item The live visualization code can be used to display the object states.
+	\item Simulation can be advanced by 1 to n number of messages.
+	\end{itemize}
+	
+	\subsection{Library Choice}
+	
+	\begin{itemize}
+	\item Initially test of visualization can be done using a terminal output but this will quickly become unruly as the size of the simulation scales.
+	\item A GUI is therefore desired which should not only be easy to use, but common as to allow for quick design and setup.
+	\item It is for these reason Swing is proposed.
+	\item Swing is an extremely common toolkit for GUI development and is used in industry.
+	\item Seeing as Swing is used in industry there are many resources for development and debugging.
+	\end{itemize}
+	
 \end{document}
