@@ -25,6 +25,6 @@
 ### Library Choice
 - Initially test of visualization can be done using a terminal output but this will quickly become unruly as the size of the simulation scales
 - A GUI is therefore desired which should not only be easy to use, but common as to allow for quick design and setup
-- It is for these reason Swing is purposed.
-- Swing is very an extremely common toolkit for GUI development and is used in industry
+- It is for these reason Swing is proposed
+- Swing is an extremely common toolkit for GUI development and is used in industry
 - Seeing as Swing is used in industry there are many resources for development and debugging
