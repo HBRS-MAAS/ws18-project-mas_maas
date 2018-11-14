@@ -1,23 +1,20 @@
 package org.mas_maas.agents;
 
-import java.util.List;
-import java.util.Random;
-import java.util.Vector;
+import org.json.JSONArray;
+// import org.json.JSONParser;
+import org.json.JSONObject;
 
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
-import jade.core.behaviours.TickerBehaviour;
 import jade.core.behaviours.CyclicBehaviour;
+import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-import org.json.JSONObject;
-import org.json.JSONArray;
-// import org.json.JSONParser;
 
 @SuppressWarnings("serial")
 public class Customer extends Agent {
@@ -220,7 +217,7 @@ public class Customer extends Agent {
             if (msg != null) {
                 // CFP Message received. Process it
                 bakedGoodMessage = msg.getContent();
-				System.out.println(getAID().getLocalName() + " received" + bakedGoodMessage);
+                System.out.println(getAID().getLocalName() + " received" + bakedGoodMessage);
                 doDelete();
             }
             else {

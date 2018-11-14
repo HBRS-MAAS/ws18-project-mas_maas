@@ -5,6 +5,7 @@ import java.util.Vector;
 
 public class Start {
     public static void main(String[] args) {
+        JSONConverter.test_parsing();
 
         List<String> agents = new Vector<>();
         agents.add("Customer:org.mas_maas.agents.Customer");
