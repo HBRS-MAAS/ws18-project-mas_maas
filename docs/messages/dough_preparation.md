@@ -3,7 +3,7 @@
 #### Kneading Request
 - productType [String]
 - kneadingTime [float]
-- guid [Array Strings]
+- guids [Array Strings]
 
 #### Kneading Notification
 - productType [String]
@@ -11,10 +11,10 @@
 
 #### Preparation Request
 - productType [String]
-- productQuantity [Array int]
+- productQuantitys [Array int]
 - restingTime [float]
 - itemPreparationTime [float]
-- guid [Array Strings]
+- guids [Array Strings]
 
 #### Preparation Notification
 - productType [String]
@@ -23,7 +23,7 @@
 #### Proofing Request
 - productType [String]
 - proofingTime [float]
-- guid [Array Strings]
+- guids [Array Strings]
 
 #### Dough Notification Message
 - guid
