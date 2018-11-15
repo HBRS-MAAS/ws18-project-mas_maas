@@ -3,11 +3,11 @@ package org.mas_maas.objects;
 public class Step
 {
     private String action;
-    private int duration;
+    private Float duration;
 
-    public Step(String action, int duration) {
+    public Step(String action, Float duration2) {
         this.action = action;
-        this.duration = duration;
+        this.duration = duration2;
     }
 
     public String getAction() {
@@ -18,11 +18,11 @@ public class Step
         this.action = action;
     }
 
-    public int getDuration() {
+    public Float getDuration() {
         return duration;
     }
 
-    public void setDuration(int duration) {
+    public void setDuration(Float duration) {
         this.duration = duration;
     }
 
