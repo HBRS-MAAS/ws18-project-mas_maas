@@ -7,12 +7,9 @@ public class Start {
     public static void main(String[] args) {
 
         List<String> agents = new Vector<>();
-        agents.add("Customer:org.mas_maas.agents.Customer");
-        agents.add("OrderProcessing:org.mas_maas.agents.OrderProcessing");
-        agents.add("Scheduler:org.mas_maas.agents.Scheduler");
-        agents.add("DoughMaker:org.mas_maas.agents.DoughMaker");
-        agents.add("OvenManager:org.mas_maas.agents.OvenManager");
-        agents.add("DeliveryManager:org.mas_maas.agents.DeliveryManager");
+        agents.add("BakingInterface:org.mas_maas.agents.BakingInterface");
+        agents.add("DoughManager:org.mas_maas.agents.DoughManager");
+        agents.add("Proofer:org.mas_maas.agents.ProoferScheduler");
 
         List<String> cmd = new Vector<>();
         cmd.add("-agents");
