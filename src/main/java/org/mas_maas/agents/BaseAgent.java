@@ -13,14 +13,14 @@ import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 
-public class BaseAgent extends Agent {
+public abstract class BaseAgent extends Agent {
 
 	protected int currentDay;
     protected int currentHour;
     protected boolean allowAction = false;
     protected AID clockAgent = new AID("TimeKeeper", AID.ISLOCALNAME);
     protected BaseAgent baseAgent = this;
-	
+
     /* Setup to add behaviour to talk with clockAgent
      * Call `super.setup()` from `setup()` function
      */
@@ -45,7 +45,7 @@ public class BaseAgent extends Agent {
             fe.printStackTrace();
         }
     }
-    
+
     /* This function removes the agent from yellow pages
      * Call this in `doDelete()` function
      */
