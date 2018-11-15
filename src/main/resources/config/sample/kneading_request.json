@@ -1,6 +1,6 @@
 {
     "productType": "Bagel",
-    "kneading": 1.0,
+    "kneadingTime": 1.0,
     "guids": [
         "PRODUCT_GUID-001",
         "PRODUCT_GUID-002",

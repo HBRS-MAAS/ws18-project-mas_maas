@@ -8,6 +8,8 @@ import org.mas_maas.messages.PreparationRequest;
 import org.mas_maas.objects.Step;
 
 import com.google.gson.Gson;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import jade.core.AID;
 import jade.domain.DFService;
@@ -83,6 +85,10 @@ public class DoughManager extends BaseAgent {
         // Once the preparationTableAgent is ready, the DoughManager will receive a notitication.
         PreparationRequest preparationRequest = new PreparationRequest(productType, guids, productQuantities, steps);
         String preparationRequestString = gson.toJson(preparationRequest);
+
+        // Based on the order, fill in a proofingRequest JSONObject and convert it to string
+        // Send the proofingnRequest to the ProoferAgent
+        // After sending the proofingRequest, the Dough Manager completes the process for the order.
 
         // Based on the order, fill in a proofingRequest JSONObject and convert it to string
         // Send the proofingnRequest to the ProoferAgent

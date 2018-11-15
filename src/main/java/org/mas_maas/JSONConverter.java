@@ -9,6 +9,12 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.Vector;
 
+import org.mas_maas.messages.DoughNotification;
+import org.mas_maas.messages.KneadingNotification;
+import org.mas_maas.messages.KneadingRequest;
+import org.mas_maas.messages.PreparationNotification;
+import org.mas_maas.messages.PreparationRequest;
+import org.mas_maas.messages.ProofingRequest;
 import org.mas_maas.objects.BakedGood;
 import org.mas_maas.objects.Bakery;
 import org.mas_maas.objects.Batch;
@@ -72,13 +78,29 @@ public class JSONConverter
             System.out.println(streetNetwork);
 
             String doughNotificationString = new Scanner(new File(jsonDir + "dough_notification.json")).useDelimiter("\\Z").next();
-            parseDoughNotification(doughNotificationString);
+            DoughNotification doughtNotification = parseDoughNotification(doughNotificationString);
+            System.out.println(doughtNotification);
 
             String kneadingNotificationString = new Scanner(new File(jsonDir + "kneading_notification.json")).useDelimiter("\\Z").next();
-            parseKneadingNotification(kneadingNotificationString);
+            KneadingNotification kneadingNotification = parseKneadingNotification(kneadingNotificationString);
+            System.out.println(kneadingNotification);
 
             String kneadingRequestString = new Scanner(new File(jsonDir + "kneading_request.json")).useDelimiter("\\Z").next();
-            parseKneadingRequest(kneadingRequestString);
+            KneadingRequest kneadingRequest = parseKneadingRequest(kneadingRequestString);
+            System.out.println(kneadingRequest);
+
+            String preparationNotificationString = new Scanner(new File(jsonDir + "preparation_notification.json")).useDelimiter("\\Z").next();
+            PreparationNotification preparationNotification = parsePreparationNotification(preparationNotificationString);
+            System.out.println(preparationNotification);
+
+            String preparationRequestString = new Scanner(new File(jsonDir + "preparation_request.json")).useDelimiter("\\Z").next();
+            PreparationRequest preparationRequest = parsePreparationRequest(preparationRequestString);
+            System.out.println(preparationRequest);
+
+            String proofingRequestString = new Scanner(new File(jsonDir + "proofing_request.json")).useDelimiter("\\Z").next();
+            ProofingRequest proofingRequest = parseProofingRequest(proofingRequestString);
+            System.out.println(proofingRequest);
+
 
 
         } catch (FileNotFoundException e) {
@@ -373,50 +395,61 @@ public class JSONConverter
         return streetNetwork;
     }
 
-    // TODO Everything below is temp and for testing
-    // TODO These need to be integrated into their respective agents
-    public static void parseDoughNotification(String jsonString)
+    public static DoughNotification parseDoughNotification(String jsonString)
     {
         JsonElement root = new JsonParser().parse(jsonString);
         JsonObject json_doughNotification = root.getAsJsonObject();
 
         String guid = json_doughNotification.get("guid").getAsString();
+
+        DoughNotification doughNotification = new DoughNotification(guid);
+        return doughNotification;
     }
 
-    public static void parseKneadingNotification(String jsonString)
+    public static KneadingNotification parseKneadingNotification(String jsonString)
     {
         JsonElement root = new JsonParser().parse(jsonString);
         JsonObject json_kneadingNotification = root.getAsJsonObject();
 
         String productType = json_kneadingNotification.get("productType").getAsString();
         String guid = json_kneadingNotification.get("guid").getAsString();
+
+
+        KneadingNotification kneadingNotification = new KneadingNotification(guid, productType);
+        return kneadingNotification;
     }
 
-    public static void parseKneadingRequest(String jsonString)
+    public static KneadingRequest parseKneadingRequest(String jsonString)
     {
         JsonElement root = new JsonParser().parse(jsonString);
         JsonObject json_kneadingRequest = root.getAsJsonObject();
 
         String productType = json_kneadingRequest.get("productType").getAsString();
-        Float kneading = json_kneadingRequest.get("kneading").getAsFloat();
+        Float kneadingTime = json_kneadingRequest.get("kneadingTime").getAsFloat();
         Vector<String> guids = new Vector<String>();
         JsonArray json_guids = json_kneadingRequest.get("guids").getAsJsonArray();
         for (JsonElement guid : json_guids)
         {
             guids.add(guid.getAsString());
         }
+
+        KneadingRequest kneadingRequest = new KneadingRequest(productType, guids, kneadingTime);
+        return kneadingRequest;
     }
 
-    public static void parsePerparationNotification(String jsonString)
+    public static PreparationNotification parsePreparationNotification(String jsonString)
     {
         JsonElement root = new JsonParser().parse(jsonString);
         JsonObject json_preparationNotification = root.getAsJsonObject();
 
         String productType = json_preparationNotification.get("productType").getAsString();
         String guid = json_preparationNotification.get("guid").getAsString();
+
+        PreparationNotification preparationNotification = new PreparationNotification(guid, productType);
+        return preparationNotification;
     }
 
-    public static void parsePerparationRequest(String jsonString)
+    public static PreparationRequest parsePreparationRequest(String jsonString)
     {
         JsonElement root = new JsonParser().parse(jsonString);
         JsonObject json_preparationRequest = root.getAsJsonObject();
@@ -448,9 +481,12 @@ public class JSONConverter
         {
             guids.add(guid.getAsString());
         }
+
+        PreparationRequest preparationRequest = new PreparationRequest(productType, guids, productQuantities, steps);
+        return preparationRequest;
     }
 
-    public static void parseProofingRequest(String jsonString)
+    public static ProofingRequest parseProofingRequest(String jsonString)
     {
         JsonElement root = new JsonParser().parse(jsonString);
         JsonObject json_proofingRequest = root.getAsJsonObject();
@@ -464,11 +500,8 @@ public class JSONConverter
         {
             guids.add(guid.getAsString());
         }
-    }
 
-    public static String createDoughNotification()
-    {
-        String guid = "GUID-001";
-        return guid;
+        ProofingRequest proofingRequest = new ProofingRequest(productType, guids, proofingTime);
+        return proofingRequest;
     }
 }
