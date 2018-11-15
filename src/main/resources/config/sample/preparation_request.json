@@ -1,6 +1,6 @@
 {
     "productType": "Bagel",
-    "productQuantity": [
+    "productQuantities": [
         10,
         20,
         1
@@ -9,7 +9,7 @@
         { "action": "item preparation", "duration": 1 },
         { "action": "resting", "duration": 2 }
     ],
-    "guid": [
+    "guids": [
         "PRODUCT_GUID-001",
         "PRODUCT_GUID-002",
         "PRODUCT_GUID-003"
