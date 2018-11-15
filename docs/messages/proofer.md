@@ -3,9 +3,9 @@
 #### Order Message
 - customerId [String]
 - guid [String]
-- orderDate [json object]
-- deliveryDate [json object]
-- products [json object]
+- orderDate [JSON object]
+- deliveryDate [JSON object]
+- products [JSON object]
 
 Order Date
 - day [int]
@@ -22,7 +22,7 @@ Product
 -  Muffin: [int]
 -  Bread: [int]
 
-Product is a json object. The key is the name of the product and the value is the quantity of each product type. We base this definition based on the sample json file. This is subject to change if the json message changes.
+Product is a JSON object. The key is the name of the product and the value is the quantity of each product type. We base this definition based on the sample JSON file. This is subject to change if the JSON message changes.
 
 
 ## Output Message

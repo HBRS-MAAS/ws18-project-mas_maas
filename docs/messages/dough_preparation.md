@@ -12,9 +12,12 @@
 #### Preparation Request
 - productType [String]
 - productQuantitys [Array int]
-- restingTime [float]
-- itemPreparationTime [float]
+- steps [Array JSON Objects]
 - guids [Array Strings]
+
+Step
+- action [String]
+- duration [float]
 
 #### Preparation Notification
 - productType [String]
@@ -26,4 +29,4 @@
 - guids [Array Strings]
 
 #### Dough Notification Message
-- guid
+- guid [String]
