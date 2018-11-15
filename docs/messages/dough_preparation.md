@@ -11,7 +11,7 @@
 
 #### Preparation Request
 - productType [String]
-- productQuantitys [Array int]
+- productQuantities [Array int]
 - steps [Array JSON Objects]
 - guids [Array Strings]
 
