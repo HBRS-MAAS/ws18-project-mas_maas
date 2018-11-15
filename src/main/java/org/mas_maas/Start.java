@@ -1,10 +1,10 @@
 package org.mas_maas;
 
-import java.util.List;
 import java.util.Vector;
 
 public class Start {
     public static void main(String[] args) {
+        JSONConverter.test_parsing();
 
         List<String> agents = new Vector<>();
         agents.add("BakingInterface:org.mas_maas.agents.BakingInterface");
