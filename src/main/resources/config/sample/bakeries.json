@@ -29,11 +29,11 @@
               "duration": 1
             },
             {
-              "action": "cooling",
+              "action": "proofing",
               "duration": 1
             },
             {
-              "action": "proofing",
+              "action": "cooling",
               "duration": 1
             },
             {

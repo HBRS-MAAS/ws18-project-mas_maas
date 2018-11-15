@@ -1,0 +1,9 @@
+{
+    "productType": "Bagel",
+    "proofingTime": 1.0,
+    "guid": [
+        "PRODUCT_GUID-001",
+        "PRODUCT_GUID-002",
+        "PRODUCT_GUID-003"
+    ]
+}
