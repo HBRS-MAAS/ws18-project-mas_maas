@@ -1,6 +1,6 @@
 ## Input Message
 
-### Order Message
+#### Order Message
 
 #### ACL Message:
 - Performative: INFORM
