@@ -9,7 +9,7 @@ public class Start {
         List<String> agents = new Vector<>();
         agents.add("BakingInterface:org.mas_maas.agents.BakingInterface");
         agents.add("DoughManager:org.mas_maas.agents.DoughManager");
-        agents.add("Proofer:org.mas_maas.agents.ProoferScheduler");
+        agents.add("Proofer:org.mas_maas.agents.Proofer");
 
         List<String> cmd = new Vector<>();
         cmd.add("-agents");
