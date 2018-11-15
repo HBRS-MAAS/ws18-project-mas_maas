@@ -71,6 +71,15 @@ public class JSONConverter
             StreetNetwork streetNetwork = parseStreetNetwork(streetNetworkFile);
             System.out.println(streetNetwork);
 
+            String doughNotificationString = new Scanner(new File(jsonDir + "dough_notification.json")).useDelimiter("\\Z").next();
+            parseDoughNotification(doughNotificationString);
+
+            String kneadingNotificationString = new Scanner(new File(jsonDir + "kneading_notification.json")).useDelimiter("\\Z").next();
+            parseKneadingNotification(kneadingNotificationString);
+
+            String kneadingRequestString = new Scanner(new File(jsonDir + "kneading_request.json")).useDelimiter("\\Z").next();
+            parseKneadingRequest(kneadingRequestString);
+
 
         } catch (FileNotFoundException e) {
             // TODO Auto-generated catch block
@@ -117,7 +126,7 @@ public class JSONConverter
                 {
                     JsonObject json_step = step.getAsJsonObject();
                     String action = json_step.get("action").getAsString();
-                    int duration = json_step.get("duration").getAsInt();
+                    Float duration = json_step.get("duration").getAsFloat();
                     Step aStep = new Step(action, duration);
                     steps.add(aStep);
                 }
@@ -362,5 +371,104 @@ public class JSONConverter
 
         StreetNetwork streetNetwork = new StreetNetwork(directed, nodes, links);
         return streetNetwork;
+    }
+
+    // TODO Everything below is temp and for testing
+    // TODO These need to be integrated into their respective agents
+    public static void parseDoughNotification(String jsonString)
+    {
+        JsonElement root = new JsonParser().parse(jsonString);
+        JsonObject json_doughNotification = root.getAsJsonObject();
+
+        String guid = json_doughNotification.get("guid").getAsString();
+    }
+
+    public static void parseKneadingNotification(String jsonString)
+    {
+        JsonElement root = new JsonParser().parse(jsonString);
+        JsonObject json_kneadingNotification = root.getAsJsonObject();
+
+        String productType = json_kneadingNotification.get("productType").getAsString();
+        String guid = json_kneadingNotification.get("guid").getAsString();
+    }
+
+    public static void parseKneadingRequest(String jsonString)
+    {
+        JsonElement root = new JsonParser().parse(jsonString);
+        JsonObject json_kneadingRequest = root.getAsJsonObject();
+
+        String productType = json_kneadingRequest.get("productType").getAsString();
+        Float kneading = json_kneadingRequest.get("kneading").getAsFloat();
+        Vector<String> guids = new Vector<String>();
+        JsonArray json_guids = json_kneadingRequest.get("guids").getAsJsonArray();
+        for (JsonElement guid : json_guids)
+        {
+            guids.add(guid.getAsString());
+        }
+    }
+
+    public static void parsePerparationNotification(String jsonString)
+    {
+        JsonElement root = new JsonParser().parse(jsonString);
+        JsonObject json_preparationNotification = root.getAsJsonObject();
+
+        String productType = json_preparationNotification.get("productType").getAsString();
+        String guid = json_preparationNotification.get("guid").getAsString();
+    }
+
+    public static void parsePerparationRequest(String jsonString)
+    {
+        JsonElement root = new JsonParser().parse(jsonString);
+        JsonObject json_preparationRequest = root.getAsJsonObject();
+
+        String productType = json_preparationRequest.get("productType").getAsString();
+
+        Vector<Integer> productQuantities = new Vector<Integer>();
+        JsonArray json_productQuantities = json_preparationRequest.get("productQuantities").getAsJsonArray();
+        for (JsonElement productQuantity : json_productQuantities)
+        {
+            productQuantities.add(productQuantity.getAsInt());
+        }
+
+        Vector<Step> steps = new Vector<Step>();
+        JsonArray json_steps = json_preparationRequest.get("steps").getAsJsonArray();
+        for (JsonElement step : json_steps)
+        {
+            JsonObject json_step = step.getAsJsonObject();
+            String action = json_step.get("action").getAsString();
+            Float duration = json_step.get("duration").getAsFloat();
+
+            Step aStep = new Step(action, duration);
+            steps.add(aStep);
+        }
+
+        Vector<String> guids = new Vector<String>();
+        JsonArray json_guids = json_preparationRequest.get("guids").getAsJsonArray();
+        for (JsonElement guid : json_guids)
+        {
+            guids.add(guid.getAsString());
+        }
+    }
+
+    public static void parseProofingRequest(String jsonString)
+    {
+        JsonElement root = new JsonParser().parse(jsonString);
+        JsonObject json_proofingRequest = root.getAsJsonObject();
+
+        String productType = json_proofingRequest.get("productType").getAsString();
+        Float proofingTime = json_proofingRequest.get("proofingTime").getAsFloat();
+
+        Vector<String> guids = new Vector<String>();
+        JsonArray json_guids = json_proofingRequest.get("guids").getAsJsonArray();
+        for (JsonElement guid : json_guids)
+        {
+            guids.add(guid.getAsString());
+        }
+    }
+
+    public static String createDoughNotification()
+    {
+        String guid = "GUID-001";
+        return guid;
     }
 }
