@@ -1,16 +1,16 @@
 package org.mas_maas.objects;
 
-public class OrderStatus {
+public class ProductStatus {
     private String guid;
     private String status;
     private int amount;
-    private String type;
+    private String productType;
 
-    public OrderStatus(String guid, String status, int amount, String type) {
+    public ProductStatus(String guid, String status, int amount, String productType) {
         this.guid = guid;
         this.status = status;
         this.amount = amount;
-        this.type = type;
+        this.productType = productType;
     }
 
     public String getStatus() {
@@ -33,7 +33,7 @@ public class OrderStatus {
         return amount;
     }
 
-    public String getType() {
-        return type;
+    public String getProductType() {
+        return productType;
     }
 }
