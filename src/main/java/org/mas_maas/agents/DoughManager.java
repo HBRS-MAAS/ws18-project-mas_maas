@@ -13,6 +13,7 @@ import org.mas_maas.objects.ProductStatus;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.mas_maas.JSONConverter;
+
 import com.google.gson.Gson;
 import org.mas_maas.objects.BakedGood;
 import org.mas_maas.objects.Order;
@@ -64,9 +65,9 @@ public class DoughManager extends BaseAgent {
         // Create order message
         String orderMessage;
         JSONObject order = new JSONObject();
-        order.put("customer_id","001");
-        order.put("order_date","12.04");
-        order.put("delivery_date", "13.04");
+        order.put("customerId","001");
+        order.put("orderDate","12.04");
+        order.put("deliveryDate", "13.04");
 
         JSONArray list_products = new JSONArray();
         JSONObject products =  new JSONObject();
@@ -81,56 +82,66 @@ public class DoughManager extends BaseAgent {
         
         Order jsonOrder = JSONConverter.parseOrder(orderMessage);
         
+        // Add order to the needKneading workQueue
         queueOrder(jsonOrder);
+        KneadingRequest kneadingRequestMessage = createKneadingRequestMessage();
+        // Convert the kneadingRequest object to a String. Send this KneadingRequest
+        
+        Gson gson = new Gson();
+    
+        String kneadingRequestString = gson.toJson(kneadingRequestMessage);
+        addBehaviour(new RequestKneading( kneadingRequestString, kneadingMachineAgents));
+        
+
+        
         
         
  
         
 
 
-        // Based on the order, fill in a kneadingRequest JSONObject and convert it to string
-        // Send the kneadingRequest to the kneadingMachineAgent
-        // Once the kneadingMachineAgent is ready, the DoughManager will receive a kneadingNotification
-
-        // Based on the order, fill in a preparationRequest JSONObject and convert it to string
-        // Send the preparationRequest to the preparationTableAgent
-        // Once the preparationTableAgent is ready, the DoughManager will receive a notitication.
-        Gson gson = new Gson();
-        //TODO get the actual objects (product type, guids, kneading time)
-        String productType = "a product type";
-        Vector<String> guids = new Vector<String>();
-        guids.add("GUID1");
-        guids.add("GUID2");
-        Float kneadingTime = (float) 1.0; //TODO maybe these should be doubles
-        // Based on the order, fill in a kneadingRequest JSONObject and convert it to string
-        // Send the kneadingRequest to the kneadingMachineAgent
-        // Once the kneadingMachineAgent is ready, the DoughManager will receive a kneadingNotification
-        KneadingRequest kneadingRequest = new KneadingRequest(productType, guids, kneadingTime);
-        String kneadingRequestString = gson.toJson(kneadingRequest);
-        // TODO send to kneadingMachineAgent
-
-        // TODO get the actual productQuantities and steps
-        Float preparationTime = (float) 2.0; // TODO doubles though, right?
-        Vector<Integer> productQuantities = new Vector<Integer>();
-        productQuantities.add(10);
-        productQuantities.add(20);
-        Vector<Step> steps = new Vector<Step>();
-        steps.add(new Step("doSomething", (float)2.0)); // TODO really starting to think about those Doubles
-        steps.add(new Step("doSomethingElse", (float)3.0)); // TODO really starting to think about those Doubles
-        // Based on the order, fill in a preparationRequest JSONObject and convert it to string
-        // Send the preparationRequest to the preparationTableAgent
-        // Once the preparationTableAgent is ready, the DoughManager will receive a notitication.
-        PreparationRequest preparationRequest = new PreparationRequest(productType, guids, productQuantities, steps);
-        String preparationRequestString = gson.toJson(preparationRequest);
-
-        // Based on the order, fill in a proofingRequest JSONObject and convert it to string
-        // Send the proofingnRequest to the ProoferAgent
-        // After sending the proofingRequest, the Dough Manager completes the process for the order.
-
-        // Based on the order, fill in a proofingRequest JSONObject and convert it to string
-        // Send the proofingnRequest to the ProoferAgent
-        // After sending the proofingRequest, the Dough Manager completes the process for the order.
-
+//        // Based on the order, fill in a kneadingRequest JSONObject and convert it to string
+//        // Send the kneadingRequest to the kneadingMachineAgent
+//        // Once the kneadingMachineAgent is ready, the DoughManager will receive a kneadingNotification
+//
+//        // Based on the order, fill in a preparationRequest JSONObject and convert it to string
+//        // Send the preparationRequest to the preparationTableAgent
+//        // Once the preparationTableAgent is ready, the DoughManager will receive a notitication.
+//        Gson gson = new Gson();
+//        //TODO get the actual objects (product type, guids, kneading time)
+//        String productType = "a product type";
+//        Vector<String> guids = new Vector<String>();
+//        guids.add("GUID1");
+//        guids.add("GUID2");
+//        Float kneadingTime = (float) 1.0; //TODO maybe these should be doubles
+//        // Based on the order, fill in a kneadingRequest JSONObject and convert it to string
+//        // Send the kneadingRequest to the kneadingMachineAgent
+//        // Once the kneadingMachineAgent is ready, the DoughManager will receive a kneadingNotification
+//        KneadingRequest kneadingRequest = new KneadingRequest(productType, guids, kneadingTime);
+//        String kneadingRequestString = gson.toJson(kneadingRequest);
+//        // TODO send to kneadingMachineAgent
+//
+//        // TODO get the actual productQuantities and steps
+//        Float preparationTime = (float) 2.0; // TODO doubles though, right?
+//        Vector<Integer> productQuantities = new Vector<Integer>();
+//        productQuantities.add(10);
+//        productQuantities.add(20);
+//        Vector<Step> steps = new Vector<Step>();
+//        steps.add(new Step("doSomething", (float)2.0)); // TODO really starting to think about those Doubles
+//        steps.add(new Step("doSomethingElse", (float)3.0)); // TODO really starting to think about those Doubles
+//        // Based on the order, fill in a preparationRequest JSONObject and convert it to string
+//        // Send the preparationRequest to the preparationTableAgent
+//        // Once the preparationTableAgent is ready, the DoughManager will receive a notitication.
+//        PreparationRequest preparationRequest = new PreparationRequest(productType, guids, productQuantities, steps);
+//        String preparationRequestString = gson.toJson(preparationRequest);
+//
+//        // Based on the order, fill in a proofingRequest JSONObject and convert it to string
+//        // Send the proofingnRequest to the ProoferAgent
+//        // After sending the proofingRequest, the Dough Manager completes the process for the order.
+//
+//        // Based on the order, fill in a proofingRequest JSONObject and convert it to string
+//        // Send the proofingnRequest to the ProoferAgent
+//        // After sending the proofingRequest, the Dough Manager completes the process for the order.
 
 
     }
@@ -353,5 +364,56 @@ private class RequestProofing extends Behaviour{
 
 
    }
+
+//This is the behaviour used for sensing a KneadingRequest
+private class RequestKneading extends Behaviour{
+    private String kneadingRequest;
+    private AID [] kneadingMachineAgents;
+    private MessageTemplate mt;
+    private ACLMessage msg;
+    private int step = 0;
+
+    public RequestKneading(String kneadingRequest, AID [] kneadingMachineAgents){
+        this.kneadingRequest = kneadingRequest;
+        this.kneadingMachineAgents = kneadingMachineAgents;
+    }
+    public void action(){
+        // blocking action
+        // if (!baseAgent.getAllowAction()) {
+        //     return;
+        // }
+        switch(step){
+            case 0:
+                ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+                msg.setContent(kneadingRequest);
+                msg.setConversationId("kneading-request");
+                // Send kneadingRequest msg to all prooferAgents
+                for (int i=0; i<kneadingMachineAgents.length; i++){
+                    msg.addReceiver(kneadingMachineAgents[i]);
+                }
+                msg.setReplyWith("msg"+System.currentTimeMillis());
+                baseAgent.sendMessage(msg);  // calling sendMessage instead of send
+                mt = MessageTemplate.and(MessageTemplate.MatchConversationId("kneading-request"),
+                MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
+
+                System.out.println(getLocalName()+" Sent kneadingRequest" + kneadingRequest);
+                step = 1;
+                break;
+
+            default:
+                break;
+        }
+    }
+    public boolean done(){
+        if (step == 1){
+            baseAgent.finished();
+            return true;
+
+        }
+        return false;
+    }
+
+
+}
 
 }
