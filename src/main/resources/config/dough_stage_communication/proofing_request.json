@@ -1,9 +1,5 @@
 {
-    "productType": "Bagel",
-    "proofingTime": 1.0,
-    "guids": [
-        "PRODUCT_GUID-001",
-        "PRODUCT_GUID-002",
-        "PRODUCT_GUID-003"
-    ]
+    "proofingTime":1.0,
+    "productType":"Berliner",
+    "guids":["order-001","order-002"]
 }

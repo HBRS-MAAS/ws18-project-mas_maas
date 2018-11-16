@@ -1,17 +1,16 @@
 {
-    "productType": "Bagel",
-    "productQuantities": [
-        10,
-        20,
-        1
+    "productQuantities":[10,20],
+    "steps":[
+        {
+        "action":"doSomething",
+        "duration":2.0
+        },
+
+        {
+        "action":"doSomethingElse",
+        "duration":3.0
+        }
     ],
-    "steps": [
-        { "action": "item preparation", "duration": 1 },
-        { "action": "resting", "duration": 2 }
-    ],
-    "guids": [
-        "PRODUCT_GUID-001",
-        "PRODUCT_GUID-002",
-        "PRODUCT_GUID-003"
-    ]
+    "productType":"a product type",
+    "guids":["GUID1","GUID2"]
 }
