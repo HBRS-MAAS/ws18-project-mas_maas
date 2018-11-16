@@ -46,11 +46,11 @@ public class WorkQueue {
         if (firstProduct != null)
         {
             batch = new Vector<ProductStatus>();
-            String curType = firstProduct.getStatus();
+            String curType = firstProduct.getProduct().getGuid();
 
             for (ProductStatus productStatus : this.workQueue)
             {
-                if (productStatus.getProductType().equals(curType))
+                if (productStatus.getProduct().getGuid().equals(curType))
                 {
                     batch.add(productStatus);
                     this.workQueue.remove(productStatus);

@@ -60,6 +60,19 @@ public class Bakery {
         public void setEquipment(Vector<Equipment> equipment) {
             this.equipment = equipment;
         }
+        
+        public Product findProduct(String productGuid) {
+        	Product matchedProduct = null;
+        	
+        	for(Product product : products) {
+        		if (product.getGuid().equals(productGuid)) {
+        			matchedProduct = product;
+        			break;
+        		}
+        	}
+        	
+        	return matchedProduct;
+        }
 
         @Override
         public String toString() {

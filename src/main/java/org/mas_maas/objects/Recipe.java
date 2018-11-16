@@ -36,6 +36,19 @@ public class Recipe{
     public void setSteps(Vector<Step> steps) {
         this.steps = steps;
     }
+    
+    public float getActionTime(String action) {
+    	float duration = -1;
+    	
+    	for(Step step: steps) {
+    		if (step.getAction().equals(action)){
+    			duration = step.getDuration();
+    			break;
+    		}
+    	}
+    	
+    	return duration;
+    }
 
     @Override
     public String toString() {
