@@ -1,6 +1,24 @@
 package org.mas_maas.agents;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Scanner;
+import java.util.Vector;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.mas_maas.JSONConverter;
+import org.mas_maas.messages.KneadingRequest;
+import org.mas_maas.objects.BakedGood;
+import org.mas_maas.objects.Bakery;
+import org.mas_maas.objects.Order;
+import org.mas_maas.objects.Product;
+import org.mas_maas.objects.ProductStatus;
+import org.mas_maas.objects.Step;
+import org.mas_maas.objects.WorkQueue;
+
+import com.google.gson.Gson;
 
 import jade.core.AID;
 import jade.domain.DFService;
@@ -52,11 +70,67 @@ public class DoughManager extends BaseAgent {
 
         // Based on the order, fill in a proofingRequest JSONObject and convert it to string
         // Send the proofingnRequest to the ProoferAgent
-        // After sending the proofingRequest, the Dough Manager completes the process for the order. 
+        // After sending the proofingRequest, the Dough Manager completes the process for the order.
 
 
 
     }
+
+    public void queueOrder(Order order) {
+        // Add order to the needKneading workqueue
+        for(BakedGood bakedGood : order.getBakedGoods()) {
+            String guid = order.getGuid();
+            String status = NEED_KNEADING;
+            int amount = bakedGood.getAmount();
+            Product product = bakery.findProduct(guid);
+
+            ProductStatus productStatus = new ProductStatus(guid, status, amount, product);
+            needKneading.addProduct(productStatus);
+        }
+    }
+
+    public KneadingRequest createKneadingRequestMessage() {
+        // Checks the needKneading workqueue
+        Vector<ProductStatus> products = needKneading.getProductBatch();
+
+        KneadingRequest kneadingRequest = null;
+
+        if (products != null) {
+
+            Vector<String> guids = new Vector<String>();
+
+            for (ProductStatus productStatus : products) {
+                guids.add(productStatus.getGuid());
+
+            }
+            String productType = products.get(0).getProduct().getGuid();
+            float kneadingTime = products.get(0).getProduct().getRecipe().getActionTime(Step.KNEADING_TIME);
+
+            kneadingRequest = new KneadingRequest(guids, productType, kneadingTime);
+        }
+
+        return kneadingRequest;
+
+    }
+
+
+    public void getbakery(){
+
+        String jsonDir = "src/main/resources/config/dough_stage_communication/";
+        try {
+            System.out.println("Working Directory = " + System.getProperty("user.dir"));
+            String bakeryFile = new Scanner(new File(jsonDir + "bakery.json")).useDelimiter("\\Z").next();
+            Vector<Bakery> bakeries = JSONConverter.parseBakeries(bakeryFile);
+            for (Bakery bakery : bakeries)
+            {
+                this.bakery = bakery;
+            }
+        } catch (FileNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+
 
     public void getOrderProcessingAIDs() {
         DFAgentDescription template = new DFAgentDescription();

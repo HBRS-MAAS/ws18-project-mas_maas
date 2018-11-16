@@ -44,60 +44,61 @@ public class JSONConverter
 {
     public static void test_parsing()
     {
-        String jsonDir = "src/main/resources/config/sample/";
+        String sampleDir = "src/main/resources/config/sample/";
+        String doughDir = "src/main/resources/config/dough_stage_communication/";
         try {
             //System.out.println("Working Directory = " + System.getProperty("user.dir"));
 
-            String bakeryFile = new Scanner(new File(jsonDir + "bakeries.json")).useDelimiter("\\Z").next();
+            String bakeryFile = new Scanner(new File(sampleDir + "bakeries.json")).useDelimiter("\\Z").next();
             Vector<Bakery> bakeries = parseBakeries(bakeryFile);
             for (Bakery bakery : bakeries)
             {
                 System.out.println(bakery);
             }
 
-            String clientFile = new Scanner(new File(jsonDir + "clients.json")).useDelimiter("\\Z").next();
+            String clientFile = new Scanner(new File(sampleDir + "clients.json")).useDelimiter("\\Z").next();
             Vector<Client> clients = parseClients(clientFile);
             for (Client client : clients)
             {
                 System.out.println(client);
             }
 
-            String deliveryCompanyFile = new Scanner(new File(jsonDir + "delivery.json")).useDelimiter("\\Z").next();
+            String deliveryCompanyFile = new Scanner(new File(sampleDir + "delivery.json")).useDelimiter("\\Z").next();
             Vector<DeliveryCompany> deliveryCompanies = parseDeliveryCompany(deliveryCompanyFile);
             for (DeliveryCompany deliveryCompany : deliveryCompanies)
             {
                 System.out.println(deliveryCompany);
             }
 
-            String metaInfoFile = new Scanner(new File(jsonDir + "meta.json")).useDelimiter("\\Z").next();
+            String metaInfoFile = new Scanner(new File(sampleDir + "meta.json")).useDelimiter("\\Z").next();
             MetaInfo metaInfo = parseMetaInfo(metaInfoFile);
             System.out.println(metaInfo);
 
-            String streetNetworkFile = new Scanner(new File(jsonDir + "street-network.json")).useDelimiter("\\Z").next();
+            String streetNetworkFile = new Scanner(new File(sampleDir + "street-network.json")).useDelimiter("\\Z").next();
             StreetNetwork streetNetwork = parseStreetNetwork(streetNetworkFile);
             System.out.println(streetNetwork);
 
-            String doughNotificationString = new Scanner(new File(jsonDir + "dough_notification.json")).useDelimiter("\\Z").next();
+            String doughNotificationString = new Scanner(new File(doughDir + "dough_notification.json")).useDelimiter("\\Z").next();
             DoughNotification doughtNotification = parseDoughNotification(doughNotificationString);
             System.out.println(doughtNotification);
 
-            String kneadingNotificationString = new Scanner(new File(jsonDir + "kneading_notification.json")).useDelimiter("\\Z").next();
+            String kneadingNotificationString = new Scanner(new File(doughDir + "kneading_notification.json")).useDelimiter("\\Z").next();
             KneadingNotification kneadingNotification = parseKneadingNotification(kneadingNotificationString);
             System.out.println(kneadingNotification);
 
-            String kneadingRequestString = new Scanner(new File(jsonDir + "kneading_request.json")).useDelimiter("\\Z").next();
+            String kneadingRequestString = new Scanner(new File(doughDir + "kneading_request.json")).useDelimiter("\\Z").next();
             KneadingRequest kneadingRequest = parseKneadingRequest(kneadingRequestString);
             System.out.println(kneadingRequest);
 
-            String preparationNotificationString = new Scanner(new File(jsonDir + "preparation_notification.json")).useDelimiter("\\Z").next();
+            String preparationNotificationString = new Scanner(new File(doughDir + "preparation_notification.json")).useDelimiter("\\Z").next();
             PreparationNotification preparationNotification = parsePreparationNotification(preparationNotificationString);
             System.out.println(preparationNotification);
 
-            String preparationRequestString = new Scanner(new File(jsonDir + "preparation_request.json")).useDelimiter("\\Z").next();
+            String preparationRequestString = new Scanner(new File(doughDir + "preparation_request.json")).useDelimiter("\\Z").next();
             PreparationRequest preparationRequest = parsePreparationRequest(preparationRequestString);
             System.out.println(preparationRequest);
 
-            String proofingRequestString = new Scanner(new File(jsonDir + "proofing_request.json")).useDelimiter("\\Z").next();
+            String proofingRequestString = new Scanner(new File(doughDir + "proofing_request.json")).useDelimiter("\\Z").next();
             ProofingRequest proofingRequest = parseProofingRequest(proofingRequestString);
             System.out.println(proofingRequest);
 
@@ -408,9 +409,16 @@ public class JSONConverter
         JsonElement root = new JsonParser().parse(jsonString);
         JsonObject json_doughNotification = root.getAsJsonObject();
 
-        String guid = json_doughNotification.get("guid").getAsString();
+        String productType = json_doughNotification.get("productType").getAsString();
+        int quantity = json_doughNotification.get("quantity").getAsInt();
+        Vector<String> guids = new Vector<String>();
+        JsonArray json_guids = json_doughNotification.get("guids").getAsJsonArray();
+        for (JsonElement guid : json_guids)
+        {
+            guids.add(guid.getAsString());
+        }
 
-        DoughNotification doughNotification = new DoughNotification(guid);
+        DoughNotification doughNotification = new DoughNotification(guids, productType, quantity);
         return doughNotification;
     }
 
@@ -420,10 +428,14 @@ public class JSONConverter
         JsonObject json_kneadingNotification = root.getAsJsonObject();
 
         String productType = json_kneadingNotification.get("productType").getAsString();
-        String guid = json_kneadingNotification.get("guid").getAsString();
+        Vector<String> guids = new Vector<String>();
+        JsonArray json_guids = json_kneadingNotification.get("guids").getAsJsonArray();
+        for (JsonElement guid : json_guids)
+        {
+            guids.add(guid.getAsString());
+        }
 
-
-        KneadingNotification kneadingNotification = new KneadingNotification(guid, productType);
+        KneadingNotification kneadingNotification = new KneadingNotification(guids, productType);
         return kneadingNotification;
     }
 
@@ -441,7 +453,7 @@ public class JSONConverter
             guids.add(guid.getAsString());
         }
 
-        KneadingRequest kneadingRequest = new KneadingRequest(productType, guids, kneadingTime);
+        KneadingRequest kneadingRequest = new KneadingRequest(guids, productType, kneadingTime);
         return kneadingRequest;
     }
 
@@ -451,9 +463,14 @@ public class JSONConverter
         JsonObject json_preparationNotification = root.getAsJsonObject();
 
         String productType = json_preparationNotification.get("productType").getAsString();
-        String guid = json_preparationNotification.get("guid").getAsString();
+        Vector<String> guids = new Vector<String>();
+        JsonArray json_guids = json_preparationNotification.get("guids").getAsJsonArray();
+        for (JsonElement guid : json_guids)
+        {
+            guids.add(guid.getAsString());
+        }
 
-        PreparationNotification preparationNotification = new PreparationNotification(guid, productType);
+        PreparationNotification preparationNotification = new PreparationNotification(guids, productType);
         return preparationNotification;
     }
 
@@ -490,7 +507,7 @@ public class JSONConverter
             guids.add(guid.getAsString());
         }
 
-        PreparationRequest preparationRequest = new PreparationRequest(productType, guids, productQuantities, steps);
+        PreparationRequest preparationRequest = new PreparationRequest(guids, productType, productQuantities, steps);
         return preparationRequest;
     }
 
