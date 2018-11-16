@@ -1,8 +1,6 @@
 package org.mas_maas.agents;
 import java.util.Vector;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.mas_maas.messages.KneadingRequest;
 import org.mas_maas.messages.PreparationRequest;
 import org.mas_maas.objects.Step;
@@ -10,18 +8,25 @@ import org.mas_maas.objects.Step;
 import com.google.gson.Gson;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.mas_maas.objects.BakedGood;
+import org.mas_maas.objects.Order;
 
 import jade.core.AID;
+import jade.core.behaviours.Behaviour;
+import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
+import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
 
 public class DoughManager extends BaseAgent {
     private AID [] orderProcessingAgents;
     private AID [] prooferAgents;
     private AID [] preparationTableAgents;
     private AID [] kneadingMachineAgents;
+
 
     protected void setup() {
         super.setup();
