@@ -4,13 +4,13 @@ import java.util.Vector;
 
 import org.mas_maas.objects.Step;
 
-public class PreparationRequest extends RequestMessage {
+public class PreparationRequest extends DoughMessage {
     private Vector<Integer> productQuantities;
     private Vector<Step> steps;
 
-    public PreparationRequest(String productType, Vector<String> guids,
-            Vector<Integer> productQuantities, Vector<Step> steps) {
-        super(productType, guids);
+    public PreparationRequest(Vector<String> guids, String productType, Vector<Integer> productQuantities,
+            Vector<Step> steps) {
+        super(guids, productType);
         this.productQuantities = productQuantities;
         this.steps = steps;
     }
@@ -33,6 +33,6 @@ public class PreparationRequest extends RequestMessage {
 
     @Override
     public String toString() {
-        return "PreparationRequest [productQuantities=" + productQuantities + "]";
+        return "PreparationRequest [productQuantities=" + productQuantities + ", steps=" + steps + "]";
     }
 }

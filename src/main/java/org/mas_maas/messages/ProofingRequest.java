@@ -2,11 +2,11 @@ package org.mas_maas.messages;
 
 import java.util.Vector;
 
-public class ProofingRequest extends RequestMessage {
-    private Float proofingTime;
+public class ProofingRequest extends DoughMessage {
+    private float proofingTime;
 
-    public ProofingRequest(String productType, Vector<String> guids, Float proofingTime) {
-        super(productType, guids);
+    public ProofingRequest(String productType, Vector<String> guids, float proofingTime) {
+        super(guids, productType);
         this.proofingTime = proofingTime;
     }
 

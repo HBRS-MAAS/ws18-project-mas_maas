@@ -2,19 +2,19 @@ package org.mas_maas.messages;
 
 import java.util.Vector;
 
-public class KneadingRequest extends RequestMessage {
-    private Float kneadingTime;
+public class KneadingRequest extends DoughMessage {
+    private float kneadingTime;
 
-    public KneadingRequest(String productType, Vector<String> guids, Float kneadingTime) {
-        super(productType, guids);
+    public KneadingRequest(Vector<String> guids, String productType, float kneadingTime) {
+        super(guids, productType);
         this.kneadingTime = kneadingTime;
     }
 
-    public Float getKneadingTime() {
+    public float getKneadingTime() {
         return kneadingTime;
     }
 
-    public void setKneadingTime(Float kneadingTime) {
+    public void setKneadingTime(float kneadingTime) {
         this.kneadingTime = kneadingTime;
     }
 
