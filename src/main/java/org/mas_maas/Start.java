@@ -11,6 +11,7 @@ public class Start {
         agents.add("BakingInterface:org.mas_maas.agents.BakingInterface");
         agents.add("DoughManager:org.mas_maas.agents.DoughManager");
         agents.add("KneadingMachineAgent:org.mas_maas.agents.KneadingMachineAgent");
+        agents.add("PreparationTableAgent:org.mas_maas.agents.PreparationTableAgent");
         agents.add("Proofer:org.mas_maas.agents.Proofer");
 
         List<String> cmd = new Vector<>();
