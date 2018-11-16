@@ -1,24 +1,4 @@
 package org.mas_maas.agents;
-import java.util.Vector;
-import java.util.Scanner;
-import java.io.File;
-import java.io.FileNotFoundException;
-
-import org.mas_maas.messages.KneadingRequest;
-import org.mas_maas.messages.PreparationRequest;
-import org.mas_maas.objects.Step;
-import org.mas_maas.objects.WorkQueue;
-import org.mas_maas.objects.ProductStatus;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.mas_maas.JSONConverter;
-
-import com.google.gson.Gson;
-import org.mas_maas.objects.BakedGood;
-import org.mas_maas.objects.Order;
-import org.mas_maas.objects.Product;
-import org.mas_maas.objects.Bakery;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
@@ -176,28 +156,6 @@ public class DoughManager extends BaseAgent {
     	}
     }
 
-    public KneadingRequest createKneadingRequestMessage() {
-    	// Checks the needKneading workqueue
-    	Vector<ProductStatus> products = needKneading.getProductBatch();
-
-    	KneadingRequest kneadingRequest = null;
-
-    	if (products != null) {
-
-    		Vector<String> guids = new Vector<String>();
-
-        	for (ProductStatus productStatus : products) {
-        		guids.add(productStatus.getGuid());
-
-        	}
-        	String productType = products.get(0).getProduct().getGuid();
-        	float kneadingTime = products.get(0).getProduct().getRecipe().getActionTime(Step.KNEADING_TIME);
-
-        	kneadingRequest = new KneadingRequest(productType, guids, kneadingTime);
-    	}
-
-    	return kneadingRequest;
-    }
 
     public KneadingRequest createKneadingRequestMessage() {
         // Checks the needKneading workqueue
