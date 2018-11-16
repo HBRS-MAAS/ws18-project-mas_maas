@@ -34,12 +34,12 @@ public class DoughManager extends BaseAgent {
     private AID [] preparationTableAgents;
     private AID [] kneadingMachineAgents;
     private Bakery bakery;
-    private WorkQueue needKneading;
-    private WorkQueue needWorking;
-    private WorkQueue needProofing;
-    private static final String NEED_KNEADING = "needKneading";
-    private static final String NEED_WORKING = "needWorking";
-    private static final String NEED_PROOFING = "needProofing";
+    private WorkQueue needsKneading;
+    private WorkQueue needsPreparation;
+    private WorkQueue needsProofing;
+    private static final String NEEDS_KNEADING = "needsKneading";
+    private static final String NEEDS_WORKING = "needsWorking";
+    private static final String NEEDS_PROOFING = "needsProofing";
 
 
     protected void setup() {
@@ -47,9 +47,9 @@ public class DoughManager extends BaseAgent {
         System.out.println(getAID().getLocalName() + " is ready.");
 
         getbakery();
-        needKneading = new WorkQueue();
-        needWorking = new WorkQueue();
-        needProofing = new WorkQueue();
+        needsKneading = new WorkQueue();
+        needsPreparation = new WorkQueue();
+        needsProofing = new WorkQueue();
 
         this.register("Dough-manager", "JADE-bakery");
         this.getOrderProcessingAIDs();
@@ -89,11 +89,6 @@ public class DoughManager extends BaseAgent {
 
         String kneadingRequestString = gson.toJson(kneadingRequestMessage);
         addBehaviour(new RequestKneading( kneadingRequestString, kneadingMachineAgents));
-
-
-
-
-
 
 
 
@@ -147,19 +142,19 @@ public class DoughManager extends BaseAgent {
     	// Add order to the needKneading workqueue
     	for(BakedGood bakedGood : order.getBakedGoods()) {
     		String guid = order.getGuid();
-    		String status = NEED_KNEADING;
+    		String status = NEEDS_KNEADING;
     		int amount = bakedGood.getAmount();
     		Product product = bakery.findProduct(guid);
 
     		ProductStatus productStatus = new ProductStatus(guid, status, amount, product);
-    		needKneading.addProduct(productStatus);
+    		needsKneading.addProduct(productStatus);
     	}
     }
 
 
     public KneadingRequest createKneadingRequestMessage() {
-        // Checks the needKneading workqueue
-        Vector<ProductStatus> products = needKneading.getProductBatch();
+    	// Checks the needKneading workqueue
+    	Vector<ProductStatus> products = needsKneading.getProductBatch();
 
         KneadingRequest kneadingRequest = null;
 
@@ -180,6 +175,12 @@ public class DoughManager extends BaseAgent {
         return kneadingRequest;
 
     }
+
+    public void queuePreparation(Order order) {
+    	//
+    }
+
+
 
 
     public void getbakery(){
@@ -289,7 +290,7 @@ public class DoughManager extends BaseAgent {
     }
 
     /* This is the behaviour used for receiving orders */
-  private class ReceiveOrders extends CyclicBehaviour {
+    private class ReceiveOrders extends CyclicBehaviour {
     public void action() {
         // baseAgent.finished(); //call it if there are no generic behaviours
         MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
@@ -312,6 +313,63 @@ public class DoughManager extends BaseAgent {
     }
 }
 
+	/* This is the behaviour used for receiving kneading notification */
+	private class ReceiveKneadingNotification extends CyclicBehaviour {
+	  public void action() {
+	      // baseAgent.finished(); //call it if there are no generic behaviours
+	      MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
+	      ACLMessage msg = myAgent.receive(mt);
+	      if (msg != null) {
+	          String kneadingNotificationString = msg.getContent();
+	          ACLMessage reply = msg.createReply();
+	          reply.setPerformative(ACLMessage.CONFIRM);
+	          reply.setContent("Kneading Notification was received");
+	          baseAgent.sendMessage(reply);
+	          //  Once a kneading notification is received, update the needWorking Workqueue
+	          // get guids and product type, and get order
+
+	          KneadingNotification kneadingNotification = JSONConverter.parseKneadingNotification(kneadingNotificationString);
+	          String productType = kneadingNotification.getProductType();
+	          Vector<String> guids = kneadingNotification.getGuid();
+
+	      }
+	      else {
+	          block();
+	      }
+	  }
+
+
+	}
+
+
+	/* This is the behaviour used for receiving preparation notification */
+	private class ReceivePreparationNotification extends CyclicBehaviour {
+	  public void action() {
+	      // baseAgent.finished(); //call it if there are no generic behaviours
+	      MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
+	      ACLMessage msg = myAgent.receive(mt);
+	      if (msg != null) {
+	          String preparationNotificationString = msg.getContent();
+	          ACLMessage reply = msg.createReply();
+	          reply.setPerformative(ACLMessage.CONFIRM);
+	          reply.setContent("Preparation Notification was received");
+	          baseAgent.sendMessage(reply);
+	          //  Once a kneading notification is received, update the needWorking Workqueue
+	          // get guids and product type, and get order
+
+	          PreparationNotification preparationNotification = JSONConverter.parsePreparationNotification(preparationNotificationString);
+	          String productType = preparationNotification.getProductType();
+	          Vector<String> guids = preparationNotification.getGuid();
+
+
+	      }
+	      else {
+	          block();
+	      }
+	  }
+
+
+	}
 // This is the behaviour used for sensing a ProofingRequest
 private class RequestProofing extends Behaviour{
        private String proofingRequest;
