@@ -7,7 +7,7 @@
       "x": 0.01
     },
     "products": [
-    {
+      {
         "guid": "Bagel",
         "batch": {
           "breadsPerOven": 14
@@ -51,7 +51,16 @@
             {
               "action": "sprinkling",
               "duration": 1
-            },
+            }
+          ]
+        },
+        "packaging": {
+          "boxingTemp": 55,
+          "breadsPerBox": 10
+        },
+        "salesPrice": 2.9,
+        "productionCost": 0.3
+    },
     {
         "guid": "Donut",
         "batch": {
@@ -96,62 +105,25 @@
             {
               "action": "sprinkling",
               "duration": 1
-            },
-    {
-
-        "guid": "Berliner",
-        "batch": {
-        "breadsPerOven": 14
+            }
+          ]
         },
-        "recipe": {
-            "coolingRate": 5,
-            "bakingTemp": 195,
-            "steps": [
-            {
-              "action": "kneading",
-              "duration": 5
-            },
-            {
-              "action": "resting",
-              "duration": 1
-            },
-            {
-              "action": "item preparation",
-              "duration": 1
-            },
-            {
-              "action": "proofing",
-              "duration": 1
-            },
-            {
-              "action": "cooling",
-              "duration": 1
-            },
-            {
-              "action": "filling",
-              "duration": 1
-            },
-            {
-              "action": "baking",
-              "duration": 1
-            },
-            {
-              "action": "decorating",
-              "duration": 1
-            },
-            {
-              "action": "sprinkling",
-              "duration": 1
-            },
+        "packaging": {
+          "boxingTemp": 55,
+          "breadsPerBox": 10
+        },
+        "salesPrice": 2.9,
+        "productionCost": 0.3
+    },
     {
-        "guid": "Muffin",
+        "guid": "Berliner",
         "batch": {
           "breadsPerOven": 14
         },
         "recipe": {
-            "coolingRate": 5,
-            "bakingTemp": 195,
-            "steps": [
+          "coolingRate": 5,
+          "bakingTemp": 195,
+          "steps": [
             {
               "action": "kneading",
               "duration": 5
@@ -188,7 +160,69 @@
               "action": "sprinkling",
               "duration": 1
             }
-
+          ]
+        },
+        "packaging": {
+          "boxingTemp": 55,
+          "breadsPerBox": 10
+        },
+        "salesPrice": 2.9,
+        "productionCost": 0.3
+    },
+    {
+        "guid": "Muffin",
+        "batch": {
+          "breadsPerOven": 14
+        },
+        "recipe": {
+          "coolingRate": 5,
+          "bakingTemp": 195,
+          "steps": [
+            {
+              "action": "kneading",
+              "duration": 5
+            },
+            {
+              "action": "resting",
+              "duration": 1
+            },
+            {
+              "action": "item preparation",
+              "duration": 1
+            },
+            {
+              "action": "proofing",
+              "duration": 1
+            },
+            {
+              "action": "cooling",
+              "duration": 1
+            },
+            {
+              "action": "filling",
+              "duration": 1
+            },
+            {
+              "action": "baking",
+              "duration": 1
+            },
+            {
+              "action": "decorating",
+              "duration": 1
+            },
+            {
+              "action": "sprinkling",
+              "duration": 1
+            }
+          ]
+        },
+        "packaging": {
+          "boxingTemp": 55,
+          "breadsPerBox": 10
+        },
+        "salesPrice": 2.9,
+        "productionCost": 0.3
+    },
     {
         "guid": "Bread",
         "batch": {
@@ -242,7 +276,7 @@
         },
         "salesPrice": 2.9,
         "productionCost": 0.3
-     }
+    }
     ],
     "equipment": {
       "ovens": [
