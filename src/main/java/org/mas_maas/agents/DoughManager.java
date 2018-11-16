@@ -7,7 +7,9 @@ import java.util.Vector;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.mas_maas.JSONConverter;
+import org.mas_maas.messages.KneadingNotification;
 import org.mas_maas.messages.KneadingRequest;
+import org.mas_maas.messages.PreparationNotification;
 import org.mas_maas.objects.BakedGood;
 import org.mas_maas.objects.Bakery;
 import org.mas_maas.objects.Order;
@@ -139,22 +141,22 @@ public class DoughManager extends BaseAgent {
     }
 
     public void queueOrder(Order order) {
-    	// Add order to the needKneading workqueue
-    	for(BakedGood bakedGood : order.getBakedGoods()) {
-    		String guid = order.getGuid();
-    		String status = NEEDS_KNEADING;
-    		int amount = bakedGood.getAmount();
-    		Product product = bakery.findProduct(guid);
+        // Add order to the needKneading workqueue
+        for(BakedGood bakedGood : order.getBakedGoods()) {
+            String guid = order.getGuid();
+            String status = NEEDS_KNEADING;
+            int amount = bakedGood.getAmount();
+            Product product = bakery.findProduct(guid);
 
-    		ProductStatus productStatus = new ProductStatus(guid, status, amount, product);
-    		needsKneading.addProduct(productStatus);
-    	}
+            ProductStatus productStatus = new ProductStatus(guid, status, amount, product);
+            needsKneading.addProduct(productStatus);
+        }
     }
 
 
     public KneadingRequest createKneadingRequestMessage() {
-    	// Checks the needKneading workqueue
-    	Vector<ProductStatus> products = needsKneading.getProductBatch();
+        // Checks the needKneading workqueue
+        Vector<ProductStatus> products = needsKneading.getProductBatch();
 
         KneadingRequest kneadingRequest = null;
 
@@ -177,7 +179,7 @@ public class DoughManager extends BaseAgent {
     }
 
     public void queuePreparation(Order order) {
-    	//
+        //
     }
 
 
@@ -313,63 +315,63 @@ public class DoughManager extends BaseAgent {
     }
 }
 
-	/* This is the behaviour used for receiving kneading notification */
-	private class ReceiveKneadingNotification extends CyclicBehaviour {
-	  public void action() {
-	      // baseAgent.finished(); //call it if there are no generic behaviours
-	      MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
-	      ACLMessage msg = myAgent.receive(mt);
-	      if (msg != null) {
-	          String kneadingNotificationString = msg.getContent();
-	          ACLMessage reply = msg.createReply();
-	          reply.setPerformative(ACLMessage.CONFIRM);
-	          reply.setContent("Kneading Notification was received");
-	          baseAgent.sendMessage(reply);
-	          //  Once a kneading notification is received, update the needWorking Workqueue
-	          // get guids and product type, and get order
+    /* This is the behaviour used for receiving kneading notification */
+    private class ReceiveKneadingNotification extends CyclicBehaviour {
+      public void action() {
+          // baseAgent.finished(); //call it if there are no generic behaviours
+          MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
+          ACLMessage msg = myAgent.receive(mt);
+          if (msg != null) {
+              String kneadingNotificationString = msg.getContent();
+              ACLMessage reply = msg.createReply();
+              reply.setPerformative(ACLMessage.CONFIRM);
+              reply.setContent("Kneading Notification was received");
+              baseAgent.sendMessage(reply);
+              //  Once a kneading notification is received, update the needWorking Workqueue
+              // get guids and product type, and get order
 
-	          KneadingNotification kneadingNotification = JSONConverter.parseKneadingNotification(kneadingNotificationString);
-	          String productType = kneadingNotification.getProductType();
-	          Vector<String> guids = kneadingNotification.getGuid();
+              KneadingNotification kneadingNotification = JSONConverter.parseKneadingNotification(kneadingNotificationString);
+              String productType = kneadingNotification.getProductType();
+              Vector<String> guids = kneadingNotification.getGuids();
 
-	      }
-	      else {
-	          block();
-	      }
-	  }
-
-
-	}
+          }
+          else {
+              block();
+          }
+      }
 
 
-	/* This is the behaviour used for receiving preparation notification */
-	private class ReceivePreparationNotification extends CyclicBehaviour {
-	  public void action() {
-	      // baseAgent.finished(); //call it if there are no generic behaviours
-	      MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
-	      ACLMessage msg = myAgent.receive(mt);
-	      if (msg != null) {
-	          String preparationNotificationString = msg.getContent();
-	          ACLMessage reply = msg.createReply();
-	          reply.setPerformative(ACLMessage.CONFIRM);
-	          reply.setContent("Preparation Notification was received");
-	          baseAgent.sendMessage(reply);
-	          //  Once a kneading notification is received, update the needWorking Workqueue
-	          // get guids and product type, and get order
-
-	          PreparationNotification preparationNotification = JSONConverter.parsePreparationNotification(preparationNotificationString);
-	          String productType = preparationNotification.getProductType();
-	          Vector<String> guids = preparationNotification.getGuid();
+    }
 
 
-	      }
-	      else {
-	          block();
-	      }
-	  }
+    /* This is the behaviour used for receiving preparation notification */
+    private class ReceivePreparationNotification extends CyclicBehaviour {
+      public void action() {
+          // baseAgent.finished(); //call it if there are no generic behaviours
+          MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
+          ACLMessage msg = myAgent.receive(mt);
+          if (msg != null) {
+              String preparationNotificationString = msg.getContent();
+              ACLMessage reply = msg.createReply();
+              reply.setPerformative(ACLMessage.CONFIRM);
+              reply.setContent("Preparation Notification was received");
+              baseAgent.sendMessage(reply);
+              //  Once a kneading notification is received, update the needWorking Workqueue
+              // get guids and product type, and get order
+
+              PreparationNotification preparationNotification = JSONConverter.parsePreparationNotification(preparationNotificationString);
+              String productType = preparationNotification.getProductType();
+              Vector<String> guids = preparationNotification.getGuids();
 
 
-	}
+          }
+          else {
+              block();
+          }
+      }
+
+
+    }
 // This is the behaviour used for sensing a ProofingRequest
 private class RequestProofing extends Behaviour{
        private String proofingRequest;

@@ -418,7 +418,7 @@ public class JSONConverter
             guids.add(guid.getAsString());
         }
 
-        DoughNotification doughNotification = new DoughNotification(guids, productType, quantity);
+        DoughNotification doughNotification = new DoughNotification(guids, productType);
         return doughNotification;
     }
 
