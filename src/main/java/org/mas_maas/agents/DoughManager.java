@@ -1,15 +1,22 @@
 package org.mas_maas.agents;
 import java.util.Vector;
+import java.util.Scanner;
+import java.io.File;
+import java.io.FileNotFoundException;
 
 import org.mas_maas.messages.KneadingRequest;
 import org.mas_maas.messages.PreparationRequest;
 import org.mas_maas.objects.Step;
+import org.mas_maas.objects.WorkQueue;
+import org.mas_maas.objects.ProductStatus;
 
-import com.google.gson.Gson;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.mas_maas.JSONConverter;
+import com.google.gson.Gson;
 import org.mas_maas.objects.BakedGood;
 import org.mas_maas.objects.Order;
+import org.mas_maas.objects.Bakery;
 
 import jade.core.AID;
 import jade.core.behaviours.Behaviour;
@@ -26,11 +33,13 @@ public class DoughManager extends BaseAgent {
     private AID [] prooferAgents;
     private AID [] preparationTableAgents;
     private AID [] kneadingMachineAgents;
-
+    private Bakery testBakery;
 
     protected void setup() {
         super.setup();
         System.out.println(getAID().getLocalName() + " is ready.");
+        getTestBakery();
+
         this.register("Dough-manager", "JADE-bakery");
         this.getOrderProcessingAIDs();
         this.getProoferAIDs();
@@ -38,6 +47,8 @@ public class DoughManager extends BaseAgent {
         this.getKneadingMachineAIDs();
 
         // For now, the orderProcessingAgents do not exist. The manager has an order object (with the contents of an order message.)
+        addBehaviour(new ReceiveOrders());
+
         // Create order message
         String orderMessage;
         JSONObject order = new JSONObject();
@@ -55,6 +66,7 @@ public class DoughManager extends BaseAgent {
         orderMessage = order.toString();
 
         System.out.println(getAID().getName() + " received the order " + orderMessage);
+
 
         // Based on the order, fill in a kneadingRequest JSONObject and convert it to string
         // Send the kneadingRequest to the kneadingMachineAgent
@@ -102,6 +114,24 @@ public class DoughManager extends BaseAgent {
 
 
     }
+
+    public void getTestBakery(){
+
+        String jsonDir = "src/main/resources/config/assignment4/";
+        try {
+            System.out.println("Working Directory = " + System.getProperty("user.dir"));
+            String bakeryFile = new Scanner(new File(jsonDir + "bakery.json")).useDelimiter("\\Z").next();
+            Vector<Bakery> bakeries = JSONConverter.parseBakeries(bakeryFile);
+            for (Bakery bakery : bakeries)
+            {
+                this.testBakery = bakery;
+            }
+        } catch (FileNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+
 
     public void getOrderProcessingAIDs() {
         DFAgentDescription template = new DFAgentDescription();
@@ -190,4 +220,80 @@ public class DoughManager extends BaseAgent {
             fe.printStackTrace();
         }
     }
+
+    /* This is the behaviour used for receiving orders */
+  private class ReceiveOrders extends CyclicBehaviour {
+    public void action() {
+        // baseAgent.finished(); //call it if there are no generic behaviours
+        MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
+        ACLMessage msg = myAgent.receive(mt);
+        if (msg != null) {
+            String content = msg.getContent();
+            ACLMessage reply = msg.createReply();
+            reply.setPerformative(ACLMessage.CONFIRM);
+            reply.setContent("Order was received");
+            baseAgent.sendMessage(reply);
+            // TODO convert String to order object
+            // Start a timer that waits for proofing time
+            // Set the agent to unavailable
+            // After the timer is done, set it to available
+
+        }
+        else {
+            block();
+        }
+    }
+}
+
+// This is the behaviour used for sensing a ProofingRequest
+private class RequestProofing extends Behaviour{
+       private String proofingRequest;
+       private AID [] prooferAgents;
+       private MessageTemplate mt;
+       private ACLMessage msg;
+       private int step = 0;
+
+       public RequestProofing(String proofingRequest, AID [] prooferAgents){
+           this.proofingRequest = proofingRequest;
+           this.prooferAgents = prooferAgents;
+       }
+       public void action(){
+           // blocking action
+           // if (!baseAgent.getAllowAction()) {
+           //     return;
+           // }
+           switch(step){
+               case 0:
+                   ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+                   msg.setContent(proofingRequest);
+                   msg.setConversationId("proofing-request");
+                   // Send proofingRequest msg to all prooferAgents
+                   for (int i=0; i<prooferAgents.length; i++){
+                       msg.addReceiver(prooferAgents[i]);
+                   }
+                   msg.setReplyWith("msg"+System.currentTimeMillis());
+                   baseAgent.sendMessage(msg);  // calling sendMessage instead of send
+                   mt = MessageTemplate.and(MessageTemplate.MatchConversationId("proofing-request"),
+                   MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
+
+                   System.out.println(getLocalName()+" Sent proofingRequest" + proofingRequest);
+                   step = 1;
+                   break;
+
+               default:
+                   break;
+           }
+       }
+       public boolean done(){
+           if (step == 1){
+               baseAgent.finished();
+               return true;
+
+           }
+           return false;
+       }
+
+
+   }
+
 }

@@ -156,10 +156,10 @@ public class Proofer extends BaseAgent {
                 }
                 msg.setReplyWith("msg"+System.currentTimeMillis());
                 baseAgent.sendMessage(msg);  // calling sendMessage instead of send
-                mt = MessageTemplate.and(MessageTemplate.MatchConversationId("trade-example"),
+                mt = MessageTemplate.and(MessageTemplate.MatchConversationId("baking-request"),
                 MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
                 step = 1;
-                System.out.println(getAID().getLocalName() + "Sending doughNotification");
+                System.out.println(getAID().getLocalName() + "Sent doughNotification");
                 break;
            case 1:
                ACLMessage reply = baseAgent.receive(mt);
