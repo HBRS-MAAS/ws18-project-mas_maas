@@ -49,22 +49,22 @@ public class JSONConverter
             //System.out.println("Working Directory = " + System.getProperty("user.dir"));
 
             String bakeryFile = new Scanner(new File(jsonDir + "bakeries.json")).useDelimiter("\\Z").next();
-            Vector<Bakery> bakeries = parseBakery(bakeryFile);
+            Vector<Bakery> bakeries = parseBakeries(bakeryFile);
             for (Bakery bakery : bakeries)
             {
                 System.out.println(bakery);
             }
 
             String clientFile = new Scanner(new File(jsonDir + "clients.json")).useDelimiter("\\Z").next();
-            Vector<Client> clients = parseClient(clientFile);
+            Vector<Client> clients = parseClients(clientFile);
             for (Client client : clients)
             {
                 System.out.println(client);
             }
 
             String deliveryCompanyFile = new Scanner(new File(jsonDir + "delivery.json")).useDelimiter("\\Z").next();
-            Vector<DeliveryCompany> deliveryCompanys = parseDeliveryCompany(deliveryCompanyFile);
-            for (DeliveryCompany deliveryCompany : deliveryCompanys)
+            Vector<DeliveryCompany> deliveryCompanies = parseDeliveryCompany(deliveryCompanyFile);
+            for (DeliveryCompany deliveryCompany : deliveryCompanies)
             {
                 System.out.println(deliveryCompany);
             }
@@ -109,7 +109,7 @@ public class JSONConverter
         }
     }
 
-    public static Vector<Bakery> parseBakery(String jsonFile)
+    public static Vector<Bakery> parseBakeries(String jsonFile)
     {
         JsonElement root = new JsonParser().parse(jsonFile);
         JsonArray arr = root.getAsJsonArray();
@@ -230,7 +230,7 @@ public class JSONConverter
         return bakeries;
     }
 
-    public static Vector<Client> parseClient(String jsonFile)
+    public static Vector<Client> parseClients(String jsonFile)
     {
         JsonElement root = new JsonParser().parse(jsonFile);
         JsonArray arr = root.getAsJsonArray();
@@ -252,30 +252,8 @@ public class JSONConverter
             JsonArray json_orders = json_client.get("orders").getAsJsonArray();
             for (JsonElement order : json_orders)
             {
-                JsonObject json_order = order.getAsJsonObject();
-                String customerId = json_order.get("customerId").getAsString();
-                String order_guid = json_order.get("guid").getAsString();
-                JsonObject json_orderDate = json_order.get("orderDate").getAsJsonObject();
-                int orderDay = json_orderDate.get("day").getAsInt();
-                int orderHour = json_orderDate.get("day").getAsInt();
-                JsonObject json_deliveryDate = json_order.get("deliveryDate").getAsJsonObject();
-                int deliveryDay = json_deliveryDate.get("day").getAsInt();
-                int deliveryHour = json_deliveryDate.get("day").getAsInt();
-
-                // products (BakedGood objects)
-                // TODO shouldn't products be an array not an object?
-                // TODO this will need to be reworked in the future when BakedGood is more fleshed out
-                // TODO also this JUST is a bit hacky...
-                Vector<BakedGood> bakedGoods = new Vector<BakedGood>();
-                JsonObject json_products = json_order.get("products").getAsJsonObject();
-                for (String bakedGoodName : BakedGood.bakedGoodNames)
-                {
-                    int amount = json_products.get(bakedGoodName).getAsInt();
-                    bakedGoods.add(new BakedGood(bakedGoodName, amount));
-                }
-
-                Order anOrder = new Order(customerId, order_guid, orderDay, orderHour, deliveryDay, deliveryHour, bakedGoods);
-                orders.add(anOrder);
+                String json_order = order.toString();
+                orders.add(JSONConverter.parseOrder(json_order));
             }
 
             Client aClient = new Client(guid, type, name, location, orders);
