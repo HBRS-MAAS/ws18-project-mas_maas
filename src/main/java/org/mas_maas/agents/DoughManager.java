@@ -47,7 +47,7 @@ public class DoughManager extends BaseAgent {
     protected void setup() {
         super.setup();
         System.out.println(getAID().getLocalName() + " is ready.");
-        
+
         getbakery();
         needKneading = new WorkQueue();
         needWorking = new WorkQueue();
@@ -79,25 +79,25 @@ public class DoughManager extends BaseAgent {
         orderMessage = order.toString();
 
         System.out.println(getAID().getName() + " received the order " + orderMessage);
-        
+
         Order jsonOrder = JSONConverter.parseOrder(orderMessage);
-        
+
         // Add order to the needKneading workQueue
         queueOrder(jsonOrder);
         KneadingRequest kneadingRequestMessage = createKneadingRequestMessage();
         // Convert the kneadingRequest object to a String. Send this KneadingRequest
-        
+
         Gson gson = new Gson();
-    
+
         String kneadingRequestString = gson.toJson(kneadingRequestMessage);
         addBehaviour(new RequestKneading( kneadingRequestString, kneadingMachineAgents));
-        
 
-        
-        
-        
- 
-        
+
+
+
+
+
+
 
 
 //        // Based on the order, fill in a kneadingRequest JSONObject and convert it to string
@@ -145,7 +145,7 @@ public class DoughManager extends BaseAgent {
 
 
     }
-    
+
     public void queueOrder(Order order) {
     	// Add order to the needKneading workqueue
     	for(BakedGood bakedGood : order.getBakedGoods()) {
@@ -153,40 +153,40 @@ public class DoughManager extends BaseAgent {
     		String status = NEED_KNEADING;
     		int amount = bakedGood.getAmount();
     		Product product = bakery.findProduct(guid);
-    
+
     		ProductStatus productStatus = new ProductStatus(guid, status, amount, product);
     		needKneading.addProduct(productStatus);
     	}
     }
-    
+
     public KneadingRequest createKneadingRequestMessage() {
     	// Checks the needKneading workqueue
     	Vector<ProductStatus> products = needKneading.getProductBatch();
-    	
+
     	KneadingRequest kneadingRequest = null;
-    	
+
     	if (products != null) {
-    		
+
     		Vector<String> guids = new Vector<String>();
-        	
+
         	for (ProductStatus productStatus : products) {
         		guids.add(productStatus.getGuid());
-        		
+
         	}
         	String productType = products.get(0).getProduct().getGuid();
         	float kneadingTime = products.get(0).getProduct().getRecipe().getActionTime(Step.KNEADING_TIME);
-    
+
         	kneadingRequest = new KneadingRequest(productType, guids, kneadingTime);
     	}
- 
+
     	return kneadingRequest;
 
     }
-    
+
 
     public void getbakery(){
 
-        String jsonDir = "src/main/resources/config/assignment4/";
+        String jsonDir = "src/main/resources/config/dough_stage_communication/";
         try {
             System.out.println("Working Directory = " + System.getProperty("user.dir"));
             String bakeryFile = new Scanner(new File(jsonDir + "bakery.json")).useDelimiter("\\Z").next();
