@@ -1,6 +1,7 @@
 package org.mas_maas.agents;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.HashMap;
 import java.util.Scanner;
 import java.util.Vector;
 
@@ -10,6 +11,7 @@ import org.mas_maas.JSONConverter;
 import org.mas_maas.messages.KneadingNotification;
 import org.mas_maas.messages.KneadingRequest;
 import org.mas_maas.messages.PreparationNotification;
+import org.mas_maas.messages.PreparationRequest;
 import org.mas_maas.objects.BakedGood;
 import org.mas_maas.objects.Bakery;
 import org.mas_maas.objects.Order;
@@ -30,6 +32,7 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
+
 public class DoughManager extends BaseAgent {
     private AID [] orderProcessingAgents;
     private AID [] prooferAgents;
@@ -39,8 +42,9 @@ public class DoughManager extends BaseAgent {
     private WorkQueue needsKneading;
     private WorkQueue needsPreparation;
     private WorkQueue needsProofing;
+    private HashMap<String, Order> orders = new HashMap<String, Order>(); 
     private static final String NEEDS_KNEADING = "needsKneading";
-    private static final String NEEDS_WORKING = "needsWorking";
+    private static final String NEEDS_PREPARATION = "needsPreparation";
     private static final String NEEDS_PROOFING = "needsProofing";
 
 
@@ -52,6 +56,7 @@ public class DoughManager extends BaseAgent {
         needsKneading = new WorkQueue();
         needsPreparation = new WorkQueue();
         needsProofing = new WorkQueue();
+        
 
         this.register("Dough-manager", "JADE-bakery");
         this.getOrderProcessingAIDs();
@@ -81,6 +86,8 @@ public class DoughManager extends BaseAgent {
         System.out.println(getAID().getName() + " received the order " + orderMessage);
 
         Order jsonOrder = JSONConverter.parseOrder(orderMessage);
+        orders.put(jsonOrder.getGuid(), jsonOrder);
+        
 
         // Add order to the needKneading workQueue
         queueOrder(jsonOrder);
@@ -178,8 +185,52 @@ public class DoughManager extends BaseAgent {
 
     }
 
-    public void queuePreparation(Order order) {
-        //
+    public void queuePreparation(String productType, Vector<String> guids ) {
+        // Get productStatus based on the productType and guids
+    	
+    	for (String guid : guids) {
+    		
+    		int amount = -1; 
+             String status = NEEDS_PREPARATION;
+             Product product = bakery.findProduct(guid);
+             Order order = orders.get(guid);
+             
+             for(BakedGood bakedGood : order.getBakedGoods()) {
+            	 if (bakedGood.getName().equals(productType)) {
+            		 amount = bakedGood.getAmount();
+            	 }
+            	 
+             }
+             ProductStatus productStatus = new ProductStatus(guid, status, amount, product);
+             needsPreparation.addProduct(productStatus);
+         }	
+    }
+    
+    public PreparationRequest createPreparationRequestMessage() {
+        // Checks the needsPreparaion workqueue
+        Vector<ProductStatus> products = needsPreparation.getProductBatch();
+
+        PreparationRequest preparationRequest = null;
+
+        if (products != null) {
+
+            Vector<String> guids = new Vector<String>();
+            Vector<Integer> productQuantities = new Vector<Integer>();
+            Vector<Step> steps = new Vector<Step>();
+
+            for (ProductStatus productStatus : products) {
+                guids.add(productStatus.getGuid());
+                productQuantities.add(productStatus.getAmount());
+            }
+            
+            String productType = products.get(0).getProduct().getGuid();
+            steps = products.get(0).getProduct().getRecipe().getPreparationSteps();
+           
+            preparationRequest = new PreparationRequest(guids, productType, productQuantities, steps);
+        }
+
+        return preparationRequest;
+
     }
 
 

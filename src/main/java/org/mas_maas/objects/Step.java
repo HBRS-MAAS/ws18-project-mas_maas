@@ -6,6 +6,8 @@ public class Step
     private Float duration;
     public final static String KNEADING_TIME = "kneadingTime";
     public final static String PROOFING_TIME = "proofingTime";
+    public final static String KNEADING_STEP = "kneadingStep";
+    public final static String COOLING_STEP =  "coolingStep";
 
     public Step(String action, Float duration2) {
         this.action = action;

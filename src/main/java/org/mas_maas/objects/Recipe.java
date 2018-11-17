@@ -49,6 +49,28 @@ public class Recipe{
     	
     	return duration;
     }
+    
+    public Vector<Step> getPreparationSteps(){
+    	Vector<Step> preparationSteps = new Vector<Step>();
+    	boolean passedKneading = false;
+    	
+    	for(Step step: steps) {
+    		if (passedKneading) {
+    			if (!step.getAction().equals(Step.COOLING_STEP)) {
+    				preparationSteps.add(step);
+    			}
+    			else {
+    				break;
+    			}
+    				
+    		}
+    		if (step.getAction().equals(Step.KNEADING_STEP)) {
+    			passedKneading = true;
+    		}
+    	}
+    	return preparationSteps;
+    	
+    }
 
     @Override
     public String toString() {
