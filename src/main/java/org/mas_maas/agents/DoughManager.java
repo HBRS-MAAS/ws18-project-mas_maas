@@ -384,6 +384,12 @@ public class DoughManager extends BaseAgent {
               KneadingNotification kneadingNotification = JSONConverter.parseKneadingNotification(kneadingNotificationString);
               String productType = kneadingNotification.getProductType();
               Vector<String> guids = kneadingNotification.getGuids();
+              
+              queuePreparation(productType, guids);
+              PreparationRequest preparationRequestMessage = createPreparationRequestMessage(); 
+              addBehaviour // send preparationRequestMessage
+              
+              
 
           }
           else {
