@@ -33,6 +33,7 @@ public class WorkQueue {
             firstProduct = this.workQueue.pop();
         }
 
+        System.out.println("First product " + firstProduct);
         return firstProduct;
     }
 
@@ -47,13 +48,15 @@ public class WorkQueue {
         {
             batch = new Vector<ProductStatus>();
             String curType = firstProduct.getProduct().getGuid();
+            
+            System.out.println("Type  " + curType);
 
             for (ProductStatus productStatus : this.workQueue)
             {
                 if (productStatus.getProduct().getGuid().equals(curType))
                 {
                     batch.add(productStatus);
-                    this.workQueue.remove(productStatus);
+                    this.workQueue.remove(productStatus);  // should we check so that we dont remove the first product again?
                 }
             }
         }

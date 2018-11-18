@@ -50,6 +50,18 @@ public class Recipe{
     	return duration;
     }
     
+    public Step getProofingStep() {
+    	Step proofingStep = new Step(null, null);
+    	for(Step step: steps) {
+    		if(step.getAction().equals(Step.PROOFING_STEP)) {
+    			proofingStep.setDuration(step.getDuration());
+    			proofingStep.setAction(step.getAction());
+    			break;
+    		}
+    	}
+    	return proofingStep;
+    }
+    
     public Vector<Step> getPreparationSteps(){
     	Vector<Step> preparationSteps = new Vector<Step>();
     	boolean passedKneading = false;
