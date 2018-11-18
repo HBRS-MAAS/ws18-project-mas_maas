@@ -1,32 +1,41 @@
 package org.mas_maas.agents;
+
+import org.mas_maas.messages.PreparationRequest;
+import org.mas_maas.messages.PreparationNotification;
+import org.mas_maas.JSONConverter;
+import org.mas_maas.objects.Step;
+
 import jade.core.AID;
 import jade.core.behaviours.*;
+
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
+
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+
+import java.util.Vector;
+
+import com.google.gson.Gson;
 
 public class PreparationTableAgent extends BaseAgent {
     private AID [] doughManagerAgents;
 
-    private boolean available = true;
+    private Vector<String> guids;
+    private Vector<Integer> productQuantities;
+    private String productType;
+    private Vector<Step> steps;
 
     protected void setup() {
         super.setup();
         System.out.println(getAID().getLocalName() + " is ready.");
-        this.register("PreparationTable", "JADE-bakery");
+        this.register("Preparation-table", "JADE-bakery");
         this.getDoughManagerAIDs();
-
-        // Create preparationNotification msg
-        String preparationNotification = "Preparation-Notification";
 
         // Creating receive kneading requests behaviour
         addBehaviour(new ReceivePreparationRequests());
-
-        // Creating send kneading notification behaviour
-        addBehaviour(new SendPreparationNotification(preparationNotification, doughManagerAgents));
     }
 
     public void getDoughManagerAIDs() {
@@ -56,68 +65,93 @@ public class PreparationTableAgent extends BaseAgent {
 
     // Receiving Preparation requests behaviour
     private class ReceivePreparationRequests extends CyclicBehaviour {
-      public void action() {
+        public void action() {
 
-          MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
+            MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
 
-          ACLMessage msg = myAgent.receive(mt);
+            ACLMessage msg = myAgent.receive(mt);
 
-          if (msg != null) {
+            if (msg != null) {
 
-              String content = msg.getContent();
+                String content = msg.getContent();
 
-              ACLMessage reply = msg.createReply();
+                PreparationRequest preparationRequest = JSONConverter.parsePreparationRequest(content);
 
-              reply.setPerformative(ACLMessage.CONFIRM);
+                ACLMessage reply = msg.createReply();
 
-              reply.setContent("Preparation request was received");
+                reply.setPerformative(ACLMessage.CONFIRM);
 
-              baseAgent.sendMessage(reply);
+                reply.setContent("Preparation request was received");
 
-              Float preparationTime= (float) 2.0;
+                baseAgent.sendMessage(reply);
 
-              addBehaviour(new Preparation(preparationTime));
+                guids = preparationRequest.getGuids();
 
-          }
-          else {
-              block();
-          }
-      }
-  }
+                productType = preparationRequest.getProductType();
+
+                steps = preparationRequest.getSteps();
+
+                addBehaviour(new Preparation());
+
+            }
+            else {
+                block();
+            }
+        }
+    }
 
   // performs Preparation process
-
   private class Preparation extends Behaviour {
       private float preparationTime;
-      private float fakeCounter = (float) 0;
-      private boolean preparationMsgFlag = true;
-      private int step = 0;
-
-      public Preparation(float preparationTime){
-          this.preparationTime = preparationTime;
-      }
+      private float preparationCounter = (float) 0;
+      private int option = 0;
+      private Float step_duration;
 
       public void action(){
 
-          switch(step){
+          switch(option){
 
                 case 0:
-                    if (preparationMsgFlag == true){
-                        System.out.println(getAID().getLocalName() + "Preparation");
-                        preparationMsgFlag = false;
+
+                    for (Step step : steps){
+                        System.out.println(getAID().getLocalName() + "Performing " + step.getAction());
+
+                        step_duration = step.getDuration();
+
+                        preparationTime += step_duration;
                     }
+                    option = 1;
 
-                    if (fakeCounter == preparationTime){
-                        step = 1;
+                case 1:
+                    if (allowAction == true){
+                        preparationCounter++;
 
-                    }else{
-                        fakeCounter++;
+                        if (preparationCounter == preparationTime){
+                            System.out.println("============================");
+                            System.out.println("Preparation completed");
+                            System.out.println("============================");
+
+                            option = 2;
+
+                            // Create preparationNotification msg
+                            String preparationNotification = "Preparation-Notification";
+                            
+                            // Creating send kneading notification behaviour
+                            addBehaviour(new SendPreparationNotification(preparationNotification, doughManagerAgents));
+
+                        }else{
+                            System.out.println("============================");
+                            System.out.println("Preparation in process...");
+                            System.out.println("============================");
+                            baseAgent.setAllowAction(false);
+
+                        }
                     }
           }
 
       }
       public boolean done(){
-          if (step == 1)
+          if (option == 2)
             return true;
           else
             return false;
