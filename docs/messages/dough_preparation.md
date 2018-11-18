@@ -145,7 +145,6 @@ Step
 ```
 {
     "productType": String,
-    "quantity": int,
     "guids": Vector<String>
 }
 ```
@@ -155,7 +154,6 @@ Step
 ```
 {
     "productType":"Berliner",
-    "quantity: 5,
     "guids":["order-001","order-002"]
 }
 ```

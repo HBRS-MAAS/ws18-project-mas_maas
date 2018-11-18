@@ -31,9 +31,12 @@
 
 ```
 {
-    "proofingTime":1.0,
-    "productType":"Berliner",
-    "guids":["order-001","order-002"]
+  "proofingTime": 1,
+  "productType": "Berliner",
+  "guids": [
+    "order-001",
+    "order-002"
+  ]
 }
 
 ```
@@ -59,7 +62,6 @@
 ```
 {
     "productType": String,
-    "quantity": int,
     "guids": Vector<String>
 }
 ```
@@ -68,8 +70,10 @@
 
 ```
 {
-    "productType":"Berliner",
-    "quantity: 5,
-    "guids":["order-001","order-002"]
+  "productType": "Berliner",
+  "guids": [
+    "order-001",
+    "order-002"
+  ]
 }
 ```
