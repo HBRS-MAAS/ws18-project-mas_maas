@@ -41,11 +41,11 @@ public class WorkQueue {
     // return all the items of the same stage or null if workQueue is empty
     public Vector<ProductStatus> getProductBatch()
     {
-        ProductStatus firstProduct = this.getFirstProduct();
         Vector<ProductStatus> batch = null;
 
-        if (firstProduct != null)
+        if (!this.workQueue.isEmpty())
         {
+            ProductStatus firstProduct = this.workQueue.peek();
             batch = new Vector<ProductStatus>();
             String curType = firstProduct.getProduct().getGuid();
             
