@@ -1,24 +1,20 @@
 package org.mas_maas.agents;
 
-import org.mas_maas.messages.PreparationRequest;
-import org.mas_maas.messages.PreparationNotification;
+import java.util.Vector;
+
 import org.mas_maas.JSONConverter;
+import org.mas_maas.messages.PreparationRequest;
 import org.mas_maas.objects.Step;
 
 import jade.core.AID;
-import jade.core.behaviours.*;
-
+import jade.core.behaviours.Behaviour;
+import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
-
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-
-import java.util.Vector;
-
-import com.google.gson.Gson;
 
 public class PreparationTableAgent extends BaseAgent {
     private AID [] doughManagerAgents;
@@ -123,7 +119,7 @@ public class PreparationTableAgent extends BaseAgent {
                     option = 1;
 
                 case 1:
-                    if (allowAction == true){
+                    if (getAllowAction() == true){
                         preparationCounter++;
 
                         if (preparationCounter == preparationTime){
@@ -143,7 +139,7 @@ public class PreparationTableAgent extends BaseAgent {
                             System.out.println("============================");
                             System.out.println("Preparation in process...");
                             System.out.println("============================");
-                            baseAgent.setAllowAction(false);
+                            baseAgent.finished();
 
                         }
                     }

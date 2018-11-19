@@ -1,23 +1,22 @@
 package org.mas_maas.agents;
 
-import org.mas_maas.messages.KneadingRequest;
-import org.mas_maas.messages.KneadingNotification;
+import java.util.Vector;
+
 import org.mas_maas.JSONConverter;
+import org.mas_maas.messages.KneadingNotification;
+import org.mas_maas.messages.KneadingRequest;
+
+import com.google.gson.Gson;
 
 import jade.core.AID;
-import jade.core.behaviours.*;
-
+import jade.core.behaviours.Behaviour;
+import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
-
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-
-import java.util.Vector;
-
-import com.google.gson.Gson;
 
 public class KneadingMachineAgent extends BaseAgent {
     private AID [] doughManagerAgents;
@@ -127,7 +126,7 @@ public class KneadingMachineAgent extends BaseAgent {
             switch(option){
 
                 case 0:
-                    if (allowAction == true){
+                    if (getAllowAction() == true){
                             kneadingCounter++;
 
                         if  (kneadingCounter == kneadingTime){
@@ -143,7 +142,7 @@ public class KneadingMachineAgent extends BaseAgent {
                             System.out.println("============================");
                             System.out.println("Kneading in process...");
                             System.out.println("============================");
-                            baseAgent.setAllowAction(false);
+                            baseAgent.finished();
 
                         }
                     }
@@ -152,7 +151,7 @@ public class KneadingMachineAgent extends BaseAgent {
         }
         public boolean done(){
             if (option == 1){
-            	return true;
+                return true;
 
             }
             else{
@@ -178,15 +177,15 @@ public class KneadingMachineAgent extends BaseAgent {
             this.doughManagerAgents = doughManagerAgents;
         }
 
-    	public void action() {
-    		switch (option) {
-            	case 0:
+        public void action() {
+            switch (option) {
+                case 0:
 
-            		ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+                    ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
 
-            		msg.setContent(kneadingNotificationString);
+                    msg.setContent(kneadingNotificationString);
 
-            		msg.setConversationId("kneading-notification");
+                    msg.setConversationId("kneading-notification");
 
                     // Send kneadingNotification msg to doughManagerAgents
                     for (int i = 0; i < doughManagerAgents.length; i++){
