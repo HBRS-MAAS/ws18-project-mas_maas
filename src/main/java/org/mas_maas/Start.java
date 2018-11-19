@@ -5,14 +5,15 @@ import java.util.Vector;
 
 public class Start {
     public static void main(String[] args) {
+        JSONConverter.test_parsing();
 
         List<String> agents = new Vector<>();
-        agents.add("Customer:org.mas_maas.agents.Customer");
-        agents.add("OrderProcessing:org.mas_maas.agents.OrderProcessing");
-        agents.add("Scheduler:org.mas_maas.agents.Scheduler");
-        agents.add("DoughMaker:org.mas_maas.agents.DoughMaker");
-        agents.add("OvenManager:org.mas_maas.agents.OvenManager");
-        agents.add("DeliveryManager:org.mas_maas.agents.DeliveryManager");
+        agents.add("BakingInterface:org.mas_maas.agents.BakingInterface");
+        agents.add("DoughManager:org.mas_maas.agents.DoughManager");
+        agents.add("KneadingMachineAgent:org.mas_maas.agents.KneadingMachineAgent");
+        agents.add("PreparationTableAgent:org.mas_maas.agents.PreparationTableAgent");
+        agents.add("Proofer:org.mas_maas.agents.Proofer");
+        agents.add("TimeKeeper:org.mas_maas.agents.TimeKeeper");
 
         List<String> cmd = new Vector<>();
         cmd.add("-agents");

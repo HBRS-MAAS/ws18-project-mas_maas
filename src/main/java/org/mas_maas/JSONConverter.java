@@ -1,4 +1,5 @@
-package org.mas_maas.tests;
+package org.mas_maas;
+
 import java.awt.geom.Point2D;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -8,6 +9,12 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.Vector;
 
+import org.mas_maas.messages.DoughNotification;
+import org.mas_maas.messages.KneadingNotification;
+import org.mas_maas.messages.KneadingRequest;
+import org.mas_maas.messages.PreparationNotification;
+import org.mas_maas.messages.PreparationRequest;
+import org.mas_maas.messages.ProofingRequest;
 import org.mas_maas.objects.BakedGood;
 import org.mas_maas.objects.Bakery;
 import org.mas_maas.objects.Batch;
@@ -33,45 +40,68 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-public class ParserTester
+public class JSONConverter
 {
-    // this all needs to get cleaned up and broken out but for now this is at
-    // least a proof of concept that these .json files and be read and stored
-    // in the appropriate objects.
-    public static void main(String argv[])
+    public static void test_parsing()
     {
-        String jsonDir = "src/main/resources/config/sample/";
+        String sampleDir = "src/main/resources/config/sample/";
+        String doughDir = "src/main/resources/config/dough_stage_communication/";
         try {
             //System.out.println("Working Directory = " + System.getProperty("user.dir"));
 
-            String bakeryFile = new Scanner(new File(jsonDir + "bakeries.json")).useDelimiter("\\Z").next();
-            Vector<Bakery> bakeries = parseBakery(bakeryFile);
+            String bakeryFile = new Scanner(new File(sampleDir + "bakeries.json")).useDelimiter("\\Z").next();
+            Vector<Bakery> bakeries = parseBakeries(bakeryFile);
             for (Bakery bakery : bakeries)
             {
                 System.out.println(bakery);
             }
 
-            String clientFile = new Scanner(new File(jsonDir + "clients.json")).useDelimiter("\\Z").next();
-            Vector<Client> clients = parseClient(clientFile);
+            String clientFile = new Scanner(new File(sampleDir + "clients.json")).useDelimiter("\\Z").next();
+            Vector<Client> clients = parseClients(clientFile);
             for (Client client : clients)
             {
                 System.out.println(client);
             }
 
-            String deliveryCompanyFile = new Scanner(new File(jsonDir + "delivery.json")).useDelimiter("\\Z").next();
-            Vector<DeliveryCompany> deliveryCompanys = parseDeliveryCompany(deliveryCompanyFile);
-            for (DeliveryCompany deliveryCompany : deliveryCompanys)
+            String deliveryCompanyFile = new Scanner(new File(sampleDir + "delivery.json")).useDelimiter("\\Z").next();
+            Vector<DeliveryCompany> deliveryCompanies = parseDeliveryCompany(deliveryCompanyFile);
+            for (DeliveryCompany deliveryCompany : deliveryCompanies)
             {
                 System.out.println(deliveryCompany);
             }
 
-            String metaInfoFile = new Scanner(new File(jsonDir + "meta.json")).useDelimiter("\\Z").next();
+            String metaInfoFile = new Scanner(new File(sampleDir + "meta.json")).useDelimiter("\\Z").next();
             MetaInfo metaInfo = parseMetaInfo(metaInfoFile);
             System.out.println(metaInfo);
 
-            String streetNetworkFile = new Scanner(new File(jsonDir + "street-network.json")).useDelimiter("\\Z").next();
+            String streetNetworkFile = new Scanner(new File(sampleDir + "street-network.json")).useDelimiter("\\Z").next();
             StreetNetwork streetNetwork = parseStreetNetwork(streetNetworkFile);
             System.out.println(streetNetwork);
+
+            String doughNotificationString = new Scanner(new File(doughDir + "dough_notification.json")).useDelimiter("\\Z").next();
+            DoughNotification doughtNotification = parseDoughNotification(doughNotificationString);
+            System.out.println(doughtNotification);
+
+            String kneadingNotificationString = new Scanner(new File(doughDir + "kneading_notification.json")).useDelimiter("\\Z").next();
+            KneadingNotification kneadingNotification = parseKneadingNotification(kneadingNotificationString);
+            System.out.println(kneadingNotification);
+
+            String kneadingRequestString = new Scanner(new File(doughDir + "kneading_request.json")).useDelimiter("\\Z").next();
+            KneadingRequest kneadingRequest = parseKneadingRequest(kneadingRequestString);
+            System.out.println(kneadingRequest);
+
+            String preparationNotificationString = new Scanner(new File(doughDir + "preparation_notification.json")).useDelimiter("\\Z").next();
+            PreparationNotification preparationNotification = parsePreparationNotification(preparationNotificationString);
+            System.out.println(preparationNotification);
+
+            String preparationRequestString = new Scanner(new File(doughDir + "preparation_request.json")).useDelimiter("\\Z").next();
+            PreparationRequest preparationRequest = parsePreparationRequest(preparationRequestString);
+            System.out.println(preparationRequest);
+
+            String proofingRequestString = new Scanner(new File(doughDir + "proofing_request.json")).useDelimiter("\\Z").next();
+            ProofingRequest proofingRequest = parseProofingRequest(proofingRequestString);
+            System.out.println(proofingRequest);
+
 
 
         } catch (FileNotFoundException e) {
@@ -80,7 +110,7 @@ public class ParserTester
         }
     }
 
-    public static Vector<Bakery> parseBakery(String jsonFile)
+    public static Vector<Bakery> parseBakeries(String jsonFile)
     {
         JsonElement root = new JsonParser().parse(jsonFile);
         JsonArray arr = root.getAsJsonArray();
@@ -119,7 +149,7 @@ public class ParserTester
                 {
                     JsonObject json_step = step.getAsJsonObject();
                     String action = json_step.get("action").getAsString();
-                    int duration = json_step.get("duration").getAsInt();
+                    Float duration = json_step.get("duration").getAsFloat();
                     Step aStep = new Step(action, duration);
                     steps.add(aStep);
                 }
@@ -201,8 +231,7 @@ public class ParserTester
         return bakeries;
     }
 
-
-    public static Vector<Client> parseClient(String jsonFile)
+    public static Vector<Client> parseClients(String jsonFile)
     {
         JsonElement root = new JsonParser().parse(jsonFile);
         JsonArray arr = root.getAsJsonArray();
@@ -224,30 +253,8 @@ public class ParserTester
             JsonArray json_orders = json_client.get("orders").getAsJsonArray();
             for (JsonElement order : json_orders)
             {
-                JsonObject json_order = order.getAsJsonObject();
-                String customerId = json_order.get("customerId").getAsString();
-                String order_guid = json_order.get("guid").getAsString();
-                JsonObject json_orderDate = json_order.get("orderDate").getAsJsonObject();
-                int orderDay = json_orderDate.get("day").getAsInt();
-                int orderHour = json_orderDate.get("day").getAsInt();
-                JsonObject json_deliveryDate = json_order.get("deliveryDate").getAsJsonObject();
-                int deliveryDay = json_deliveryDate.get("day").getAsInt();
-                int deliveryHour = json_deliveryDate.get("day").getAsInt();
-
-                // products (BakedGood objects)
-                // TODO shouldn't products be an array not an object?
-                // TODO this will need to be reworked in the future when BakedGood is more fleshed out
-                // TODO also this JUST is a bit hacky...
-                Vector<BakedGood> bakedGoods = new Vector<BakedGood>();
-                JsonObject json_products = json_order.get("products").getAsJsonObject();
-                for (String bakedGoodName : BakedGood.bakedGoodNames)
-                {
-                    int amount = json_products.get(bakedGoodName).getAsInt();
-                    bakedGoods.add(new BakedGood(bakedGoodName, amount));
-                }
-
-                Order anOrder = new Order(customerId, order_guid, orderDay, orderHour, deliveryDay, deliveryHour, bakedGoods);
-                orders.add(anOrder);
+                String json_order = order.toString();
+                orders.add(JSONConverter.parseOrder(json_order));
             }
 
             Client aClient = new Client(guid, type, name, location, orders);
@@ -255,6 +262,36 @@ public class ParserTester
         }
 
         return clients;
+    }
+
+    public static Order parseOrder(String jsonFile)
+    {
+        JsonElement root = new JsonParser().parse(jsonFile);
+        JsonObject json_order = root.getAsJsonObject();
+
+        String customerId = json_order.get("customerId").getAsString();
+        String order_guid = json_order.get("guid").getAsString();
+        JsonObject json_orderDate = json_order.get("orderDate").getAsJsonObject();
+        int orderDay = json_orderDate.get("day").getAsInt();
+        int orderHour = json_orderDate.get("day").getAsInt();
+        JsonObject json_deliveryDate = json_order.get("deliveryDate").getAsJsonObject();
+        int deliveryDay = json_deliveryDate.get("day").getAsInt();
+        int deliveryHour = json_deliveryDate.get("day").getAsInt();
+
+        // products (BakedGood objects)
+        // TODO shouldn't products be an array not an object?
+        // TODO this will need to be reworked in the future when BakedGood is more fleshed out
+        // TODO also this JUST is a bit hacky...
+        Vector<BakedGood> bakedGoods = new Vector<BakedGood>();
+        JsonObject json_products = json_order.get("products").getAsJsonObject();
+        for (String bakedGoodName : BakedGood.bakedGoodNames)
+        {
+            int amount = json_products.get(bakedGoodName).getAsInt();
+            bakedGoods.add(new BakedGood(bakedGoodName, amount));
+        }
+
+        Order anOrder = new Order(customerId, order_guid, orderDay, orderHour, deliveryDay, deliveryHour, bakedGoods);
+        return anOrder;
     }
 
     public static Vector<DeliveryCompany> parseDeliveryCompany(String jsonFile)
@@ -365,5 +402,131 @@ public class ParserTester
 
         StreetNetwork streetNetwork = new StreetNetwork(directed, nodes, links);
         return streetNetwork;
+    }
+
+    public static DoughNotification parseDoughNotification(String jsonString)
+    {
+        JsonElement root = new JsonParser().parse(jsonString);
+        JsonObject json_doughNotification = root.getAsJsonObject();
+
+        String productType = json_doughNotification.get("productType").getAsString();
+        int quantity = json_doughNotification.get("quantity").getAsInt();
+        Vector<String> guids = new Vector<String>();
+        JsonArray json_guids = json_doughNotification.get("guids").getAsJsonArray();
+        for (JsonElement guid : json_guids)
+        {
+            guids.add(guid.getAsString());
+        }
+
+        DoughNotification doughNotification = new DoughNotification(guids, productType);
+        return doughNotification;
+    }
+
+    public static KneadingNotification parseKneadingNotification(String jsonString)
+    {
+        JsonElement root = new JsonParser().parse(jsonString);
+        JsonObject json_kneadingNotification = root.getAsJsonObject();
+
+        String productType = json_kneadingNotification.get("productType").getAsString();
+        Vector<String> guids = new Vector<String>();
+        JsonArray json_guids = json_kneadingNotification.get("guids").getAsJsonArray();
+        for (JsonElement guid : json_guids)
+        {
+            guids.add(guid.getAsString());
+        }
+
+        KneadingNotification kneadingNotification = new KneadingNotification(guids, productType);
+        return kneadingNotification;
+    }
+
+    public static KneadingRequest parseKneadingRequest(String jsonString)
+    {
+        JsonElement root = new JsonParser().parse(jsonString);
+        JsonObject json_kneadingRequest = root.getAsJsonObject();
+
+        String productType = json_kneadingRequest.get("productType").getAsString();
+        Float kneadingTime = json_kneadingRequest.get("kneadingTime").getAsFloat();
+        Vector<String> guids = new Vector<String>();
+        JsonArray json_guids = json_kneadingRequest.get("guids").getAsJsonArray();
+        for (JsonElement guid : json_guids)
+        {
+            guids.add(guid.getAsString());
+        }
+
+        KneadingRequest kneadingRequest = new KneadingRequest(guids, productType, kneadingTime);
+        return kneadingRequest;
+    }
+
+    public static PreparationNotification parsePreparationNotification(String jsonString)
+    {
+        JsonElement root = new JsonParser().parse(jsonString);
+        JsonObject json_preparationNotification = root.getAsJsonObject();
+
+        String productType = json_preparationNotification.get("productType").getAsString();
+        Vector<String> guids = new Vector<String>();
+        JsonArray json_guids = json_preparationNotification.get("guids").getAsJsonArray();
+        for (JsonElement guid : json_guids)
+        {
+            guids.add(guid.getAsString());
+        }
+
+        PreparationNotification preparationNotification = new PreparationNotification(guids, productType);
+        return preparationNotification;
+    }
+
+    public static PreparationRequest parsePreparationRequest(String jsonString)
+    {
+        JsonElement root = new JsonParser().parse(jsonString);
+        JsonObject json_preparationRequest = root.getAsJsonObject();
+
+        String productType = json_preparationRequest.get("productType").getAsString();
+
+        Vector<Integer> productQuantities = new Vector<Integer>();
+        JsonArray json_productQuantities = json_preparationRequest.get("productQuantities").getAsJsonArray();
+        for (JsonElement productQuantity : json_productQuantities)
+        {
+            productQuantities.add(productQuantity.getAsInt());
+        }
+
+        Vector<Step> steps = new Vector<Step>();
+        JsonArray json_steps = json_preparationRequest.get("steps").getAsJsonArray();
+        for (JsonElement step : json_steps)
+        {
+            JsonObject json_step = step.getAsJsonObject();
+            String action = json_step.get("action").getAsString();
+            Float duration = json_step.get("duration").getAsFloat();
+
+            Step aStep = new Step(action, duration);
+            steps.add(aStep);
+        }
+
+        Vector<String> guids = new Vector<String>();
+        JsonArray json_guids = json_preparationRequest.get("guids").getAsJsonArray();
+        for (JsonElement guid : json_guids)
+        {
+            guids.add(guid.getAsString());
+        }
+
+        PreparationRequest preparationRequest = new PreparationRequest(guids, productType, productQuantities, steps);
+        return preparationRequest;
+    }
+
+    public static ProofingRequest parseProofingRequest(String jsonString)
+    {
+        JsonElement root = new JsonParser().parse(jsonString);
+        JsonObject json_proofingRequest = root.getAsJsonObject();
+
+        String productType = json_proofingRequest.get("productType").getAsString();
+        Float proofingTime = json_proofingRequest.get("proofingTime").getAsFloat();
+
+        Vector<String> guids = new Vector<String>();
+        JsonArray json_guids = json_proofingRequest.get("guids").getAsJsonArray();
+        for (JsonElement guid : json_guids)
+        {
+            guids.add(guid.getAsString());
+        }
+
+        ProofingRequest proofingRequest = new ProofingRequest(productType, guids, proofingTime);
+        return proofingRequest;
     }
 }
