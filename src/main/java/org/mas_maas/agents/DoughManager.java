@@ -107,6 +107,10 @@ public class DoughManager extends BaseAgent {
 
         // Add behavior to send the kneadingRequest to the Kneading Agents
         addBehaviour(new RequestKneading( kneadingRequestString, kneadingMachineAgents));
+
+        addBehaviour(new ReceiveKneadingNotification());
+
+        addBehaviour(new ReceivePreparationNotification());
     }
 
     protected void takeDown() {
@@ -377,20 +381,30 @@ public class DoughManager extends BaseAgent {
     /* This is the behavior used for receiving kneading notification messages */
     private class ReceiveKneadingNotification extends CyclicBehaviour {
         public void action() {
-            // baseAgent.finished(); //call it if there are no generic behaviours
+
             MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
+
             ACLMessage msg = myAgent.receive(mt);
+
             if (msg != null) {
+
+                System.out.println("-------> " + getAID().getLocalName()+" Received Kneading Notification");
+
                 String kneadingNotificationString = msg.getContent();
+
                 ACLMessage reply = msg.createReply();
+
                 reply.setPerformative(ACLMessage.CONFIRM);
+
                 reply.setContent("Kneading Notification was received");
+
                 baseAgent.sendMessage(reply);
 
                 // Convert kneadingNotificationString to kneadingNotification object
                 KneadingNotification kneadingNotification = JSONConverter.parseKneadingNotification(kneadingNotificationString);
 
                 String productType = kneadingNotification.getProductType();
+
                 Vector<String> guids = kneadingNotification.getGuids();
 
                 // Add guids with this productType to the queuePreparation
@@ -401,6 +415,7 @@ public class DoughManager extends BaseAgent {
 
                 // Convert preparationRequestMessage to String
                 Gson gson = new Gson();
+
                 String preparationRequestString = gson.toJson(preparationRequestMessage);
 
                 // Send preparationRequestMessage
@@ -411,8 +426,6 @@ public class DoughManager extends BaseAgent {
                 block();
             }
         }
-
-
     }
 
     /* This is the behaviour used for receiving preparation notification */
@@ -463,7 +476,7 @@ public class DoughManager extends BaseAgent {
         private String kneadingRequest;
         private AID [] kneadingMachineAgents;
         private MessageTemplate mt;
-        private ACLMessage msg;
+        // private ACLMessage msg;
         private int step = 0;
 
         public RequestKneading(String kneadingRequest, AID [] kneadingMachineAgents){
@@ -477,15 +490,18 @@ public class DoughManager extends BaseAgent {
             }
             switch(step){
             case 0:
+
                 ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
                 msg.setContent(kneadingRequest);
                 msg.setConversationId("kneading-request");
+
                 // Send kneadingRequest msg to all kneadingMachineAgents
                 for (int i=0; i<kneadingMachineAgents.length; i++){
                     msg.addReceiver(kneadingMachineAgents[i]);
                 }
                 msg.setReplyWith("msg"+System.currentTimeMillis());
                 baseAgent.sendMessage(msg);  // calling sendMessage instead of send
+
                 mt = MessageTemplate.and(MessageTemplate.MatchConversationId("kneading-request"),
                         MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
 
@@ -499,7 +515,7 @@ public class DoughManager extends BaseAgent {
         }
         public boolean done(){
             if (step == 1){
-                baseAgent.finished();
+                // baseAgent.finished();
                 return true;
 
             }

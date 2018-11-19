@@ -4,7 +4,10 @@ import java.util.Vector;
 
 import org.mas_maas.JSONConverter;
 import org.mas_maas.messages.PreparationRequest;
+import org.mas_maas.messages.PreparationNotification;
 import org.mas_maas.objects.Step;
+
+import com.google.gson.Gson;
 
 import jade.core.AID;
 import jade.core.behaviours.Behaviour;
@@ -89,75 +92,55 @@ public class PreparationTableAgent extends BaseAgent {
         }
     }
 
-  // performs Preparation process
-  private class Preparation extends Behaviour {
-      private float preparationTime;
-      private float preparationCounter = (float) 0;
-      private int option = 0;
-      private Float step_duration;
+    // performs Preparation process
+    private class Preparation extends Behaviour {
+        private float preparationTime;
+        private float stepCounter = (float) 0;
+        private int option = 0;
+        private Float step_duration;
 
-      public void action(){
+        public void action(){
 
-          switch(option){
+            if (getAllowAction() == true){
+                for (Step step : steps){
 
-                case 0:
+                    System.out.println(getAID().getLocalName() + "Performing " + step.getAction());
 
-                    for (Step step : steps){
-                        System.out.println(getAID().getLocalName() + "Performing " + step.getAction());
+                    step_duration = step.getDuration();
 
-                        step_duration = step.getDuration();
-
-                        preparationTime += step_duration;
+                    while(stepCounter < step_duration){
+                        stepCounter++;
+                        System.out.println("----> " + getAID().getLocalName() + " Step counter " + stepCounter);
                     }
-                    option = 1;
 
-                case 1:
-                    if (getAllowAction() == true){
-                        preparationCounter++;
+                    stepCounter = (float) 0;
+                }
+            }
+            addBehaviour(new SendPreparationNotification(doughManagerAgents));
+            this.done();
 
-                        if (preparationCounter == preparationTime){
-                            System.out.println("============================");
-                            System.out.println("Preparation completed");
-                            System.out.println("============================");
-
-                            option = 2;
-
-                            // Create preparationNotification msg
-                            String preparationNotification = "Preparation-Notification";
-
-                            // Creating send kneading notification behaviour
-                            addBehaviour(new SendPreparationNotification(preparationNotification, doughManagerAgents));
-
-                        }else{
-                            System.out.println("============================");
-                            System.out.println("Preparation in process...");
-                            System.out.println("============================");
-                        }
-
-                        baseAgent.finished();
-                    }
-          }
-
-      }
-      public boolean done(){
-          if (option == 2)
+        }
+        public boolean done(){
+            baseAgent.finished();
             return true;
-          else
-            return false;
-      }
+        }
   }
 
 
 
   // Send a preparationNotification msg to the doughManager agents
   private class SendPreparationNotification extends Behaviour {
-    private String preparationNotification;
     private AID [] doughManagerAgents;
     private MessageTemplate mt;
     private int step = 0;
 
-    public SendPreparationNotification(String preparationNotification, AID [] doughManagerAgents){
-        this.preparationNotification = preparationNotification;
+    Gson gson = new Gson();
+
+    PreparationNotification preparationNotification = new PreparationNotification(guids,productType);
+
+    String preparationNotificationString = gson.toJson(preparationNotification);
+
+    public SendPreparationNotification(AID [] doughManagerAgents){
         this.doughManagerAgents = doughManagerAgents;
     }
 
@@ -167,7 +150,7 @@ public class PreparationTableAgent extends BaseAgent {
                 case 0:
                     ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
 
-                    msg.setContent(preparationNotification);
+                    msg.setContent(preparationNotificationString);
 
                     msg.setConversationId("preparation-notification");
 

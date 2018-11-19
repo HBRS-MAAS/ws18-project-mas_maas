@@ -81,15 +81,23 @@ public class KneadingMachineAgent extends BaseAgent {
             if (msg != null) {
 
                 System.out.println(getAID().getLocalName() + " received requests.");
+
                 String content = msg.getContent();
+
                 KneadingRequest kneadingRequest = JSONConverter.parseKneadingRequest(content);
+
                 ACLMessage reply = msg.createReply();
 
                 reply.setPerformative(ACLMessage.CONFIRM);
+
                 reply.setContent("Kneading request was received");
+
                 baseAgent.sendMessage(reply);
+
                 Float kneadingTime = kneadingRequest.getKneadingTime();
+
                 guids = kneadingRequest.getGuids();
+
                 productType = kneadingRequest.getProductType();
 
                 addBehaviour(new Kneading(kneadingTime));
@@ -110,46 +118,23 @@ public class KneadingMachineAgent extends BaseAgent {
 
         public Kneading(Float kneadingTime){
             this.kneadingTime = kneadingTime;
-            System.out.println(getAID().getLocalName() + " Kneading for " + kneadingTime);
+            System.out.println("----> "+ getAID().getLocalName() + " Kneading for " + kneadingTime);
         }
 
         public void action(){
-
-            switch(option){
-
-                case 0:
-                    if (getAllowAction() == true){
-                        kneadingCounter = kneadingTime;
-
-                        if  (kneadingCounter == kneadingTime){
-                            System.out.println("============================");
-                            System.out.println("Kneading completed");
-                            System.out.println("============================");
-                            option = 1;
-
-                             // Creating send kneading notification behavior
-                             addBehaviour(new SendKneadingNotification(doughManagerAgents));
-
-                        }else{
-                            System.out.println("============================");
-                            System.out.println("Kneading in process...");
-                            System.out.println("============================");
-                        }
-
-                        baseAgent.finished();
-                    }
+            if (getAllowAction() == true){
+                while(kneadingCounter < kneadingTime){
+                    kneadingCounter++;
+                    System.out.println("----> " + getAID().getLocalName() + " Kneading counter " + kneadingCounter);
+                }
             }
-
+            addBehaviour(new SendKneadingNotification(doughManagerAgents));
+            this.done();
         }
         public boolean done(){
-            if (option == 1){
-                return true;
-
-            }
-            else{
-                return false;
-            }
-      }
+            baseAgent.finished();
+            return true;
+        }
     }
 
     // Send a kneadingNotification msg to the doughManager agents
