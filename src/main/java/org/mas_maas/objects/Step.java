@@ -4,8 +4,8 @@ public class Step
 {
     private String action;
     private Float duration;
-    public final static String KNEADING_TIME = "kneadingTime";
-    public final static String PROOFING_TIME = "proofingTime";
+    public final static String KNEADING_TIME = "kneading";
+    public final static String PROOFING_TIME = "proofing";
     public final static String KNEADING_STEP = "kneadingStep";
     public final static String COOLING_STEP =  "coolingStep";
     public final static String PROOFING_STEP = "proofingStep";
