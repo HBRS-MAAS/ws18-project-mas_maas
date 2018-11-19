@@ -81,23 +81,15 @@ public class KneadingMachineAgent extends BaseAgent {
             if (msg != null) {
 
                 System.out.println(getAID().getLocalName() + " received requests.");
-
                 String content = msg.getContent();
-
                 KneadingRequest kneadingRequest = JSONConverter.parseKneadingRequest(content);
-
                 ACLMessage reply = msg.createReply();
 
                 reply.setPerformative(ACLMessage.CONFIRM);
-
                 reply.setContent("Kneading request was received");
-
                 baseAgent.sendMessage(reply);
-
                 Float kneadingTime = kneadingRequest.getKneadingTime();
-
                 guids = kneadingRequest.getGuids();
-
                 productType = kneadingRequest.getProductType();
 
                 addBehaviour(new Kneading(kneadingTime));
@@ -127,7 +119,7 @@ public class KneadingMachineAgent extends BaseAgent {
 
                 case 0:
                     if (getAllowAction() == true){
-                            kneadingCounter++;
+                        kneadingCounter++;
 
                         if  (kneadingCounter == kneadingTime){
                             System.out.println("============================");
@@ -142,9 +134,9 @@ public class KneadingMachineAgent extends BaseAgent {
                             System.out.println("============================");
                             System.out.println("Kneading in process...");
                             System.out.println("============================");
-                            baseAgent.finished();
-
                         }
+
+                        baseAgent.finished();
                     }
             }
 

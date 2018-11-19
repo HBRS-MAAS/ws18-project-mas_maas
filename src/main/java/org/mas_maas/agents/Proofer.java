@@ -94,21 +94,14 @@ public class Proofer extends BaseAgent {
             if (msg != null) {
 
                 String content = msg.getContent();
-
                 ProofingRequest proofingRequest = JSONConverter.parseProofingRequest(content);
-
                 ACLMessage reply = msg.createReply();
 
                 reply.setPerformative(ACLMessage.CONFIRM);
-
                 reply.setContent("Proofing request was received");
-
                 baseAgent.sendMessage(reply);
-
                 Float proofingTime = proofingRequest.getProofingTime();
-
                 guids = proofingRequest.getGuids();
-
                 productType = proofingRequest.getProductType();
 
                 addBehaviour(new Proofing(proofingTime));
@@ -151,9 +144,9 @@ public class Proofer extends BaseAgent {
                             System.out.println("============================");
                             System.out.println("Proofing in process...");
                             System.out.println("============================");
-                            baseAgent.finished();
-
                         }
+
+                        baseAgent.finished();
                     }
             }
 

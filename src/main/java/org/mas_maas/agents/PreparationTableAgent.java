@@ -70,25 +70,18 @@ public class PreparationTableAgent extends BaseAgent {
             if (msg != null) {
 
                 String content = msg.getContent();
-
                 PreparationRequest preparationRequest = JSONConverter.parsePreparationRequest(content);
-
                 ACLMessage reply = msg.createReply();
 
                 reply.setPerformative(ACLMessage.CONFIRM);
-
                 reply.setContent("Preparation request was received");
 
                 baseAgent.sendMessage(reply);
-
                 guids = preparationRequest.getGuids();
-
                 productType = preparationRequest.getProductType();
-
                 steps = preparationRequest.getSteps();
 
                 addBehaviour(new Preparation());
-
             }
             else {
                 block();
@@ -131,7 +124,7 @@ public class PreparationTableAgent extends BaseAgent {
 
                             // Create preparationNotification msg
                             String preparationNotification = "Preparation-Notification";
-                            
+
                             // Creating send kneading notification behaviour
                             addBehaviour(new SendPreparationNotification(preparationNotification, doughManagerAgents));
 
@@ -139,9 +132,9 @@ public class PreparationTableAgent extends BaseAgent {
                             System.out.println("============================");
                             System.out.println("Preparation in process...");
                             System.out.println("============================");
-                            baseAgent.finished();
-
                         }
+
+                        baseAgent.finished();
                     }
           }
 
