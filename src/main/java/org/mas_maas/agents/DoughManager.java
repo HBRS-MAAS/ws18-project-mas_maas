@@ -70,7 +70,7 @@ public class DoughManager extends BaseAgent {
         this.getKneadingMachineAIDs();
 
         // Activate behavior that receives orders
-        addBehaviour(new ReceiveOrders());
+        // addBehaviour(new ReceiveOrders());
 
         // For now, the orderProcessingAgents do not exist. The manager has an order object.
 
@@ -164,7 +164,7 @@ public class DoughManager extends BaseAgent {
 
             int amount = -1;
             String status = NEEDS_PREPARATION;
-            Product product = bakery.findProduct(guid);
+            Product product = bakery.findProduct(productType);
             Order order = orders.get(guid);
 
             for(BakedGood bakedGood : order.getBakedGoods()) {
@@ -190,6 +190,8 @@ public class DoughManager extends BaseAgent {
             Vector<Integer> productQuantities = new Vector<Integer>();
             Vector<Step> steps = new Vector<Step>();
 
+
+
             for (ProductStatus productStatus : products) {
                 guids.add(productStatus.getGuid());
                 productQuantities.add(productStatus.getAmount());
@@ -212,7 +214,7 @@ public class DoughManager extends BaseAgent {
 
             int amount = -1;
             String status = NEEDS_PROOFING;
-            Product product = bakery.findProduct(guid);
+            Product product = bakery.findProduct(productType);
             Order order = orders.get(guid);
 
             for(BakedGood bakedGood : order.getBakedGoods()) {
@@ -382,15 +384,18 @@ public class DoughManager extends BaseAgent {
     private class ReceiveKneadingNotification extends CyclicBehaviour {
         public void action() {
 
-            MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
+            MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
+                MessageTemplate.MatchConversationId("kneading-notification"));
 
-            ACLMessage msg = myAgent.receive(mt);
+            ACLMessage msg = baseAgent.receive(mt);
 
             if (msg != null) {
 
-                System.out.println("-------> " + getAID().getLocalName()+" Received Kneading Notification");
+                System.out.println("-------> " + getAID().getLocalName()+" Received Kneading Notification from " + msg.getSender());
 
                 String kneadingNotificationString = msg.getContent();
+
+                System.out.println("-----> Kneading notification " + kneadingNotificationString);
 
                 ACLMessage reply = msg.createReply();
 
@@ -406,6 +411,10 @@ public class DoughManager extends BaseAgent {
                 String productType = kneadingNotification.getProductType();
 
                 Vector<String> guids = kneadingNotification.getGuids();
+
+                System.out.println("-----> product type " + productType);
+
+                System.out.println("-----> guid " + guids);
 
                 // Add guids with this productType to the queuePreparation
                 queuePreparation(productType, guids);
@@ -432,13 +441,24 @@ public class DoughManager extends BaseAgent {
     private class ReceivePreparationNotification extends CyclicBehaviour {
         public void action() {
             // baseAgent.finished(); //call it if there are no generic behaviours
-            MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
-            ACLMessage msg = myAgent.receive(mt);
+
+            MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
+                MessageTemplate.MatchConversationId("preparation-notification"));
+
+            ACLMessage msg = baseAgent.receive(mt);
+
             if (msg != null) {
+
+                System.out.println("-------> " + getAID().getLocalName()+" Received Preparation Notification from " + msg.getSender());
+
                 String preparationNotificationString = msg.getContent();
+
                 ACLMessage reply = msg.createReply();
+
                 reply.setPerformative(ACLMessage.CONFIRM);
+
                 reply.setContent("Preparation Notification was received");
+
                 baseAgent.sendMessage(reply);
 
                 // Convert preparationNotificationString to preparationNotification object
@@ -549,13 +569,32 @@ public class DoughManager extends BaseAgent {
                 for (int i=0; i<preparationTableAgents.length; i++){
                     msg.addReceiver(preparationTableAgents[i]);
                 }
+
                 msg.setReplyWith("msg"+System.currentTimeMillis());
+
                 baseAgent.sendMessage(msg);  // calling sendMessage instead of send
+
                 mt = MessageTemplate.and(MessageTemplate.MatchConversationId("preparation-request"),
                         MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
 
                 System.out.println(getLocalName()+" Sent preparationRequest" + preparationRequest);
+
                 step = 1;
+
+                break;
+            case 1:
+                ACLMessage reply = baseAgent.receive(mt);
+
+                if (reply != null) {
+
+                    if (reply.getPerformative() == ACLMessage.CONFIRM) {
+                        System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
+                        step = 2;
+                    }
+                }
+                else {
+                    block();
+                }
                 break;
 
             default:
@@ -563,7 +602,7 @@ public class DoughManager extends BaseAgent {
             }
         }
         public boolean done(){
-            if (step == 1){
+            if (step == 2){
                 baseAgent.finished();
                 return true;
 

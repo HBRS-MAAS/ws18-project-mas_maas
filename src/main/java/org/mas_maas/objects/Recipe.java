@@ -36,20 +36,20 @@ public class Recipe{
     public void setSteps(Vector<Step> steps) {
         this.steps = steps;
     }
-    
+
     public float getActionTime(String action) {
     	float duration = -1;
-    	
+
     	for(Step step: steps) {
     		if (step.getAction().equals(action)){
     			duration = step.getDuration();
     			break;
     		}
     	}
-    	
+
     	return duration;
     }
-    
+
     public Step getProofingStep() {
     	Step proofingStep = new Step(null, null);
     	for(Step step: steps) {
@@ -61,27 +61,31 @@ public class Recipe{
     	}
     	return proofingStep;
     }
-    
+
     public Vector<Step> getPreparationSteps(){
     	Vector<Step> preparationSteps = new Vector<Step>();
     	boolean passedKneading = false;
-    	
+
+        // System.out.println("=============================================");
+        // System.out.println(" Steps " + steps);
+
     	for(Step step: steps) {
     		if (passedKneading) {
-    			if (!step.getAction().equals(Step.COOLING_STEP)) {
+    			if (!step.getAction().equals(Step.PROOFING_STEP)) {
     				preparationSteps.add(step);
     			}
     			else {
     				break;
     			}
-    				
+
     		}
-    		if (step.getAction().equals(Step.KNEADING_STEP)) {
-    			passedKneading = true;
-    		}
+            if (step.getAction().equals(Step.KNEADING_STEP)) {
+                // System.out.println("-------> Step =  " + step);
+                passedKneading = true;
+            }
     	}
     	return preparationSteps;
-    	
+
     }
 
     @Override

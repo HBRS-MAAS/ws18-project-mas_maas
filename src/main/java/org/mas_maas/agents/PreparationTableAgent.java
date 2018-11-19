@@ -37,6 +37,11 @@ public class PreparationTableAgent extends BaseAgent {
         addBehaviour(new ReceivePreparationRequests());
     }
 
+    protected void takeDown() {
+        System.out.println(getAID().getLocalName() + ": Terminating.");
+        this.deRegister();
+    }
+
     public void getDoughManagerAIDs() {
         /*
         Object the AID of all the dough-manager agents found
@@ -66,13 +71,18 @@ public class PreparationTableAgent extends BaseAgent {
     private class ReceivePreparationRequests extends CyclicBehaviour {
         public void action() {
 
-            MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
+            MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
+                MessageTemplate.MatchConversationId("preparation-request"));
 
             ACLMessage msg = myAgent.receive(mt);
 
             if (msg != null) {
 
+                System.out.println(getAID().getLocalName() + " Received preparation request from " + msg.getSender());
+
                 String content = msg.getContent();
+                System.out.println("Preparation request contains -> " + content);
+
                 PreparationRequest preparationRequest = JSONConverter.parsePreparationRequest(content);
                 ACLMessage reply = msg.createReply();
 
@@ -80,10 +90,11 @@ public class PreparationTableAgent extends BaseAgent {
                 reply.setContent("Preparation request was received");
 
                 baseAgent.sendMessage(reply);
+
                 guids = preparationRequest.getGuids();
                 productType = preparationRequest.getProductType();
                 steps = preparationRequest.getSteps();
-
+                productQuantities = preparationRequest.getProductQuantities();
                 addBehaviour(new Preparation());
             }
             else {
@@ -97,27 +108,37 @@ public class PreparationTableAgent extends BaseAgent {
         private float preparationTime;
         private float stepCounter = (float) 0;
         private int option = 0;
-        private Float step_duration;
+        private Float stepDuration;
 
         public void action(){
-
             if (getAllowAction() == true){
-                for (Step step : steps){
 
-                    System.out.println(getAID().getLocalName() + "Performing " + step.getAction());
+                for (int i = 0; i < guids.size(); i++){
+                    for (Step step : steps){
+                        System.out.println("---------------------------");
+                        System.out.println(guids.get(i) + " Performing " + step.getAction());
 
-                    step_duration = step.getDuration();
+                        if (step.getAction().equals(Step.ITEM_PREPARATION_STEP)){
+                            stepDuration = step.getDuration() * productQuantities.get(i);
+                        }else{
+                            stepDuration = step.getDuration();
+                        }
 
-                    while(stepCounter < step_duration){
-                        stepCounter++;
-                        System.out.println("----> " + getAID().getLocalName() + " Step counter " + stepCounter);
+                        System.out.println(" Preparation for " + stepDuration);
+
+                        while(stepCounter < stepDuration){
+                            stepCounter++;
+                            System.out.println("----> " + getAID().getLocalName() + " Step counter " + stepCounter);
+                        }
+
+                        stepCounter = (float) 0;
                     }
-
-                    stepCounter = (float) 0;
+                    addBehaviour(new SendPreparationNotification(doughManagerAgents));
                 }
+
+                this.done();
             }
-            addBehaviour(new SendPreparationNotification(doughManagerAgents));
-            this.done();
+
 
         }
         public boolean done(){
@@ -169,7 +190,7 @@ public class PreparationTableAgent extends BaseAgent {
 
                     step = 1;
 
-                    System.out.println(getAID().getLocalName() + "Sent preparationNotification");
+                    System.out.println(getAID().getLocalName() + " Sent preparationNotification");
                     break;
 
                 case 1:
@@ -178,7 +199,7 @@ public class PreparationTableAgent extends BaseAgent {
                     if (reply != null) {
 
                         if (reply.getPerformative() == ACLMessage.CONFIRM) {
-                            System.out.println(getAID().getLocalName() + "Received confirmation");
+                            System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
                             step = 2;
                         }
                     }

@@ -20,7 +20,7 @@ public class TimeKeeper extends Agent{
 
 	protected void setup() {
 		System.out.println("Hallo! time-teller-agent "+getAID().getLocalName()+" is ready.");
-		
+
         /* Wait for all the agents to start
          */
         try {

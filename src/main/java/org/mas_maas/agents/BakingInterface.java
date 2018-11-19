@@ -47,20 +47,36 @@ public class BakingInterface extends BaseAgent {
         }
 	}
 
+	protected void takeDown() {
+        System.out.println(getAID().getLocalName() + ": Terminating.");
+        this.deRegister();
+    }
+
 	/* This is the behaviour used for receiving doughNotifications */
   private class ReceiveDoughNotifications extends CyclicBehaviour {
 	public void action() {
 		// baseAgent.finished(); //call it if there are no generic behaviours
-		MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
+		MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
+			MessageTemplate.MatchConversationId("dough-notification"));
+
 		ACLMessage msg = baseAgent.receive(mt);
+
 		if (msg != null) {
+			System.out.println("-------> " + getAID().getLocalName()+" Received dough Notification from " + msg.getSender());
+
 			String content = msg.getContent();
+
 			ACLMessage reply = msg.createReply();
+
 			reply.setPerformative(ACLMessage.CONFIRM);
+
 			reply.setContent("Dough Notification was received");
-			System.out.println(getAID().getLocalName() + "Received notification request");
+
 			baseAgent.sendMessage(reply);
+
 			System.out.println(content);
+
+			myAgent.doDelete();
 
 		}
 		else {

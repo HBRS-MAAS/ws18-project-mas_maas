@@ -39,6 +39,11 @@ public class Proofer extends BaseAgent {
         addBehaviour(new ReceiveProofingRequests());
     }
 
+    protected void takeDown() {
+        System.out.println(getAID().getLocalName() + ": Terminating.");
+        this.deRegister();
+    }
+
     public void getDoughManagerAIDs() {
         DFAgentDescription template = new DFAgentDescription();
         ServiceDescription sd = new ServiceDescription();
@@ -60,6 +65,7 @@ public class Proofer extends BaseAgent {
             fe.printStackTrace();
         }
     }
+
 
     public void getBakingInterfaceAIDs() {
         DFAgentDescription template = new DFAgentDescription();
@@ -87,13 +93,19 @@ public class Proofer extends BaseAgent {
     private class ReceiveProofingRequests extends CyclicBehaviour {
         public void action() {
 
-            MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
+            MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
+                MessageTemplate.MatchConversationId("proofing-request"));
 
-            ACLMessage msg = myAgent.receive(mt);
+            ACLMessage msg = baseAgent.receive(mt);
+
 
             if (msg != null) {
+                System.out.println(getAID().getLocalName() + " Received preparation request from " + msg.getSender());
 
                 String content = msg.getContent();
+
+                System.out.println("Proofing request contains -> " + content);
+
                 ProofingRequest proofingRequest = JSONConverter.parseProofingRequest(content);
                 ACLMessage reply = msg.createReply();
 
@@ -122,40 +134,22 @@ public class Proofer extends BaseAgent {
 
         public Proofing(float proofingTime){
             this.proofingTime = proofingTime;
-            System.out.println(getAID().getLocalName() + " Kneading for " + proofingTime);
+            System.out.println(getAID().getLocalName() + " proofing for " + proofingTime);
         }
         public void action(){
-            switch(option){
-
-              case 0:
-                    if (getAllowAction() == true){
+                if (getAllowAction() == true){
+                    while(proofingCounter < proofingTime){
                         proofingCounter++;
-
-                        if (proofingCounter == proofingTime){
-                            System.out.println("============================");
-                            System.out.println("Proofing completed");
-                            System.out.println("============================");
-                            option = 1;
-
-                            // Creating send Dough Notification behavior
-                            addBehaviour(new SendDoughNotification(bakingInterfaceAgents));
-
-                        }else{
-                            System.out.println("============================");
-                            System.out.println("Proofing in process...");
-                            System.out.println("============================");
-                        }
-
-                        baseAgent.finished();
+                        System.out.println("----> " + getAID().getLocalName() + " proofing Counter " + proofingCounter);
                     }
-            }
+                    addBehaviour(new SendDoughNotification(bakingInterfaceAgents));
+                    this.done();
+                }
 
         }
         public boolean done(){
-            if (option == 1)
-                return true;
-            else
-                return false;
+            baseAgent.finished();
+            return true;
         }
     }
 
@@ -182,9 +176,10 @@ public class Proofer extends BaseAgent {
             switch (option) {
                 case 0:
                     ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+
                     msg.setContent(doughNotificationString);
 
-                    msg.setConversationId("baking-request");
+                    msg.setConversationId("dough-notification");
 
                     // Send doughNotification msg to bakingInterfaceAgents
                     for (int i=0; i<bakingInterfaceAgents.length; i++){
@@ -195,7 +190,7 @@ public class Proofer extends BaseAgent {
 
                     baseAgent.sendMessage(msg);  // calling sendMessage instead of send
 
-                    mt = MessageTemplate.and(MessageTemplate.MatchConversationId("baking-request"),
+                    mt = MessageTemplate.and(MessageTemplate.MatchConversationId("dough-notification"),
 
                     MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
 
@@ -210,7 +205,7 @@ public class Proofer extends BaseAgent {
 
                     if (reply != null) {
                         if (reply.getPerformative() == ACLMessage.CONFIRM) {
-                            System.out.println(getAID().getLocalName() + " Received confirmation");
+                            System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender() );
                             option = 2;
                         }
                     }
@@ -230,7 +225,7 @@ public class Proofer extends BaseAgent {
                 myAgent.doDelete();
                 return true;
             }
-           return false;
+            return false;
         }
     }
 }
