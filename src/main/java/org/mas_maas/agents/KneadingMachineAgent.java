@@ -119,7 +119,7 @@ public class KneadingMachineAgent extends BaseAgent {
 
                 case 0:
                     if (getAllowAction() == true){
-                        kneadingCounter++;
+                        kneadingCounter = kneadingTime;
 
                         if  (kneadingCounter == kneadingTime){
                             System.out.println("============================");

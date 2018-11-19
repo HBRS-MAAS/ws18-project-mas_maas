@@ -75,7 +75,7 @@ public class DoughManager extends BaseAgent {
         // For now, the orderProcessingAgents do not exist. The manager has an order object.
 
         // Create order object
-        
+
         String productName = "Bagel";
         int amount = 5;
         BakedGood bakedGood = new BakedGood(productName, amount);
@@ -89,16 +89,16 @@ public class DoughManager extends BaseAgent {
         Vector<BakedGood> bakedGoods = new Vector<BakedGood>();
         bakedGoods.add(bakedGood);
         Order order = new Order(customerId, guid, orderDay, orderHour, deliveryDate, deliveryHour, bakedGoods);
-        
+
         System.out.println(getAID().getName() + " received the order " + order);
-        
+
         orders.put(order.getGuid(), order);
 
         // Add order to the needKneading WorkQueue
         queueOrder(order);
-        
+
         // System.out.println("Needs kneading queue " + needsKneading.getFirstProduct().getGuid());
-        
+
         KneadingRequest kneadingRequestMessage = createKneadingRequestMessage();
 
         // Convert the kneadingRequest object to a String.
@@ -471,10 +471,10 @@ public class DoughManager extends BaseAgent {
             this.kneadingMachineAgents = kneadingMachineAgents;
         }
         public void action(){
-            // blocking action
-            // if (!baseAgent.getAllowAction()) {
-            //     return;
-            // }
+            //blocking action
+            if (!baseAgent.getAllowAction()) {
+                return;
+            }
             switch(step){
             case 0:
                 ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
@@ -520,10 +520,10 @@ public class DoughManager extends BaseAgent {
             this.preparationTableAgents = preparationTableAgents;
         }
         public void action(){
-            // blocking action
-            // if (!baseAgent.getAllowAction()) {
-            //     return;
-            // }
+            //blocking action
+            if (!baseAgent.getAllowAction()) {
+                return;
+            }
             switch(step){
             case 0:
                 ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
@@ -569,10 +569,10 @@ public class DoughManager extends BaseAgent {
             this.prooferAgents = prooferAgents;
         }
         public void action(){
-            // blocking action
-            // if (!baseAgent.getAllowAction()) {
-            //     return;
-            // }
+            //blocking action
+            if (!baseAgent.getAllowAction()) {
+                return;
+            }
             switch(step){
             case 0:
                 ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
