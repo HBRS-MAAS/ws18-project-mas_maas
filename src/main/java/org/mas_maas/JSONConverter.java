@@ -315,7 +315,7 @@ public class JSONConverter
             {
                 JsonObject jsonTruck = truck.getAsJsonObject();
                 String truckGuid = jsonTruck.get("guid").getAsString();
-                int loadCapacity = jsonTruck.get("loadCapacity").getAsInt();
+                int loadCapacity = jsonTruck.get("load_capacity").getAsInt();
                 JsonObject jsonTruckLocation = (JsonObject) jsonDeliveryCompany.get("location");
                 Double truckX = jsonTruckLocation.get("x").getAsDouble();
                 Double truckY = jsonTruckLocation.get("y").getAsDouble();
