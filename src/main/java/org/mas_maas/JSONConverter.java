@@ -410,7 +410,6 @@ public class JSONConverter
         JsonObject jsonDoughNotification = root.getAsJsonObject();
 
         String productType = jsonDoughNotification.get("productType").getAsString();
-        int quantity = jsonDoughNotification.get("quantity").getAsInt();
         Vector<String> guids = new Vector<String>();
         JsonArray jsonGuids = jsonDoughNotification.get("guids").getAsJsonArray();
         for (JsonElement guid : jsonGuids)

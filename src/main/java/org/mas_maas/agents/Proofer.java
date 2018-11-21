@@ -19,7 +19,6 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
 public class Proofer extends BaseAgent {
-    private AID [] doughManagerAgents;
     private AID [] bakingInterfaceAgents;
 
     private Vector<String> guids;
@@ -45,6 +44,7 @@ public class Proofer extends BaseAgent {
     }
 
     public void getDoughManagerAIDs() {
+        AID [] doughManagerAgents;
         DFAgentDescription template = new DFAgentDescription();
         ServiceDescription sd = new ServiceDescription();
 
@@ -160,12 +160,9 @@ public class Proofer extends BaseAgent {
         private AID [] bakingInterfaceAgents;
         private MessageTemplate mt;
         private int option = 0;
-
-        Gson gson = new Gson();
-
-        DoughNotification doughNotification = new DoughNotification(guids,productType);
-
-        String doughNotificationString = gson.toJson(doughNotification);
+        private Gson gson = new Gson();
+        private DoughNotification doughNotification = new DoughNotification(guids,productType);
+        private String doughNotificationString = gson.toJson(doughNotification);
 
         public SendDoughNotification(AID [] bakingInterfaceAgents){
             this.bakingInterfaceAgents = bakingInterfaceAgents;

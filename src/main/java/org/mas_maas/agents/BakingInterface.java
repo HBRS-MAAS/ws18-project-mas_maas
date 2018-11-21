@@ -9,7 +9,6 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
 public class BakingInterface extends BaseAgent {
-    private AID [] prooferAgents;
 
     protected void setup() {
         super.setup();
@@ -22,6 +21,7 @@ public class BakingInterface extends BaseAgent {
     }
 
     public void getProoferAIDs() {
+        AID [] prooferAgents;
         DFAgentDescription template = new DFAgentDescription();
         ServiceDescription sd = new ServiceDescription();
 
