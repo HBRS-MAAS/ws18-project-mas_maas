@@ -3,8 +3,8 @@ package org.mas_maas.agents;
 import java.util.Vector;
 
 import org.mas_maas.JSONConverter;
-import org.mas_maas.messages.PreparationRequest;
 import org.mas_maas.messages.PreparationNotification;
+import org.mas_maas.messages.PreparationRequest;
 import org.mas_maas.objects.Step;
 
 import com.google.gson.Gson;

@@ -119,108 +119,108 @@ public class JSONConverter
         for (JsonElement element : arr)
         {
             // bakery
-            JsonObject json_bakery = element.getAsJsonObject();
-            String guid = json_bakery.get("guid").getAsString();
-            String name = json_bakery.get("name").getAsString();
-            JsonObject json_location = (JsonObject) json_bakery.get("location");
-            Double x = json_location.get("x").getAsDouble();
-            Double y = json_location.get("y").getAsDouble();
+            JsonObject jsonBakery = element.getAsJsonObject();
+            String guid = jsonBakery.get("guid").getAsString();
+            String name = jsonBakery.get("name").getAsString();
+            JsonObject jsonLocation = (JsonObject) jsonBakery.get("location");
+            Double x = jsonLocation.get("x").getAsDouble();
+            Double y = jsonLocation.get("y").getAsDouble();
             Point2D location = new Point2D.Double(x, y);
 
             // products
             Vector<Product> products = new Vector<Product>();
-            JsonArray json_products = json_bakery.get("products").getAsJsonArray();
-            for (JsonElement product : json_products)
+            JsonArray jsonProducts = jsonBakery.get("products").getAsJsonArray();
+            for (JsonElement product : jsonProducts)
             {
-                JsonObject json_product = product.getAsJsonObject();
-                String product_guid = json_product.get("guid").getAsString();
+                JsonObject jsonProduct = product.getAsJsonObject();
+                String productGuid = jsonProduct.get("guid").getAsString();
 
-                JsonObject json_batch = json_product.get("batch").getAsJsonObject();
-                int breadsPerOven = json_batch.get("breadsPerOven").getAsInt();
+                JsonObject jsonBatch = jsonProduct.get("batch").getAsJsonObject();
+                int breadsPerOven = jsonBatch.get("breadsPerOven").getAsInt();
                 Batch batch = new Batch(breadsPerOven);
 
-                JsonObject json_recipe = json_product.get("recipe").getAsJsonObject();
-                int coolingRate = json_recipe.get("coolingRate").getAsInt();
-                int bakingTemp = json_recipe.get("bakingTemp").getAsInt();
+                JsonObject jsonRecipe = jsonProduct.get("recipe").getAsJsonObject();
+                int coolingRate = jsonRecipe.get("coolingRate").getAsInt();
+                int bakingTemp = jsonRecipe.get("bakingTemp").getAsInt();
 
-                JsonArray step_array = json_recipe.get("steps").getAsJsonArray();
+                JsonArray stepArray = jsonRecipe.get("steps").getAsJsonArray();
                 Vector<Step> steps = new Vector<Step>();
-                for (JsonElement step : step_array)
+                for (JsonElement step : stepArray)
                 {
-                    JsonObject json_step = step.getAsJsonObject();
-                    String action = json_step.get("action").getAsString();
-                    Float duration = json_step.get("duration").getAsFloat();
+                    JsonObject jsonStep = step.getAsJsonObject();
+                    String action = jsonStep.get("action").getAsString();
+                    Float duration = jsonStep.get("duration").getAsFloat();
                     Step aStep = new Step(action, duration);
                     steps.add(aStep);
                 }
                 Recipe recipe = new Recipe(coolingRate, bakingTemp, steps);
 
-                JsonObject json_packaging = json_product.get("packaging").getAsJsonObject();
-                int boxingTemp = json_packaging.get("boxingTemp").getAsInt();
-                int breadsPerBox = json_packaging.get("breadsPerBox").getAsInt();
+                JsonObject jsonPackaging = jsonProduct.get("packaging").getAsJsonObject();
+                int boxingTemp = jsonPackaging.get("boxingTemp").getAsInt();
+                int breadsPerBox = jsonPackaging.get("breadsPerBox").getAsInt();
                 Packaging packaging = new Packaging(boxingTemp, breadsPerBox);
 
-                Double salesPrice = json_product.get("salesPrice").getAsDouble();
-                Double productionCost = json_product.get("productionCost").getAsDouble();
+                Double salesPrice = jsonProduct.get("salesPrice").getAsDouble();
+                Double productionCost = jsonProduct.get("productionCost").getAsDouble();
 
-                Product aProduct = new Product(product_guid, batch, recipe, packaging, salesPrice,  productionCost);
+                Product aProduct = new Product(productGuid, batch, recipe, packaging, salesPrice,  productionCost);
                 products.add(aProduct);
             }
 
 
             // equipment
             Vector<Equipment> equipment = new Vector<Equipment>();
-            JsonObject json_equipment = json_bakery.get("equipment").getAsJsonObject();
-            JsonArray ovens = json_equipment.get("ovens").getAsJsonArray();
+            JsonObject jsonEquipment = jsonBakery.get("equipment").getAsJsonObject();
+            JsonArray ovens = jsonEquipment.get("ovens").getAsJsonArray();
             for (JsonElement oven : ovens)
             {
-                JsonObject json_oven = oven.getAsJsonObject();
-                String oven_guid = json_oven.get("guid").getAsString();
+                JsonObject jsonOven = oven.getAsJsonObject();
+                String ovenGuid = jsonOven.get("guid").getAsString();
 
                 // multiple ways of denoting rates (CamelCase and _ are used)
                 // TODO cleanup and make into a function
                 int coolingRate = -1;
-                if (json_oven.toString().contains("coolingRate"))
+                if (jsonOven.toString().contains("coolingRate"))
                 {
-                    coolingRate = json_oven.get("coolingRate").getAsInt();
+                    coolingRate = jsonOven.get("coolingRate").getAsInt();
                 }
-                else if (json_oven.toString().contains("cooling_rate"))
+                else if (jsonOven.toString().contains("cooling_rate"))
                 {
-                    coolingRate = json_oven.get("cooling_rate").getAsInt();
+                    coolingRate = jsonOven.get("cooling_rate").getAsInt();
                 }
 
                 // TODO cleanup and make into a function
                 int heatingRate = -1;
-                if (json_oven.toString().contains("heatingRate"))
+                if (jsonOven.toString().contains("heatingRate"))
                 {
-                    heatingRate = json_oven.get("heatingRate").getAsInt();
+                    heatingRate = jsonOven.get("heatingRate").getAsInt();
                 }
-                else if (json_oven.toString().contains("heating_rate"))
+                else if (jsonOven.toString().contains("heating_rate"))
                 {
-                    heatingRate = json_oven.get("heating_rate").getAsInt();
+                    heatingRate = jsonOven.get("heating_rate").getAsInt();
                 }
 
-                Oven anOven = new Oven(oven_guid, coolingRate, heatingRate);
+                Oven anOven = new Oven(ovenGuid, coolingRate, heatingRate);
                 equipment.add(anOven);
             }
 
-            JsonArray doughPrepTables = json_equipment.get("doughPrepTables").getAsJsonArray();
+            JsonArray doughPrepTables = jsonEquipment.get("doughPrepTables").getAsJsonArray();
             for (JsonElement table : doughPrepTables)
             {
-                JsonObject json_table = table.getAsJsonObject();
-                String table_guid = json_table.get("guid").getAsString();
+                JsonObject jsonTable = table.getAsJsonObject();
+                String tableGuid = jsonTable.get("guid").getAsString();
 
-                DoughPrepTable aTable = new DoughPrepTable(table_guid);
+                DoughPrepTable aTable = new DoughPrepTable(tableGuid);
                 equipment.add(aTable);
             }
 
-            JsonArray kneadingMachines = json_equipment.get("kneadingMachines").getAsJsonArray();
+            JsonArray kneadingMachines = jsonEquipment.get("kneadingMachines").getAsJsonArray();
             for (JsonElement kneadingMachine : kneadingMachines)
             {
-                JsonObject json_kneadingMachine = kneadingMachine.getAsJsonObject();
-                String kneadingMachine_guid = json_kneadingMachine.get("guid").getAsString();
+                JsonObject jsonKneadingMachine = kneadingMachine.getAsJsonObject();
+                String kneadingMachineGuid = jsonKneadingMachine.get("guid").getAsString();
 
-                KneadingMachine aMachine = new KneadingMachine(kneadingMachine_guid);
+                KneadingMachine aMachine = new KneadingMachine(kneadingMachineGuid);
                 equipment.add(aMachine);
             }
 
@@ -239,22 +239,22 @@ public class JSONConverter
         Vector<Client> clients = new Vector<Client>();
         for (JsonElement element : arr)
         {
-            JsonObject json_client = element.getAsJsonObject();
-            String guid = json_client.get("guid").getAsString();
-            int type = json_client.get("type").getAsInt();
-            String name = json_client.get("name").getAsString();
-            JsonObject json_location = (JsonObject) json_client.get("location");
-            Double x = json_location.get("x").getAsDouble();
-            Double y = json_location.get("y").getAsDouble();
+            JsonObject jsonClient = element.getAsJsonObject();
+            String guid = jsonClient.get("guid").getAsString();
+            int type = jsonClient.get("type").getAsInt();
+            String name = jsonClient.get("name").getAsString();
+            JsonObject jsonLocation = (JsonObject) jsonClient.get("location");
+            Double x = jsonLocation.get("x").getAsDouble();
+            Double y = jsonLocation.get("y").getAsDouble();
             Point2D location = new Point2D.Double(x, y);
 
             // orders
             Vector<Order> orders = new Vector<Order>();
-            JsonArray json_orders = json_client.get("orders").getAsJsonArray();
-            for (JsonElement order : json_orders)
+            JsonArray jsonOrders = jsonClient.get("orders").getAsJsonArray();
+            for (JsonElement order : jsonOrders)
             {
-                String json_order = order.toString();
-                orders.add(JSONConverter.parseOrder(json_order));
+                String jsonOrder = order.toString();
+                orders.add(JSONConverter.parseOrder(jsonOrder));
             }
 
             Client aClient = new Client(guid, type, name, location, orders);
@@ -267,30 +267,30 @@ public class JSONConverter
     public static Order parseOrder(String jsonFile)
     {
         JsonElement root = new JsonParser().parse(jsonFile);
-        JsonObject json_order = root.getAsJsonObject();
+        JsonObject jsonOrder = root.getAsJsonObject();
 
-        String customerId = json_order.get("customerId").getAsString();
-        String order_guid = json_order.get("guid").getAsString();
-        JsonObject json_orderDate = json_order.get("orderDate").getAsJsonObject();
-        int orderDay = json_orderDate.get("day").getAsInt();
-        int orderHour = json_orderDate.get("day").getAsInt();
-        JsonObject json_deliveryDate = json_order.get("deliveryDate").getAsJsonObject();
-        int deliveryDay = json_deliveryDate.get("day").getAsInt();
-        int deliveryHour = json_deliveryDate.get("day").getAsInt();
+        String customerId = jsonOrder.get("customerId").getAsString();
+        String orderGuid = jsonOrder.get("guid").getAsString();
+        JsonObject jsonOrderDate = jsonOrder.get("orderDate").getAsJsonObject();
+        int orderDay = jsonOrderDate.get("day").getAsInt();
+        int orderHour = jsonOrderDate.get("day").getAsInt();
+        JsonObject jsonDeliveryDate = jsonOrder.get("deliveryDate").getAsJsonObject();
+        int deliveryDay = jsonDeliveryDate.get("day").getAsInt();
+        int deliveryHour = jsonDeliveryDate.get("day").getAsInt();
 
         // products (BakedGood objects)
         // TODO shouldn't products be an array not an object?
         // TODO this will need to be reworked in the future when BakedGood is more fleshed out
         // TODO also this JUST is a bit hacky...
         Vector<BakedGood> bakedGoods = new Vector<BakedGood>();
-        JsonObject json_products = json_order.get("products").getAsJsonObject();
+        JsonObject jsonProducts = jsonOrder.get("products").getAsJsonObject();
         for (String bakedGoodName : BakedGood.bakedGoodNames)
         {
-            int amount = json_products.get(bakedGoodName).getAsInt();
+            int amount = jsonProducts.get(bakedGoodName).getAsInt();
             bakedGoods.add(new BakedGood(bakedGoodName, amount));
         }
 
-        Order anOrder = new Order(customerId, order_guid, orderDay, orderHour, deliveryDay, deliveryHour, bakedGoods);
+        Order anOrder = new Order(customerId, orderGuid, orderDay, orderHour, deliveryDay, deliveryHour, bakedGoods);
         return anOrder;
     }
 
@@ -302,27 +302,27 @@ public class JSONConverter
         Vector<DeliveryCompany> companies = new Vector<DeliveryCompany>();
         for (JsonElement element : arr)
         {
-            JsonObject json_deliveryCompany = element.getAsJsonObject();
-            String guid = json_deliveryCompany.get("guid").getAsString();
-            JsonObject json_location = (JsonObject) json_deliveryCompany.get("location");
-            Double x = json_location.get("x").getAsDouble();
-            Double y = json_location.get("y").getAsDouble();
+            JsonObject jsonDeliveryCompany = element.getAsJsonObject();
+            String guid = jsonDeliveryCompany.get("guid").getAsString();
+            JsonObject jsonLocation = (JsonObject) jsonDeliveryCompany.get("location");
+            Double x = jsonLocation.get("x").getAsDouble();
+            Double y = jsonLocation.get("y").getAsDouble();
             Point2D location = new Point2D.Double(x, y);
 
             Vector<Truck> trucks = new Vector<Truck>();
-            JsonArray json_trucks = json_deliveryCompany.get("trucks").getAsJsonArray();
-            for (JsonElement truck : json_trucks)
+            JsonArray jsonTrucks = jsonDeliveryCompany.get("trucks").getAsJsonArray();
+            for (JsonElement truck : jsonTrucks)
             {
-                JsonObject json_truck = truck.getAsJsonObject();
-                String truck_guid = json_truck.get("guid").getAsString();
-                int loadCapacity = json_truck.get("load_capacity").getAsInt();
-                JsonObject json_truck_location = (JsonObject) json_deliveryCompany.get("location");
-                Double truck_x = json_truck_location.get("x").getAsDouble();
-                Double truck_y = json_truck_location.get("y").getAsDouble();
-                Point2D truck_location = new Point2D.Double(truck_x, truck_y);
+                JsonObject jsonTruck = truck.getAsJsonObject();
+                String truckGuid = jsonTruck.get("guid").getAsString();
+                int loadCapacity = jsonTruck.get("loadCapacity").getAsInt();
+                JsonObject jsonTruckLocation = (JsonObject) jsonDeliveryCompany.get("location");
+                Double truckX = jsonTruckLocation.get("x").getAsDouble();
+                Double truckY = jsonTruckLocation.get("y").getAsDouble();
+                Point2D truckLocation = new Point2D.Double(truckX, truckY);
 
 
-                Truck aTruck = new Truck(truck_guid, loadCapacity, truck_location);
+                Truck aTruck = new Truck(truckGuid, loadCapacity, truckLocation);
                 trucks.add(aTruck);
             }
 
@@ -337,15 +337,15 @@ public class JSONConverter
     {
         JsonElement root = new JsonParser().parse(jsonFile);
 
-        JsonObject json_metaInfo = root.getAsJsonObject();
-        int bakeries = json_metaInfo.get("bakeries").getAsInt();
-        int durationInDays = json_metaInfo.get("durationInDays").getAsInt();
-        int products = json_metaInfo.get("products").getAsInt();
-        int orders = json_metaInfo.get("orders").getAsInt();
+        JsonObject jsonMetaInfo = root.getAsJsonObject();
+        int bakeries = jsonMetaInfo.get("bakeries").getAsInt();
+        int durationInDays = jsonMetaInfo.get("durationInDays").getAsInt();
+        int products = jsonMetaInfo.get("products").getAsInt();
+        int orders = jsonMetaInfo.get("orders").getAsInt();
         Vector<Client> customers = new Vector<Client>(); // TODO this will change when the json changes
 
         // TODO shouldn't the customers be in an array not an Object?
-        Set<Entry<String, JsonElement>> entrySet = json_metaInfo.get("customers").getAsJsonObject().entrySet();
+        Set<Entry<String, JsonElement>> entrySet = jsonMetaInfo.get("customers").getAsJsonObject().entrySet();
         for(Map.Entry<String,JsonElement> entry : entrySet)
         {
             Client customer = new Client();
@@ -363,22 +363,22 @@ public class JSONConverter
     public static StreetNetwork parseStreetNetwork(String jsonFile)
     {
         JsonElement root = new JsonParser().parse(jsonFile);
-        JsonObject json_streetNetwork = root.getAsJsonObject();
-        boolean directed = json_streetNetwork.get("directed").getAsBoolean();
+        JsonObject jsonStreetNetwork = root.getAsJsonObject();
+        boolean directed = jsonStreetNetwork.get("directed").getAsBoolean();
 
         Vector<StreetNode> nodes = new Vector<StreetNode>();
-        JsonArray json_streetNodes = json_streetNetwork.get("nodes").getAsJsonArray();
-        for (JsonElement streetNode : json_streetNodes)
+        JsonArray jsonStreetNodes = jsonStreetNetwork.get("nodes").getAsJsonArray();
+        for (JsonElement streetNode : jsonStreetNodes)
         {
-            JsonObject json_streetNode = streetNode.getAsJsonObject();
-            String name = json_streetNode.get("name").getAsString();
-            String company = json_streetNode.get("company").getAsString();
-            String guid = json_streetNode.get("guid").getAsString();
-            String type = json_streetNode.get("type").getAsString();
+            JsonObject jsonStreetNode = streetNode.getAsJsonObject();
+            String name = jsonStreetNode.get("name").getAsString();
+            String company = jsonStreetNode.get("company").getAsString();
+            String guid = jsonStreetNode.get("guid").getAsString();
+            String type = jsonStreetNode.get("type").getAsString();
 
-            JsonObject json_location = (JsonObject) json_streetNode.get("location");
-            Double x = json_location.get("x").getAsDouble();
-            Double y = json_location.get("y").getAsDouble();
+            JsonObject jsonLocation = (JsonObject) jsonStreetNode.get("location");
+            Double x = jsonLocation.get("x").getAsDouble();
+            Double y = jsonLocation.get("y").getAsDouble();
             Point2D location = new Point2D.Double(x, y);
 
             StreetNode aStreetNode = new StreetNode(name, company, location, guid, type);
@@ -386,14 +386,14 @@ public class JSONConverter
         }
 
         Vector<StreetLink> links = new Vector<StreetLink>();
-        JsonArray json_streetLinks = json_streetNetwork.get("links").getAsJsonArray();
-        for (JsonElement streetLink : json_streetLinks)
+        JsonArray jsonStreetLinks = jsonStreetNetwork.get("links").getAsJsonArray();
+        for (JsonElement streetLink : jsonStreetLinks)
         {
-            JsonObject json_streetLink = streetLink.getAsJsonObject();
-            String source = json_streetLink.get("source").getAsString();
-            String guid = json_streetLink.get("guid").getAsString();
-            double dist = json_streetLink.get("dist").getAsDouble();
-            String target = json_streetLink.get("target").getAsString();
+            JsonObject jsonStreetLink = streetLink.getAsJsonObject();
+            String source = jsonStreetLink.get("source").getAsString();
+            String guid = jsonStreetLink.get("guid").getAsString();
+            double dist = jsonStreetLink.get("dist").getAsDouble();
+            String target = jsonStreetLink.get("target").getAsString();
 
             StreetLink aStreetLink = new StreetLink(source, guid, dist, target);
             links.add(aStreetLink);
@@ -407,13 +407,13 @@ public class JSONConverter
     public static DoughNotification parseDoughNotification(String jsonString)
     {
         JsonElement root = new JsonParser().parse(jsonString);
-        JsonObject json_doughNotification = root.getAsJsonObject();
+        JsonObject jsonDoughNotification = root.getAsJsonObject();
 
-        String productType = json_doughNotification.get("productType").getAsString();
-        int quantity = json_doughNotification.get("quantity").getAsInt();
+        String productType = jsonDoughNotification.get("productType").getAsString();
+        int quantity = jsonDoughNotification.get("quantity").getAsInt();
         Vector<String> guids = new Vector<String>();
-        JsonArray json_guids = json_doughNotification.get("guids").getAsJsonArray();
-        for (JsonElement guid : json_guids)
+        JsonArray jsonGuids = jsonDoughNotification.get("guids").getAsJsonArray();
+        for (JsonElement guid : jsonGuids)
         {
             guids.add(guid.getAsString());
         }
@@ -425,12 +425,12 @@ public class JSONConverter
     public static KneadingNotification parseKneadingNotification(String jsonString)
     {
         JsonElement root = new JsonParser().parse(jsonString);
-        JsonObject json_kneadingNotification = root.getAsJsonObject();
+        JsonObject jsonKneadingNotification = root.getAsJsonObject();
 
-        String productType = json_kneadingNotification.get("productType").getAsString();
+        String productType = jsonKneadingNotification.get("productType").getAsString();
         Vector<String> guids = new Vector<String>();
-        JsonArray json_guids = json_kneadingNotification.get("guids").getAsJsonArray();
-        for (JsonElement guid : json_guids)
+        JsonArray jsonGuids = jsonKneadingNotification.get("guids").getAsJsonArray();
+        for (JsonElement guid : jsonGuids)
         {
             guids.add(guid.getAsString());
         }
@@ -442,13 +442,13 @@ public class JSONConverter
     public static KneadingRequest parseKneadingRequest(String jsonString)
     {
         JsonElement root = new JsonParser().parse(jsonString);
-        JsonObject json_kneadingRequest = root.getAsJsonObject();
+        JsonObject jsonKneadingRequest = root.getAsJsonObject();
 
-        String productType = json_kneadingRequest.get("productType").getAsString();
-        Float kneadingTime = json_kneadingRequest.get("kneadingTime").getAsFloat();
+        String productType = jsonKneadingRequest.get("productType").getAsString();
+        Float kneadingTime = jsonKneadingRequest.get("kneadingTime").getAsFloat();
         Vector<String> guids = new Vector<String>();
-        JsonArray json_guids = json_kneadingRequest.get("guids").getAsJsonArray();
-        for (JsonElement guid : json_guids)
+        JsonArray jsonGuids = jsonKneadingRequest.get("guids").getAsJsonArray();
+        for (JsonElement guid : jsonGuids)
         {
             guids.add(guid.getAsString());
         }
@@ -460,12 +460,12 @@ public class JSONConverter
     public static PreparationNotification parsePreparationNotification(String jsonString)
     {
         JsonElement root = new JsonParser().parse(jsonString);
-        JsonObject json_preparationNotification = root.getAsJsonObject();
+        JsonObject jsonPreparationNotification = root.getAsJsonObject();
 
-        String productType = json_preparationNotification.get("productType").getAsString();
+        String productType = jsonPreparationNotification.get("productType").getAsString();
         Vector<String> guids = new Vector<String>();
-        JsonArray json_guids = json_preparationNotification.get("guids").getAsJsonArray();
-        for (JsonElement guid : json_guids)
+        JsonArray jsonGuids = jsonPreparationNotification.get("guids").getAsJsonArray();
+        for (JsonElement guid : jsonGuids)
         {
             guids.add(guid.getAsString());
         }
@@ -477,32 +477,32 @@ public class JSONConverter
     public static PreparationRequest parsePreparationRequest(String jsonString)
     {
         JsonElement root = new JsonParser().parse(jsonString);
-        JsonObject json_preparationRequest = root.getAsJsonObject();
+        JsonObject jsonPreparationRequest = root.getAsJsonObject();
 
-        String productType = json_preparationRequest.get("productType").getAsString();
+        String productType = jsonPreparationRequest.get("productType").getAsString();
 
         Vector<Integer> productQuantities = new Vector<Integer>();
-        JsonArray json_productQuantities = json_preparationRequest.get("productQuantities").getAsJsonArray();
-        for (JsonElement productQuantity : json_productQuantities)
+        JsonArray jsonProductQuantities = jsonPreparationRequest.get("productQuantities").getAsJsonArray();
+        for (JsonElement productQuantity : jsonProductQuantities)
         {
             productQuantities.add(productQuantity.getAsInt());
         }
 
         Vector<Step> steps = new Vector<Step>();
-        JsonArray json_steps = json_preparationRequest.get("steps").getAsJsonArray();
-        for (JsonElement step : json_steps)
+        JsonArray jsonSteps = jsonPreparationRequest.get("steps").getAsJsonArray();
+        for (JsonElement step : jsonSteps)
         {
-            JsonObject json_step = step.getAsJsonObject();
-            String action = json_step.get("action").getAsString();
-            Float duration = json_step.get("duration").getAsFloat();
+            JsonObject jsonStep = step.getAsJsonObject();
+            String action = jsonStep.get("action").getAsString();
+            Float duration = jsonStep.get("duration").getAsFloat();
 
             Step aStep = new Step(action, duration);
             steps.add(aStep);
         }
 
         Vector<String> guids = new Vector<String>();
-        JsonArray json_guids = json_preparationRequest.get("guids").getAsJsonArray();
-        for (JsonElement guid : json_guids)
+        JsonArray jsonGuids = jsonPreparationRequest.get("guids").getAsJsonArray();
+        for (JsonElement guid : jsonGuids)
         {
             guids.add(guid.getAsString());
         }
@@ -514,14 +514,14 @@ public class JSONConverter
     public static ProofingRequest parseProofingRequest(String jsonString)
     {
         JsonElement root = new JsonParser().parse(jsonString);
-        JsonObject json_proofingRequest = root.getAsJsonObject();
+        JsonObject jsonProofingRequest = root.getAsJsonObject();
 
-        String productType = json_proofingRequest.get("productType").getAsString();
-        Float proofingTime = json_proofingRequest.get("proofingTime").getAsFloat();
+        String productType = jsonProofingRequest.get("productType").getAsString();
+        Float proofingTime = jsonProofingRequest.get("proofingTime").getAsFloat();
 
         Vector<String> guids = new Vector<String>();
-        JsonArray json_guids = json_proofingRequest.get("guids").getAsJsonArray();
-        for (JsonElement guid : json_guids)
+        JsonArray jsonGuids = jsonProofingRequest.get("guids").getAsJsonArray();
+        for (JsonElement guid : jsonGuids)
         {
             guids.add(guid.getAsString());
         }

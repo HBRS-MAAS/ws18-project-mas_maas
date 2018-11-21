@@ -38,53 +38,53 @@ public class Recipe{
     }
 
     public float getActionTime(String action) {
-    	float duration = -1;
+        float duration = -1;
 
-    	for(Step step: steps) {
-    		if (step.getAction().equals(action)){
-    			duration = step.getDuration();
-    			break;
-    		}
-    	}
+        for(Step step: steps) {
+            if (step.getAction().equals(action)){
+                duration = step.getDuration();
+                break;
+            }
+        }
 
-    	return duration;
+        return duration;
     }
 
     public Step getProofingStep() {
-    	Step proofingStep = new Step(null, null);
-    	for(Step step: steps) {
-    		if(step.getAction().equals(Step.PROOFING_STEP)) {
-    			proofingStep.setDuration(step.getDuration());
-    			proofingStep.setAction(step.getAction());
-    			break;
-    		}
-    	}
-    	return proofingStep;
+        Step proofingStep = new Step(null, null);
+        for(Step step: steps) {
+            if(step.getAction().equals(Step.PROOFING_STEP)) {
+                proofingStep.setDuration(step.getDuration());
+                proofingStep.setAction(step.getAction());
+                break;
+            }
+        }
+        return proofingStep;
     }
 
     public Vector<Step> getPreparationSteps(){
-    	Vector<Step> preparationSteps = new Vector<Step>();
-    	boolean passedKneading = false;
+        Vector<Step> preparationSteps = new Vector<Step>();
+        boolean passedKneading = false;
 
         // System.out.println("=============================================");
         // System.out.println(" Steps " + steps);
 
-    	for(Step step: steps) {
-    		if (passedKneading) {
-    			if (!step.getAction().equals(Step.PROOFING_STEP)) {
-    				preparationSteps.add(step);
-    			}
-    			else {
-    				break;
-    			}
+        for(Step step: steps) {
+            if (passedKneading) {
+                if (!step.getAction().equals(Step.PROOFING_STEP)) {
+                    preparationSteps.add(step);
+                }
+                else {
+                    break;
+                }
 
-    		}
+            }
             if (step.getAction().equals(Step.KNEADING_STEP)) {
                 // System.out.println("-------> Step =  " + step);
                 passedKneading = true;
             }
-    	}
-    	return preparationSteps;
+        }
+        return preparationSteps;
 
     }
 

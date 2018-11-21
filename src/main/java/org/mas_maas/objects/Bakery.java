@@ -62,16 +62,16 @@ public class Bakery {
         }
         
         public Product findProduct(String productGuid) {
-        	Product matchedProduct = null;
-        	
-        	for(Product product : products) {
-        		if (product.getGuid().equals(productGuid)) {
-        			matchedProduct = product;
-        			break;
-        		}
-        	}
-        	
-        	return matchedProduct;
+            Product matchedProduct = null;
+            
+            for(Product product : products) {
+                if (product.getGuid().equals(productGuid)) {
+                    matchedProduct = product;
+                    break;
+                }
+            }
+            
+            return matchedProduct;
         }
 
         @Override
