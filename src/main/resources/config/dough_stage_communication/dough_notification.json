@@ -1,5 +1,4 @@
 {
     "productType":"Berliner",
-    "quantity": 5,
     "guids":["order-001","order-002"]
 }
