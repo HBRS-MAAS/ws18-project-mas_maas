@@ -51,7 +51,7 @@
 
 ```
 
-## Cooling Notification
+## Loading Bay Message 
 
 #### Content
 
