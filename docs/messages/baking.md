@@ -51,16 +51,20 @@
 
 ```
 
-## Loading Bay Message 
+## Loading Bay Message
 
 #### Content
 
 ```
-{
-    "products": {
-      String("product_name"): int(quantity),
-      String("another_product_name"): int(quantity),
-      ...
+
+"products": [
+    {
+        String("product_name"): int(quantity),
     }
-}
+    {
+        String("product_name"): int(quantity),
+    }
+
+]
+
 ```
