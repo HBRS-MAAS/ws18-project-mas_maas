@@ -1,32 +1,28 @@
 package org.mas_maas.agents;
-import java.util.*;
-
-import jade.core.Agent;
 import jade.core.AID;
-import jade.core.behaviours.*;
-import jade.lang.acl.ACLMessage;
-import jade.lang.acl.MessageTemplate;
-import jade.domain.FIPAAgentManagement.*;
-import jade.domain.FIPAException;
+import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.DFService;
+import jade.domain.FIPAException;
+import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
 public class BakingInterface extends BaseAgent {
-	private AID [] prooferAgents;
 
-	protected void setup() {
-		super.setup();
-		System.out.println(getAID().getLocalName() + " is ready.");
-		this.register("Baking-interface", "JADE-bakery");
-		this.getProoferAIDs();
+    protected void setup() {
+        super.setup();
+        System.out.println(getAID().getLocalName() + " is ready.");
+        this.register("Baking-interface", "JADE-bakery");
+        this.getProoferAIDs();
 
-		addBehaviour(new ReceiveDoughNotifications());
+        addBehaviour(new ReceiveDoughNotifications());
 
-	}
+    }
 
-	public void getProoferAIDs() {
-		DFAgentDescription template = new DFAgentDescription();
+    public void getProoferAIDs() {
+        AID [] prooferAgents;
+        DFAgentDescription template = new DFAgentDescription();
         ServiceDescription sd = new ServiceDescription();
 
         sd.setType("Proofer");
@@ -45,44 +41,44 @@ public class BakingInterface extends BaseAgent {
         catch (FIPAException fe) {
             fe.printStackTrace();
         }
-	}
+    }
 
-	protected void takeDown() {
+    protected void takeDown() {
         System.out.println(getAID().getLocalName() + ": Terminating.");
         this.deRegister();
     }
 
-	/* This is the behaviour used for receiving doughNotifications */
+    /* This is the behaviour used for receiving doughNotifications */
   private class ReceiveDoughNotifications extends CyclicBehaviour {
-	public void action() {
-		// baseAgent.finished(); //call it if there are no generic behaviours
-		MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
-			MessageTemplate.MatchConversationId("dough-notification"));
+    public void action() {
+        // baseAgent.finished(); //call it if there are no generic behaviours
+        MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
+            MessageTemplate.MatchConversationId("dough-notification"));
 
-		ACLMessage msg = baseAgent.receive(mt);
+        ACLMessage msg = baseAgent.receive(mt);
 
-		if (msg != null) {
-			System.out.println("-------> " + getAID().getLocalName()+" Received dough Notification from " + msg.getSender());
+        if (msg != null) {
+            System.out.println("-------> " + getAID().getLocalName()+" Received dough Notification from " + msg.getSender());
 
-			String content = msg.getContent();
+            String content = msg.getContent();
 
-			ACLMessage reply = msg.createReply();
+            ACLMessage reply = msg.createReply();
 
-			reply.setPerformative(ACLMessage.CONFIRM);
+            reply.setPerformative(ACLMessage.CONFIRM);
 
-			reply.setContent("Dough Notification was received");
+            reply.setContent("Dough Notification was received");
 
-			baseAgent.sendMessage(reply);
+            baseAgent.sendMessage(reply);
 
-			System.out.println(content);
+            System.out.println(content);
 
-			myAgent.doDelete();
+            myAgent.doDelete();
 
-		}
-		else {
-			block();
-		}
-	}
+        }
+        else {
+            block();
+        }
+    }
 }
 
 

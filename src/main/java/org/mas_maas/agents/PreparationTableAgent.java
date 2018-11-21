@@ -3,8 +3,8 @@ package org.mas_maas.agents;
 import java.util.Vector;
 
 import org.mas_maas.JSONConverter;
-import org.mas_maas.messages.PreparationRequest;
 import org.mas_maas.messages.PreparationNotification;
+import org.mas_maas.messages.PreparationRequest;
 import org.mas_maas.objects.Step;
 
 import com.google.gson.Gson;
@@ -105,13 +105,11 @@ public class PreparationTableAgent extends BaseAgent {
 
     // performs Preparation process
     private class Preparation extends Behaviour {
-        private float preparationTime;
         private float stepCounter = (float) 0;
-        private int option = 0;
         private Float stepDuration;
 
         public void action(){
-            if (getAllowAction() == true){
+            if (getAllowAction()){
 
                 for (int i = 0; i < guids.size(); i++){
                     for (Step step : steps){
@@ -154,12 +152,9 @@ public class PreparationTableAgent extends BaseAgent {
     private AID [] doughManagerAgents;
     private MessageTemplate mt;
     private int step = 0;
-
-    Gson gson = new Gson();
-
-    PreparationNotification preparationNotification = new PreparationNotification(guids,productType);
-
-    String preparationNotificationString = gson.toJson(preparationNotification);
+    private Gson gson = new Gson();
+    private PreparationNotification preparationNotification = new PreparationNotification(guids,productType);
+    private String preparationNotificationString = gson.toJson(preparationNotification);
 
     public SendPreparationNotification(AID [] doughManagerAgents){
         this.doughManagerAgents = doughManagerAgents;

@@ -5,7 +5,8 @@ import java.util.List;
 import java.util.Vector;
 
 import jade.core.Agent;
-import jade.core.behaviours.*;
+import jade.core.behaviours.CyclicBehaviour;
+import jade.core.behaviours.OneShotBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -15,11 +16,11 @@ import jade.lang.acl.MessageTemplate;
 
 @SuppressWarnings("serial")
 public class TimeKeeper extends Agent{
-	private int currentTimeStep;
-	private int countAgentsReplied;
+    private int currentTimeStep;
+    private int countAgentsReplied;
 
-	protected void setup() {
-		System.out.println("Hallo! time-teller-agent "+getAID().getLocalName()+" is ready.");
+    protected void setup() {
+        System.out.println("Hallo! time-teller-agent "+getAID().getLocalName()+" is ready.");
 
         /* Wait for all the agents to start
          */
@@ -29,34 +30,34 @@ public class TimeKeeper extends Agent{
             e.printStackTrace();
         }
 
-		addBehaviour(new SendTimeStep());
-		addBehaviour(new TimeStepConfirmationBehaviour());
-	}
+        addBehaviour(new SendTimeStep());
+        addBehaviour(new TimeStepConfirmationBehaviour());
+    }
 
-	protected void takeDown() {
+    protected void takeDown() {
         //TODO: call shutdown behaviour
-	}
+    }
 
     /* Get the AID for all alive agents
      */
-	private List<DFAgentDescription> getAllAgents(){
-		DFAgentDescription template = new DFAgentDescription();
-		ServiceDescription sd = new ServiceDescription();
-		template.addServices(sd);
-		try {
-			DFAgentDescription[] result = DFService.search(this, template);
-			return Arrays.asList(result);
-		}
-		catch (FIPAException fe) {
-			fe.printStackTrace();
-			return new Vector<DFAgentDescription>();
-		}
-	}
+    private List<DFAgentDescription> getAllAgents(){
+        DFAgentDescription template = new DFAgentDescription();
+        ServiceDescription sd = new ServiceDescription();
+        template.addServices(sd);
+        try {
+            DFAgentDescription[] result = DFService.search(this, template);
+            return Arrays.asList(result);
+        }
+        catch (FIPAException fe) {
+            fe.printStackTrace();
+            return new Vector<DFAgentDescription>();
+        }
+    }
 
     /* Send next time step to all agents so that they can proceed with their tasks
      */
-	private class SendTimeStep extends OneShotBehaviour {
-		public void action() {
+    private class SendTimeStep extends OneShotBehaviour {
+        public void action() {
             List<DFAgentDescription> agents = getAllAgents();
             currentTimeStep++;
             countAgentsReplied = agents.size();
@@ -67,25 +68,25 @@ public class TimeKeeper extends Agent{
                 timeMessage.setContent(Integer.toString(currentTimeStep));
                 myAgent.send(timeMessage);
             }
-		}
-	}
+        }
+    }
 
     /* Get `finish` message from all agents (BaseAgent) and once all message are received
      * call SendTimeStep to increment time step
      */
-	private class TimeStepConfirmationBehaviour extends CyclicBehaviour {
-		public void action() {
-			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
-			ACLMessage msg = myAgent.receive(mt);
-			if (msg != null) {
-				countAgentsReplied--;
+    private class TimeStepConfirmationBehaviour extends CyclicBehaviour {
+        public void action() {
+            MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
+            ACLMessage msg = myAgent.receive(mt);
+            if (msg != null) {
+                countAgentsReplied--;
                 if (countAgentsReplied <= 0){
                     myAgent.addBehaviour(new SendTimeStep());
                 }
-			}
-			else {
-				block();
-			}
-		}
-	}
+            }
+            else {
+                block();
+            }
+        }
+    }
 }

@@ -1,22 +1,19 @@
 package org.mas_maas.agents;
 
-import jade.core.Agent;
 import jade.core.AID;
-import jade.core.behaviours.*;
-import jade.domain.FIPAAgentManagement.*;
-import jade.domain.FIPAException;
-import jade.domain.DFService;
-import jade.lang.acl.ACLMessage;
-import jade.lang.acl.MessageTemplate;
+import jade.core.Agent;
+import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
+import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
 
 @SuppressWarnings("serial")
 public abstract class BaseAgent extends Agent {
 
-	private int currentDay;
+    private int currentDay;
     private int currentHour;
     private boolean allowAction = false;
     protected AID clockAgent = new AID("TimeKeeper", AID.ISLOCALNAME);
@@ -51,7 +48,7 @@ public abstract class BaseAgent extends Agent {
      * Call this in `doDelete()` function
      */
     protected void deRegister() {
-    	try {
+        try {
             DFService.deregister(this);
         }
         catch (FIPAException fe) {

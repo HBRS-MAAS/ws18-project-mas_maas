@@ -123,7 +123,7 @@ public class KneadingMachineAgent extends BaseAgent {
         }
 
         public void action(){
-            if (getAllowAction() == true){
+            if (getAllowAction()){
                 while(kneadingCounter < kneadingTime){
                     kneadingCounter++;
                     System.out.println("----> " + getAID().getLocalName() + " Kneading counter " + kneadingCounter);
@@ -144,12 +144,9 @@ public class KneadingMachineAgent extends BaseAgent {
         // private AID [] doughManagerAgents;
         private MessageTemplate mt;
         private int option = 0;
-
-        Gson gson = new Gson();
-
-        KneadingNotification kneadingNotification = new KneadingNotification(guids, productType);
-
-        String kneadingNotificationString = gson.toJson(kneadingNotification);
+        private Gson gson = new Gson();
+        private KneadingNotification kneadingNotification = new KneadingNotification(guids, productType);
+        private String kneadingNotificationString = gson.toJson(kneadingNotification);
 
         // public SendKneadingNotification(AID [] doughManagerAgents){
         //

@@ -1,7 +1,7 @@
 package org.mas_maas.objects;
 
 public class ProductStatus {
-	private String guid;
+    private String guid;
     private String status;
     private int amount;
     private Product product;
@@ -34,7 +34,7 @@ public class ProductStatus {
     }
     
     public Product getProduct() {
-    	return product;
+        return product;
     }
 
 }
