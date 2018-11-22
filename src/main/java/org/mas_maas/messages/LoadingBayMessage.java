@@ -16,6 +16,11 @@ public class LoadingBayMessage {
         this.products.add(new ProductPair(productName, quantity));
     }
 
+    @Override
+    public String toString() {
+        return "LoadingBayMessage [products=" + products + "]";
+    }
+
 
     private class ProductPair {
         private String productName;
@@ -25,6 +30,11 @@ public class LoadingBayMessage {
         {
             this.productName = productName;
             this.quantity = quantity;
+        }
+
+        @Override
+        public String toString() {
+            return "ProductPair [productName=" + productName + ", quantity=" + quantity + "]";
         }
     }
 }
