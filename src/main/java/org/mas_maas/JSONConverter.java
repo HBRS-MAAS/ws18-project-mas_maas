@@ -580,7 +580,14 @@ public class JSONConverter
             guids.add(guid.getAsString());
         }
 
-        BakingRequest bakingRequest = new BakingRequest(guids, productType, bakingTemp, bakingTime);
+        Vector<Integer> productQuantities = new Vector<Integer>();
+        JsonArray jsonProductQuantities = jsonBakingRequest.get("productQuantities").getAsJsonArray();
+        for (JsonElement productQuantitie : jsonProductQuantities)
+        {
+            productQuantities.add(productQuantitie.getAsInt());
+        }
+
+        BakingRequest bakingRequest = new BakingRequest(guids, productType, bakingTemp, bakingTime, productQuantities);
         return bakingRequest;
     }
 
@@ -597,7 +604,14 @@ public class JSONConverter
             guids.add(guid.getAsString());
         }
 
-        BakingNotification bakingNotification = new BakingNotification(guids, productType);
+        Vector<Integer> productQuantities = new Vector<Integer>();
+        JsonArray jsonProductQuantities = jsonBakingNotification.get("productQuantities").getAsJsonArray();
+        for (JsonElement productQuantitie : jsonProductQuantities)
+        {
+            productQuantities.add(productQuantitie.getAsInt());
+        }
+
+        BakingNotification bakingNotification = new BakingNotification(guids, productType, productQuantities);
         return bakingNotification;
     }
 
