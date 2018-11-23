@@ -553,7 +553,14 @@ public class JSONConverter
             guids.add(guid.getAsString());
         }
 
-        ProofingRequest proofingRequest = new ProofingRequest(productType, guids, proofingTime);
+        Vector<Integer> productQuantities = new Vector<Integer>();
+        JsonArray jsonProductQuantities = jsonProofingRequest.get("productQuantities").getAsJsonArray();
+        for (JsonElement productQuantitie : jsonProductQuantities)
+        {
+            productQuantities.add(productQuantitie.getAsInt());
+        }
+
+        ProofingRequest proofingRequest = new ProofingRequest(productType, guids, proofingTime, productQuantities);
         return proofingRequest;
     }
 

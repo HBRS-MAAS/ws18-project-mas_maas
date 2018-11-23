@@ -9,4 +9,17 @@ public class DoughNotification extends GenericGuidMessage {
         super(guids, productType);
         this.productQuantities = productQuantities;
     }
+
+    public Vector<Integer> getProductQuantities() {
+        return productQuantities;
+    }
+
+    public void setProductQuantities(Vector<Integer> productQuantities) {
+        this.productQuantities = productQuantities;
+    }
+
+    @Override
+    public String toString() {
+        return "DoughNotification [productQuantities=" + productQuantities + "]";
+    }
 }
