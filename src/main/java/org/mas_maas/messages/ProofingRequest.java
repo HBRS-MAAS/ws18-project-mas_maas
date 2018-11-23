@@ -9,6 +9,7 @@ public class ProofingRequest extends GenericGuidMessage {
     public ProofingRequest(String productType, Vector<String> guids, float proofingTime, Vector<Integer> productQuantities) {
         super(guids, productType);
         this.proofingTime = proofingTime;
+        this.productQuantities = productQuantities;
     }
 
     public Float getProofingTime() {
