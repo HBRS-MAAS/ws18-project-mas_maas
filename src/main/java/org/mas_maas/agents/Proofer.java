@@ -19,7 +19,7 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
 public class Proofer extends BaseAgent {
-    private AID [] bakingInterfaceAgents;
+    private AID [] bakingManagerAgents;
 
     private Vector<String> guids;
     private String productType;
@@ -34,7 +34,7 @@ public class Proofer extends BaseAgent {
 
         // Get Agents AIDS
         this.getDoughManagerAIDs();
-        this.getBakingInterfaceAIDs();
+        this.getBakingManagerAIDs();
 
         addBehaviour(new ReceiveProofingRequests());
     }
@@ -68,20 +68,20 @@ public class Proofer extends BaseAgent {
     }
 
 
-    public void getBakingInterfaceAIDs() {
+    public void getBakingManagerAIDs() {
         DFAgentDescription template = new DFAgentDescription();
         ServiceDescription sd = new ServiceDescription();
 
-        sd.setType("Baking-interface");
+        sd.setType("Baking-manager");
         template.addServices(sd);
         try {
             DFAgentDescription [] result = DFService.search(this, template);
             System.out.println(getAID().getLocalName() + "Found the following Baking-interface agents:");
-            bakingInterfaceAgents = new AID [result.length];
+            bakingManagerAgents = new AID [result.length];
 
             for (int i = 0; i < result.length; ++i) {
-                bakingInterfaceAgents[i] = result[i].getName();
-                System.out.println(bakingInterfaceAgents[i].getName());
+                bakingManagerAgents[i] = result[i].getName();
+                System.out.println(bakingManagerAgents[i].getName());
             }
 
         }
@@ -144,7 +144,7 @@ public class Proofer extends BaseAgent {
                         proofingCounter++;
                         System.out.println("----> " + getAID().getLocalName() + " proofing Counter " + proofingCounter);
                     }
-                    addBehaviour(new SendDoughNotification(bakingInterfaceAgents));
+                    addBehaviour(new SendDoughNotification(bakingManagerAgents));
                     this.done();
                 }
 
@@ -159,15 +159,15 @@ public class Proofer extends BaseAgent {
 
     // This is the behaviour used for sending a doughNotification msg to the BakingInterface agent
     private class SendDoughNotification extends Behaviour {
-        private AID [] bakingInterfaceAgents;
+        private AID [] bakingManagerAgents;
         private MessageTemplate mt;
         private int option = 0;
         private Gson gson = new Gson();
         private DoughNotification doughNotification = new DoughNotification(guids, productType, productQuantities);
         private String doughNotificationString = gson.toJson(doughNotification);
 
-        public SendDoughNotification(AID [] bakingInterfaceAgents){
-            this.bakingInterfaceAgents = bakingInterfaceAgents;
+        public SendDoughNotification(AID [] bakingManagerAgents){
+            this.bakingManagerAgents = bakingManagerAgents;
         }
 
         public void action() {
@@ -180,9 +180,9 @@ public class Proofer extends BaseAgent {
 
                     msg.setConversationId("dough-notification");
 
-                    // Send doughNotification msg to bakingInterfaceAgents
-                    for (int i=0; i<bakingInterfaceAgents.length; i++){
-                        msg.addReceiver(bakingInterfaceAgents[i]);
+                    // Send doughNotification msg to bakingManagerAgents
+                    for (int i=0; i<bakingManagerAgents.length; i++){
+                        msg.addReceiver(bakingManagerAgents[i]);
                     }
 
                     msg.setReplyWith("msg" + System.currentTimeMillis());

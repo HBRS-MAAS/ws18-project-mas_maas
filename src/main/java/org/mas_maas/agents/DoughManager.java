@@ -149,7 +149,7 @@ public class DoughManager extends BaseAgent {
 
             }
             String productType = products.get(0).getProduct().getGuid();
-            float kneadingTime = products.get(0).getProduct().getRecipe().getActionTime(Step.KNEADING_TIME);
+            float kneadingTime = products.get(0).getProduct().getRecipe().getActionTime(Step.KNEADING_STEP);
 
             kneadingRequest = new KneadingRequest(guids, productType, kneadingTime);
         }
@@ -246,7 +246,7 @@ public class DoughManager extends BaseAgent {
 
             String productType = products.get(0).getProduct().getGuid();
 
-            float proofingTime = products.get(0).getProduct().getRecipe().getActionTime(Step.PROOFING_TIME);
+            float proofingTime = products.get(0).getProduct().getRecipe().getActionTime(Step.PROOFING_STEP);
 
             proofingRequest = new ProofingRequest(productType, guids, proofingTime, productQuantities);
         }
@@ -257,7 +257,7 @@ public class DoughManager extends BaseAgent {
 
     public void getbakery(){
 
-        String jsonDir = "src/main/resources/config/dough_stage_communication/";
+        String jsonDir = "src/main/resources/config/shared_stage_communication/";
         try {
             System.out.println("Working Directory = " + System.getProperty("user.dir"));
             String bakeryFile = new Scanner(new File(jsonDir + "bakery.json")).useDelimiter("\\Z").next();
