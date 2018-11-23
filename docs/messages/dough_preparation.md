@@ -121,7 +121,8 @@ Step
 {
     "proofingTime": float,
     "productType": String,
-    "guids": Vector<String>
+    "guids": Vector<String>,
+    "productQuantities": Vector <int>
 }
 
 ```
