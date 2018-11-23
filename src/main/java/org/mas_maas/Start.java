@@ -8,7 +8,7 @@ public class Start {
         JSONConverter.test_parsing();
 
         List<String> agents = new Vector<>();
-        agents.add("BakingInterface:org.mas_maas.agents.BakingInterface");
+        agents.add("BakingManager:org.mas_maas.agents.BakingManager");
         agents.add("DoughManager:org.mas_maas.agents.DoughManager");
         agents.add("KneadingMachineAgent:org.mas_maas.agents.KneadingMachineAgent");
         agents.add("PreparationTableAgent:org.mas_maas.agents.PreparationTableAgent");
