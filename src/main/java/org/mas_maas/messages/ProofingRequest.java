@@ -2,7 +2,7 @@ package org.mas_maas.messages;
 
 import java.util.Vector;
 
-public class ProofingRequest extends DoughMessage {
+public class ProofingRequest extends GenericGuidMessage {
     private float proofingTime;
 
     public ProofingRequest(String productType, Vector<String> guids, float proofingTime) {
