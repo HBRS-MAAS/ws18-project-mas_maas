@@ -237,16 +237,18 @@ public class DoughManager extends BaseAgent {
         if (products != null) {
 
             Vector<String> guids = new Vector<String>();
+            Vector<Integer> productQuantities = new Vector<Integer>();
 
             for (ProductStatus productStatus : products) {
                 guids.add(productStatus.getGuid());
+                productQuantities.add(productStatus.getAmount());
             }
 
             String productType = products.get(0).getProduct().getGuid();
 
             float proofingTime = products.get(0).getProduct().getRecipe().getActionTime(Step.PROOFING_TIME);
 
-            proofingRequest = new ProofingRequest(productType, guids, proofingTime);
+            proofingRequest = new ProofingRequest(productType, guids, proofingTime, productQuantities);
         }
 
         return proofingRequest;

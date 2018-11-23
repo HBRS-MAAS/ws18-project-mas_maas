@@ -23,6 +23,7 @@ public class Proofer extends BaseAgent {
 
     private Vector<String> guids;
     private String productType;
+    private Vector<Integer> productQuantities;
 
     protected void setup() {
         super.setup();
@@ -115,6 +116,7 @@ public class Proofer extends BaseAgent {
                 Float proofingTime = proofingRequest.getProofingTime();
                 guids = proofingRequest.getGuids();
                 productType = proofingRequest.getProductType();
+                productQuantities = proofingRequest.getProductQuantities();
 
                 addBehaviour(new Proofing(proofingTime));
 
@@ -161,7 +163,7 @@ public class Proofer extends BaseAgent {
         private MessageTemplate mt;
         private int option = 0;
         private Gson gson = new Gson();
-        private DoughNotification doughNotification = new DoughNotification(guids,productType);
+        private DoughNotification doughNotification = new DoughNotification(guids, productType, productQuantities);
         private String doughNotificationString = gson.toJson(doughNotification);
 
         public SendDoughNotification(AID [] bakingInterfaceAgents){
