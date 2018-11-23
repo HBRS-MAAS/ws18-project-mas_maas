@@ -438,7 +438,14 @@ public class JSONConverter
             guids.add(guid.getAsString());
         }
 
-        DoughNotification doughNotification = new DoughNotification(guids, productType);
+        Vector<Integer> productQuantities = new Vector<Integer>();
+        JsonArray jsonProductQuantities = jsonDoughNotification.get("productQuantities").getAsJsonArray();
+        for (JsonElement productQuantitie : jsonProductQuantities)
+        {
+            productQuantities.add(productQuantitie.getAsInt());
+        }
+
+        DoughNotification doughNotification = new DoughNotification(guids, productType, productQuantities);
         return doughNotification;
     }
 
