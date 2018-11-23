@@ -10,6 +10,7 @@ import jade.content.onto.basic.Action;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
+import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPANames;
@@ -38,7 +39,17 @@ public class TimeKeeper extends Agent{
 
         addBehaviour(new SendTimeStep());
         addBehaviour(new TimeStepConfirmationBehaviour());
-        addBehaviour(new shutdown());
+        // addBehaviour(new shutdown());
+        addBehaviour(new TickerBehaviour(this, 5000) {
+                protected void onTick() {
+                    List<DFAgentDescription> agents = getAllAgents();
+                    if(agents.size() == 0){
+                        System.out.println("There are no agents... terminating");
+                        addBehaviour(new shutdown());
+                    }
+                }
+
+        } );
     }
 
     /* Get the AID for all alive agents
@@ -84,14 +95,7 @@ public class TimeKeeper extends Agent{
             if (msg != null) {
                 countAgentsReplied--;
                 if (countAgentsReplied <= 0){
-                    // before incrementing time step, make sure there are agents we need to talk to, otherwise shutdown
-                    List<DFAgentDescription> agents = getAllAgents();
-                    if (agents.isEmpty())
-                    {
-                        myAgent.addBehaviour(new shutdown());
-                    } else {
-                        myAgent.addBehaviour(new SendTimeStep());
-                    }
+                    myAgent.addBehaviour(new SendTimeStep());
                 }
             }
             else {
