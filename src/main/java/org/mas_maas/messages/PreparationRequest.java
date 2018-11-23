@@ -4,7 +4,7 @@ import java.util.Vector;
 
 import org.mas_maas.objects.Step;
 
-public class PreparationRequest extends DoughMessage {
+public class PreparationRequest extends GenericGuidMessage {
     private Vector<Integer> productQuantities;
     private Vector<Step> steps;
 

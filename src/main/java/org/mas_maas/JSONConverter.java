@@ -9,9 +9,13 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.Vector;
 
+import org.mas_maas.messages.BakingNotification;
+import org.mas_maas.messages.BakingRequest;
+import org.mas_maas.messages.CoolingRequest;
 import org.mas_maas.messages.DoughNotification;
 import org.mas_maas.messages.KneadingNotification;
 import org.mas_maas.messages.KneadingRequest;
+import org.mas_maas.messages.LoadingBayMessage;
 import org.mas_maas.messages.PreparationNotification;
 import org.mas_maas.messages.PreparationRequest;
 import org.mas_maas.messages.ProofingRequest;
@@ -46,6 +50,8 @@ public class JSONConverter
     {
         String sampleDir = "src/main/resources/config/sample/";
         String doughDir = "src/main/resources/config/dough_stage_communication/";
+        String bakingDir = "src/main/resources/config/baking_stage_communication/";
+
         try {
             //System.out.println("Working Directory = " + System.getProperty("user.dir"));
 
@@ -102,7 +108,22 @@ public class JSONConverter
             ProofingRequest proofingRequest = parseProofingRequest(proofingRequestString);
             System.out.println(proofingRequest);
 
+            // baking message tests
+            String bakingRequestString = new Scanner(new File(bakingDir + "baking_request.json")).useDelimiter("\\Z").next();
+            BakingRequest bakingRequest = parseBakingRequest(bakingRequestString);
+            System.out.println(bakingRequest);
 
+            String bakingNotificationString = new Scanner(new File(bakingDir + "baking_notification.json")).useDelimiter("\\Z").next();
+            BakingNotification bakingNotification = parseBakingNotification(bakingNotificationString);
+            System.out.println(bakingNotification);
+
+            String coolingRequestString = new Scanner(new File(bakingDir + "cooling_request.json")).useDelimiter("\\Z").next();
+            CoolingRequest coolingRequest = parseCoolingRequest(coolingRequestString);
+            System.out.println(coolingRequest);
+
+            String loadingBayMessageString = new Scanner(new File(bakingDir + "loading_bay_message.json")).useDelimiter("\\Z").next();
+            LoadingBayMessage loadingBayMessage = parseLoadingBayMessage(loadingBayMessageString);
+            System.out.println(loadingBayMessage);
 
         } catch (FileNotFoundException e) {
             // TODO Auto-generated catch block
@@ -417,7 +438,14 @@ public class JSONConverter
             guids.add(guid.getAsString());
         }
 
-        DoughNotification doughNotification = new DoughNotification(guids, productType);
+        Vector<Integer> productQuantities = new Vector<Integer>();
+        JsonArray jsonProductQuantities = jsonDoughNotification.get("productQuantities").getAsJsonArray();
+        for (JsonElement productQuantitie : jsonProductQuantities)
+        {
+            productQuantities.add(productQuantitie.getAsInt());
+        }
+
+        DoughNotification doughNotification = new DoughNotification(guids, productType, productQuantities);
         return doughNotification;
     }
 
@@ -525,7 +553,85 @@ public class JSONConverter
             guids.add(guid.getAsString());
         }
 
-        ProofingRequest proofingRequest = new ProofingRequest(productType, guids, proofingTime);
+        Vector<Integer> productQuantities = new Vector<Integer>();
+        JsonArray jsonProductQuantities = jsonProofingRequest.get("productQuantities").getAsJsonArray();
+        for (JsonElement productQuantitie : jsonProductQuantities)
+        {
+            productQuantities.add(productQuantitie.getAsInt());
+        }
+
+        ProofingRequest proofingRequest = new ProofingRequest(productType, guids, proofingTime, productQuantities);
         return proofingRequest;
+    }
+
+    public static BakingRequest parseBakingRequest(String jsonString)
+    {
+        JsonElement root = new JsonParser().parse(jsonString);
+        JsonObject jsonBakingRequest = root.getAsJsonObject();
+
+        int bakingTemp = jsonBakingRequest.get("bakingTemp").getAsInt();
+        Float bakingTime = jsonBakingRequest.get("bakingTime").getAsFloat();
+        String productType = jsonBakingRequest.get("productType").getAsString();
+
+        Vector<String> guids = new Vector<String>();
+        JsonArray jsonGuids = jsonBakingRequest.get("guids").getAsJsonArray();
+        for (JsonElement guid : jsonGuids)
+        {
+            guids.add(guid.getAsString());
+        }
+
+        BakingRequest bakingRequest = new BakingRequest(guids, productType, bakingTemp, bakingTime);
+        return bakingRequest;
+    }
+
+    public static BakingNotification parseBakingNotification(String jsonString)
+    {
+        JsonElement root = new JsonParser().parse(jsonString);
+        JsonObject jsonBakingNotification = root.getAsJsonObject();
+
+        String productType = jsonBakingNotification.get("productType").getAsString();
+        Vector<String> guids = new Vector<String>();
+        JsonArray jsonGuids = jsonBakingNotification.get("guids").getAsJsonArray();
+        for (JsonElement guid : jsonGuids)
+        {
+            guids.add(guid.getAsString());
+        }
+
+        BakingNotification bakingNotification = new BakingNotification(guids, productType);
+        return bakingNotification;
+    }
+
+    public static CoolingRequest parseCoolingRequest(String jsonString)
+    {
+        JsonElement root = new JsonParser().parse(jsonString);
+        JsonObject jsonCoolingRequest = root.getAsJsonObject();
+
+        String productName = jsonCoolingRequest.get("productName").getAsString();
+        int coolingRate = jsonCoolingRequest.get("coolingRate").getAsInt();
+        int quantity = jsonCoolingRequest.get("quantity").getAsInt();
+        int boxingTemp = jsonCoolingRequest.get("boxingTemp").getAsInt();
+
+
+        CoolingRequest proofingRequest = new CoolingRequest(productName, coolingRate, quantity, boxingTemp);
+        return proofingRequest;
+    }
+
+    public static LoadingBayMessage parseLoadingBayMessage(String jsonString)
+    {
+        JsonElement root = new JsonParser().parse(jsonString);
+        JsonObject jsonLoadingBayMessage = root.getAsJsonObject();
+
+        LoadingBayMessage loadingBayMessage = new LoadingBayMessage();
+        JsonArray jsonProducts = jsonLoadingBayMessage.get("products").getAsJsonArray();
+        for (JsonElement product : jsonProducts)
+        {
+            JsonObject jsonProduct = product.getAsJsonObject();
+            String productName = jsonProduct.get("productName").getAsString();
+            int quantity = jsonProduct.get("quantity").getAsInt();
+
+            loadingBayMessage.addProduct(productName, quantity);
+        }
+
+        return loadingBayMessage;
     }
 }
