@@ -20,7 +20,8 @@
     "bakingTemp": int,
     "bakingTime": float,
     "productType": String,
-    "guids": Vector<String>
+    "guids": Vector<String>,
+    "productQuantities": Vector <int>
 }
 
 ```
@@ -32,7 +33,8 @@
 ```
 {
     "productType": String,
-    "guids": Vector<String>
+    "guids": Vector<String>,
+    "productQuantities": Vector <int>
 }
 
 
