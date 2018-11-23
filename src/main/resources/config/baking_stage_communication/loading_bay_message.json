@@ -1,0 +1,12 @@
+{
+   "products":[
+      {
+         "productName" : "Berliner",
+         "quantity" : 5
+      },
+      {
+         "productName" : "Bagel",
+         "quantity" : 7
+      }
+   ]
+}

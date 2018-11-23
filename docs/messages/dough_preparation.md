@@ -121,7 +121,8 @@ Step
 {
     "proofingTime": float,
     "productType": String,
-    "guids": Vector<String>
+    "guids": Vector<String>,
+    "productQuantities": Vector <int>
 }
 
 ```
@@ -145,7 +146,8 @@ Step
 ```
 {
     "productType": String,
-    "guids": Vector<String>
+    "guids": Vector<String>,
+    "productQuantities": Vector <int>
 }
 ```
 
@@ -153,7 +155,11 @@ Step
 
 ```
 {
-    "productType":"Berliner",
-    "guids":["order-001","order-002"]
+  "productType": "Berliner",
+  "guids": [
+    "order-001",
+    "order-002"
+  ],
+  "productQuantities":[10,20]
 }
 ```

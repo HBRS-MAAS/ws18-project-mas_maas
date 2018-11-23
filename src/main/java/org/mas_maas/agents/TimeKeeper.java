@@ -4,13 +4,19 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
 
+import jade.content.lang.Codec;
+import jade.content.lang.sl.SLCodec;
+import jade.content.onto.basic.Action;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
+import jade.domain.FIPANames;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
+import jade.domain.JADEAgentManagement.JADEManagementOntology;
+import jade.domain.JADEAgentManagement.ShutdownPlatform;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
@@ -32,10 +38,7 @@ public class TimeKeeper extends Agent{
 
         addBehaviour(new SendTimeStep());
         addBehaviour(new TimeStepConfirmationBehaviour());
-    }
-
-    protected void takeDown() {
-        //TODO: call shutdown behaviour
+        addBehaviour(new shutdown());
     }
 
     /* Get the AID for all alive agents
@@ -81,12 +84,40 @@ public class TimeKeeper extends Agent{
             if (msg != null) {
                 countAgentsReplied--;
                 if (countAgentsReplied <= 0){
-                    myAgent.addBehaviour(new SendTimeStep());
+                    // before incrementing time step, make sure there are agents we need to talk to, otherwise shutdown
+                    List<DFAgentDescription> agents = getAllAgents();
+                    if (agents.isEmpty())
+                    {
+                        myAgent.addBehaviour(new shutdown());
+                    } else {
+                        myAgent.addBehaviour(new SendTimeStep());
+                    }
                 }
             }
             else {
                 block();
             }
+        }
+    }
+
+    // Taken from http://www.rickyvanrijn.nl/2017/08/29/how-to-shutdown-jade-agent-platform-programmatically/
+    private class shutdown extends OneShotBehaviour {
+        public void action() {
+            ACLMessage shutdownMessage = new ACLMessage(ACLMessage.REQUEST);
+            Codec codec = new SLCodec();
+            myAgent.getContentManager().registerLanguage(codec);
+            myAgent.getContentManager().registerOntology(JADEManagementOntology.getInstance());
+            shutdownMessage.addReceiver(myAgent.getAMS());
+            shutdownMessage.setLanguage(FIPANames.ContentLanguage.FIPA_SL);
+            shutdownMessage.setOntology(JADEManagementOntology.getInstance().getName());
+            try {
+                myAgent.getContentManager().fillContent(shutdownMessage,new Action(myAgent.getAID(), new ShutdownPlatform()));
+                myAgent.send(shutdownMessage);
+            }
+            catch (Exception e) {
+                //LOGGER.error(e);
+            }
+
         }
     }
 }
