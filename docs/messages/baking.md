@@ -69,6 +69,7 @@ Step
 ```
 {
     "productName": String,
+    "coolingTime": float,
     "quantity": int,
     "boxingTemp": int
 }
