@@ -3,22 +3,12 @@ package org.mas_maas.objects;
 import java.util.Vector;
 
 public class Recipe{
-    private int coolingRate;
     private int bakingTemp;
     private Vector<Step> steps; //inner class Step defined at the end of the file
 
-    public Recipe(int coolingRate, int bakingTemp, Vector<Step> steps) {
-        this.coolingRate = coolingRate;
+    public Recipe(int bakingTemp, Vector<Step> steps) {
         this.bakingTemp = bakingTemp;
         this.steps = steps;
-    }
-
-    public int getCoolingRate() {
-        return coolingRate;
-    }
-
-    public void setCoolingRate(int coolingRate) {
-        this.coolingRate = coolingRate;
     }
 
     public int getBakingTemp() {
@@ -113,6 +103,6 @@ public class Recipe{
 
     @Override
     public String toString() {
-        return "Recipe [coolingRate=" + coolingRate + ", bakingTemp=" + bakingTemp + ", steps=" + steps + "]";
+        return "Recipe [bakingTemp=" + bakingTemp + ", steps=" + steps + "]";
     }
 }

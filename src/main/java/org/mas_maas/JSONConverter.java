@@ -48,82 +48,103 @@ public class JSONConverter
 {
     public static void test_parsing()
     {
+        test_parsing(false);
+    }
+
+    public static void test_parsing(boolean debug)
+    {
         String sampleDir = "src/main/resources/config/sample/";
         String doughDir = "src/main/resources/config/dough_stage_communication/";
         String bakingDir = "src/main/resources/config/baking_stage_communication/";
+        String smallTestDir = "src/main/resources/config/small/";
 
         try {
             //System.out.println("Working Directory = " + System.getProperty("user.dir"));
 
-            String bakeryFile = new Scanner(new File(sampleDir + "bakeries.json")).useDelimiter("\\Z").next();
+            String bakeryFile = new Scanner(new File(smallTestDir + "bakeries.json")).useDelimiter("\\Z").next();
             Vector<Bakery> bakeries = parseBakeries(bakeryFile);
             for (Bakery bakery : bakeries)
             {
-                System.out.println(bakery);
+                if (debug)
+                    System.out.println(bakery);
             }
 
-            String clientFile = new Scanner(new File(sampleDir + "clients.json")).useDelimiter("\\Z").next();
+            String clientFile = new Scanner(new File(smallTestDir + "clients.json")).useDelimiter("\\Z").next();
             Vector<Client> clients = parseClients(clientFile);
             for (Client client : clients)
             {
-                System.out.println(client);
+                if (debug)
+                    System.out.println(client);
             }
 
-            String deliveryCompanyFile = new Scanner(new File(sampleDir + "delivery.json")).useDelimiter("\\Z").next();
+            String deliveryCompanyFile = new Scanner(new File(smallTestDir + "delivery.json")).useDelimiter("\\Z").next();
             Vector<DeliveryCompany> deliveryCompanies = parseDeliveryCompany(deliveryCompanyFile);
             for (DeliveryCompany deliveryCompany : deliveryCompanies)
             {
-                System.out.println(deliveryCompany);
+                if (debug)
+                    System.out.println(deliveryCompany);
             }
 
-            String metaInfoFile = new Scanner(new File(sampleDir + "meta.json")).useDelimiter("\\Z").next();
+            String metaInfoFile = new Scanner(new File(smallTestDir + "meta.json")).useDelimiter("\\Z").next();
             MetaInfo metaInfo = parseMetaInfo(metaInfoFile);
-            System.out.println(metaInfo);
+            if (debug)
+                System.out.println(metaInfo);
 
-            String streetNetworkFile = new Scanner(new File(sampleDir + "street-network.json")).useDelimiter("\\Z").next();
+            String streetNetworkFile = new Scanner(new File(smallTestDir + "street-network.json")).useDelimiter("\\Z").next();
             StreetNetwork streetNetwork = parseStreetNetwork(streetNetworkFile);
-            System.out.println(streetNetwork);
+            if (debug)
+                System.out.println(streetNetwork);
 
             String doughNotificationString = new Scanner(new File(doughDir + "dough_notification.json")).useDelimiter("\\Z").next();
             DoughNotification doughtNotification = parseDoughNotification(doughNotificationString);
-            System.out.println(doughtNotification);
+            if (debug)
+                System.out.println(doughtNotification);
 
             String kneadingNotificationString = new Scanner(new File(doughDir + "kneading_notification.json")).useDelimiter("\\Z").next();
             KneadingNotification kneadingNotification = parseKneadingNotification(kneadingNotificationString);
-            System.out.println(kneadingNotification);
+            if (debug)
+                System.out.println(kneadingNotification);
 
             String kneadingRequestString = new Scanner(new File(doughDir + "kneading_request.json")).useDelimiter("\\Z").next();
             KneadingRequest kneadingRequest = parseKneadingRequest(kneadingRequestString);
-            System.out.println(kneadingRequest);
+            if (debug)
+                System.out.println(kneadingRequest);
 
             String preparationNotificationString = new Scanner(new File(doughDir + "preparation_notification.json")).useDelimiter("\\Z").next();
             PreparationNotification preparationNotification = parsePreparationNotification(preparationNotificationString);
-            System.out.println(preparationNotification);
+            if (debug)
+                System.out.println(preparationNotification);
 
             String preparationRequestString = new Scanner(new File(doughDir + "preparation_request.json")).useDelimiter("\\Z").next();
             PreparationRequest preparationRequest = parsePreparationRequest(preparationRequestString);
-            System.out.println(preparationRequest);
+            if (debug)
+                System.out.println(preparationRequest);
 
             String proofingRequestString = new Scanner(new File(doughDir + "proofing_request.json")).useDelimiter("\\Z").next();
             ProofingRequest proofingRequest = parseProofingRequest(proofingRequestString);
-            System.out.println(proofingRequest);
+            if (debug)
+                System.out.println(proofingRequest);
 
             // baking message tests
             String bakingRequestString = new Scanner(new File(bakingDir + "baking_request.json")).useDelimiter("\\Z").next();
             BakingRequest bakingRequest = parseBakingRequest(bakingRequestString);
-            System.out.println(bakingRequest);
+            if (debug)
+                System.out.println(bakingRequest);
 
             String bakingNotificationString = new Scanner(new File(bakingDir + "baking_notification.json")).useDelimiter("\\Z").next();
             BakingNotification bakingNotification = parseBakingNotification(bakingNotificationString);
-            System.out.println(bakingNotification);
+            if (debug)
+                System.out.println(bakingNotification);
 
             String coolingRequestString = new Scanner(new File(bakingDir + "cooling_request.json")).useDelimiter("\\Z").next();
             CoolingRequest coolingRequest = parseCoolingRequest(coolingRequestString);
-            System.out.println(coolingRequest);
+            if (debug)
+                System.out.println(coolingRequest);
 
             String loadingBayMessageString = new Scanner(new File(bakingDir + "loading_bay_message.json")).useDelimiter("\\Z").next();
             LoadingBayMessage loadingBayMessage = parseLoadingBayMessage(loadingBayMessageString);
-            System.out.println(loadingBayMessage);
+            if (debug)
+                System.out.println(loadingBayMessage);
 
         } catch (FileNotFoundException e) {
             // TODO Auto-generated catch block
@@ -143,10 +164,7 @@ public class JSONConverter
             JsonObject jsonBakery = element.getAsJsonObject();
             String guid = jsonBakery.get("guid").getAsString();
             String name = jsonBakery.get("name").getAsString();
-            JsonObject jsonLocation = (JsonObject) jsonBakery.get("location");
-            Double x = jsonLocation.get("x").getAsDouble();
-            Double y = jsonLocation.get("y").getAsDouble();
-            Point2D location = new Point2D.Double(x, y);
+            Point2D location = parseLocation(jsonBakery);
 
             // products
             Vector<Product> products = new Vector<Product>();
@@ -161,7 +179,6 @@ public class JSONConverter
                 Batch batch = new Batch(breadsPerOven);
 
                 JsonObject jsonRecipe = jsonProduct.get("recipe").getAsJsonObject();
-                int coolingRate = jsonRecipe.get("coolingRate").getAsInt();
                 int bakingTemp = jsonRecipe.get("bakingTemp").getAsInt();
 
                 JsonArray stepArray = jsonRecipe.get("steps").getAsJsonArray();
@@ -174,7 +191,7 @@ public class JSONConverter
                     Step aStep = new Step(action, duration);
                     steps.add(aStep);
                 }
-                Recipe recipe = new Recipe(coolingRate, bakingTemp, steps);
+                Recipe recipe = new Recipe(bakingTemp, steps);
 
                 JsonObject jsonPackaging = jsonProduct.get("packaging").getAsJsonObject();
                 int boxingTemp = jsonPackaging.get("boxingTemp").getAsInt();
@@ -264,10 +281,7 @@ public class JSONConverter
             String guid = jsonClient.get("guid").getAsString();
             int type = jsonClient.get("type").getAsInt();
             String name = jsonClient.get("name").getAsString();
-            JsonObject jsonLocation = (JsonObject) jsonClient.get("location");
-            Double x = jsonLocation.get("x").getAsDouble();
-            Double y = jsonLocation.get("y").getAsDouble();
-            Point2D location = new Point2D.Double(x, y);
+            Point2D location = parseLocation(jsonClient);
 
             // orders
             Vector<Order> orders = new Vector<Order>();
@@ -290,12 +304,12 @@ public class JSONConverter
         JsonElement root = new JsonParser().parse(jsonFile);
         JsonObject jsonOrder = root.getAsJsonObject();
 
-        String customerId = jsonOrder.get("customerId").getAsString();
+        String customerId = jsonOrder.get("customer_id").getAsString();
         String orderGuid = jsonOrder.get("guid").getAsString();
-        JsonObject jsonOrderDate = jsonOrder.get("orderDate").getAsJsonObject();
+        JsonObject jsonOrderDate = jsonOrder.get("order_date").getAsJsonObject();
         int orderDay = jsonOrderDate.get("day").getAsInt();
         int orderHour = jsonOrderDate.get("day").getAsInt();
-        JsonObject jsonDeliveryDate = jsonOrder.get("deliveryDate").getAsJsonObject();
+        JsonObject jsonDeliveryDate = jsonOrder.get("delivery_date").getAsJsonObject();
         int deliveryDay = jsonDeliveryDate.get("day").getAsInt();
         int deliveryHour = jsonDeliveryDate.get("day").getAsInt();
 
@@ -325,10 +339,7 @@ public class JSONConverter
         {
             JsonObject jsonDeliveryCompany = element.getAsJsonObject();
             String guid = jsonDeliveryCompany.get("guid").getAsString();
-            JsonObject jsonLocation = (JsonObject) jsonDeliveryCompany.get("location");
-            Double x = jsonLocation.get("x").getAsDouble();
-            Double y = jsonLocation.get("y").getAsDouble();
-            Point2D location = new Point2D.Double(x, y);
+            Point2D location = parseLocation(jsonDeliveryCompany);
 
             Vector<Truck> trucks = new Vector<Truck>();
             JsonArray jsonTrucks = jsonDeliveryCompany.get("trucks").getAsJsonArray();
@@ -337,11 +348,7 @@ public class JSONConverter
                 JsonObject jsonTruck = truck.getAsJsonObject();
                 String truckGuid = jsonTruck.get("guid").getAsString();
                 int loadCapacity = jsonTruck.get("load_capacity").getAsInt();
-                JsonObject jsonTruckLocation = (JsonObject) jsonDeliveryCompany.get("location");
-                Double truckX = jsonTruckLocation.get("x").getAsDouble();
-                Double truckY = jsonTruckLocation.get("y").getAsDouble();
-                Point2D truckLocation = new Point2D.Double(truckX, truckY);
-
+                Point2D truckLocation = parseLocation(jsonDeliveryCompany);
 
                 Truck aTruck = new Truck(truckGuid, loadCapacity, truckLocation);
                 trucks.add(aTruck);
@@ -392,15 +399,18 @@ public class JSONConverter
         for (JsonElement streetNode : jsonStreetNodes)
         {
             JsonObject jsonStreetNode = streetNode.getAsJsonObject();
-            String name = jsonStreetNode.get("name").getAsString();
-            String company = jsonStreetNode.get("company").getAsString();
+            String name = null;
+            if (jsonStreetNode.has("name"))
+                name = jsonStreetNode.get("name").getAsString();
+            String company = null;
+            if (jsonStreetNode.has("company"))
+                company = jsonStreetNode.get("company").getAsString();
+            String type = null;
+           if (jsonStreetNode.has("type"))
+                type = jsonStreetNode.get("type").getAsString();
             String guid = jsonStreetNode.get("guid").getAsString();
-            String type = jsonStreetNode.get("type").getAsString();
 
-            JsonObject jsonLocation = (JsonObject) jsonStreetNode.get("location");
-            Double x = jsonLocation.get("x").getAsDouble();
-            Double y = jsonLocation.get("y").getAsDouble();
-            Point2D location = new Point2D.Double(x, y);
+            Point2D location = parseLocation(jsonStreetNode);
 
             StreetNode aStreetNode = new StreetNode(name, company, location, guid, type);
             nodes.add(aStreetNode);
@@ -621,12 +631,12 @@ public class JSONConverter
         JsonObject jsonCoolingRequest = root.getAsJsonObject();
 
         String productName = jsonCoolingRequest.get("productName").getAsString();
-        int coolingRate = jsonCoolingRequest.get("coolingRate").getAsInt();
+        int coolingTime = jsonCoolingRequest.get("coolingTime").getAsInt();
         int quantity = jsonCoolingRequest.get("quantity").getAsInt();
         int boxingTemp = jsonCoolingRequest.get("boxingTemp").getAsInt();
 
 
-        CoolingRequest proofingRequest = new CoolingRequest(productName, coolingRate, quantity, boxingTemp);
+        CoolingRequest proofingRequest = new CoolingRequest(productName, coolingTime, quantity, boxingTemp);
         return proofingRequest;
     }
 
@@ -647,5 +657,20 @@ public class JSONConverter
         }
 
         return loadingBayMessage;
+    }
+
+    public static Point2D parseLocation(JsonObject jsonObject)
+    {
+        Point2D location = null;
+        JsonElement elementLocation = jsonObject.get("location");
+        if (!elementLocation.isJsonNull())
+        {
+            JsonObject jsonLocation = (JsonObject) elementLocation;
+            Double x = jsonLocation.get("x").getAsDouble();
+            Double y = jsonLocation.get("y").getAsDouble();
+            location = new Point2D.Double(x, y);
+        }
+
+        return location;
     }
 }

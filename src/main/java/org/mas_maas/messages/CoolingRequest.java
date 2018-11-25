@@ -6,10 +6,10 @@ public class CoolingRequest {
     private int quantity;
     private int boxingTemp;
 
-    public CoolingRequest(String productName, float coolingRate, int quantity, int boxingTemp) {
+    public CoolingRequest(String productName, float coolingTime, int quantity, int boxingTemp) {
         super();
         this.productName = productName;
-        this.coolingTime = coolingRate;
+        this.coolingTime = coolingTime;
         this.quantity = quantity;
         this.boxingTemp = boxingTemp;
     }
@@ -26,8 +26,8 @@ public class CoolingRequest {
         return coolingTime;
     }
 
-    public void setCoolinRate(int coolingRate) {
-        this.coolingTime = coolingRate;
+    public void setCoolinTime(int coolingTime) {
+        this.coolingTime = coolingTime;
     }
 
     public int getQuantity() {
