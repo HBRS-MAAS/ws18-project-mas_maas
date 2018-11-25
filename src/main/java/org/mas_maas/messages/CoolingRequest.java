@@ -2,14 +2,14 @@ package org.mas_maas.messages;
 
 public class CoolingRequest {
     private String productName;
-    private int coolingRate;
+    private float coolingTime;
     private int quantity;
     private int boxingTemp;
 
-    public CoolingRequest(String productName, int coolingRate, int quantity, int boxingTemp) {
+    public CoolingRequest(String productName, float coolingRate, int quantity, int boxingTemp) {
         super();
         this.productName = productName;
-        this.coolingRate = coolingRate;
+        this.coolingTime = coolingRate;
         this.quantity = quantity;
         this.boxingTemp = boxingTemp;
     }
@@ -22,12 +22,12 @@ public class CoolingRequest {
         this.productName = productName;
     }
 
-    public int getCoolinRate() {
-        return coolingRate;
+    public float getCoolingTime() {
+        return coolingTime;
     }
 
     public void setCoolinRate(int coolingRate) {
-        this.coolingRate = coolingRate;
+        this.coolingTime = coolingRate;
     }
 
     public int getQuantity() {
@@ -48,7 +48,7 @@ public class CoolingRequest {
 
     @Override
     public String toString() {
-        return "CoolingRequest [productName=" + productName + ", coolingRate=" + coolingRate + ", quantity=" + quantity
+        return "CoolingRequest [productName=" + productName + ", coolingTime=" + coolingTime + ", quantity=" + quantity
                 + ", boxingTemp=" + boxingTemp + "]";
     }
 }

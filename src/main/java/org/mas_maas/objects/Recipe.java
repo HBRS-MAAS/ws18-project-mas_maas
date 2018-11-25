@@ -87,6 +87,29 @@ public class Recipe{
         return preparationSteps;
 
     }
+    
+    public Vector<Step> getBakingPreparationSteps(){
+        Vector<Step> bakingPreparationSteps = new Vector<Step>();
+        boolean passedBaking = false;
+
+        for(Step step: steps) {
+            if (passedBaking) {
+                if (!step.getAction().equals(Step.COOLING_STEP)) {
+                    bakingPreparationSteps.add(step);
+                }
+                else {
+                    break;
+                }
+
+            }
+            if (step.getAction().equals(Step.BAKING_STEP)) {
+                // System.out.println("-------> Step =  " + step);
+                passedBaking = true;
+            }
+        }
+        return bakingPreparationSteps;
+
+    }
 
     @Override
     public String toString() {
