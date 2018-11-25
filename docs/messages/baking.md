@@ -7,7 +7,8 @@
 ```
 {
     "productType": String,
-    "guids": Vector<String>
+    "guids": Vector<String>,
+    "productQuantities": Vector <int>
 }
 ```
 
@@ -23,7 +24,6 @@
     "guids": Vector<String>,
     "productQuantities": Vector <int>
 }
-
 ```
 
 ## Baking Notification
@@ -36,9 +36,32 @@
     "guids": Vector<String>,
     "productQuantities": Vector <int>
 }
-
-
 ```
+
+## Preparation Request
+```
+{
+    "productQuantities": Vector <int>,
+    "steps": Array JSON Objects,
+    "productType": String,
+    "guids": Vector<String>
+}
+```
+Step
+```
+{
+    "action": String,
+    "duration": float
+}
+```
+
+## Preparation Notification
+```
+{
+    "productType": String,
+    "guids": Vector<String>
+}
+```  
 
 ## Cooling Request
 
@@ -46,9 +69,8 @@
 ```
 {
     "productName": String,
-    "coolingRate": int,
     "quantity": int,
-    "boxingTemperature": int
+    "boxingTemp": int
 }
 
 ```
