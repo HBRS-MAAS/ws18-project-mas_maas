@@ -1,294 +1,2489 @@
 [
   {
-    "guid": "bakery-001",
     "name": "Sunspear Bakery",
-    "location": {
-      "y": 5.08,
-      "x": 0.01
-    },
     "products": [
       {
-        "guid": "Bagel",
-        "batch": {
-          "breadsPerOven": 14
-        },
         "recipe": {
-          "coolingRate": 5,
-          "bakingTemp": 195,
+          "bakingTemp": 180,
           "steps": [
             {
-              "action": "kneading",
-              "duration": 5
+              "duration": 14,
+              "action": "kneading"
             },
             {
-              "action": "resting",
-              "duration": 1
+              "duration": 10,
+              "action": "sheeting"
             },
             {
-              "action": "item preparation",
-              "duration": 1
+              "duration": 12,
+              "action": "filling"
             },
             {
-              "action": "proofing",
-              "duration": 1
+              "duration": 11,
+              "action": "twisting"
             },
             {
-              "action": "cooling",
-              "duration": 1
+              "duration": 12,
+              "action": "item preparation"
             },
             {
-              "action": "filling",
-              "duration": 1
+              "duration": 9,
+              "action": "resting"
             },
             {
-              "action": "baking",
-              "duration": 1
+              "duration": 11,
+              "action": "proofing"
             },
             {
-              "action": "decorating",
-              "duration": 1
+              "duration": 6,
+              "action": "baking"
             },
             {
-              "action": "sprinkling",
-              "duration": 1
+              "duration": 10,
+              "action": "twisting"
+            },
+            {
+              "duration": 11,
+              "action": "frying"
+            },
+            {
+              "duration": 2,
+              "action": "cooling"
+            },
+            {
+              "duration": 7,
+              "action": "item preparation"
+            },
+            {
+              "duration": 6,
+              "action": "sprinkling"
+            },
+            {
+              "duration": 11,
+              "action": "decorating"
+            },
+            {
+              "duration": 13,
+              "action": "resting"
+            },
+            {
+              "duration": 12,
+              "action": "filling"
             }
           ]
         },
-        "packaging": {
-          "boxingTemp": 55,
-          "breadsPerBox": 10
-        },
-        "salesPrice": 2.9,
-        "productionCost": 0.3
-    },
-    {
-        "guid": "Donut",
+        "guid": "Pie",
         "batch": {
-          "breadsPerOven": 14
+          "breadsPerOven": 16
         },
+        "salesPrice": 4.41,
+        "packaging": {
+          "breadsPerBox": 10,
+          "boxingTemp": 140
+        },
+        "productionCost": 1.81
+      },
+      {
         "recipe": {
-          "coolingRate": 5,
-          "bakingTemp": 195,
+          "bakingTemp": 190,
           "steps": [
             {
-              "action": "kneading",
-              "duration": 5
+              "duration": 15,
+              "action": "kneading"
             },
             {
-              "action": "resting",
-              "duration": 1
+              "duration": 7,
+              "action": "twisting"
             },
             {
-              "action": "item preparation",
-              "duration": 1
+              "duration": 8,
+              "action": "sheeting"
             },
             {
-              "action": "proofing",
-              "duration": 1
+              "duration": 5,
+              "action": "item preparation"
             },
             {
-              "action": "cooling",
-              "duration": 1
+              "duration": 6,
+              "action": "resting"
             },
             {
-              "action": "filling",
-              "duration": 1
+              "duration": 5,
+              "action": "filling"
             },
             {
-              "action": "baking",
-              "duration": 1
+              "duration": 9,
+              "action": "proofing"
             },
             {
-              "action": "decorating",
-              "duration": 1
+              "duration": 6,
+              "action": "baking"
             },
             {
-              "action": "sprinkling",
-              "duration": 1
+              "duration": 6,
+              "action": "resting"
+            },
+            {
+              "duration": 5,
+              "action": "item preparation"
+            },
+            {
+              "duration": 5,
+              "action": "cooling"
+            },
+            {
+              "duration": 15,
+              "action": "resting"
+            },
+            {
+              "duration": 9,
+              "action": "filling"
+            },
+            {
+              "duration": 6,
+              "action": "sprinkling"
+            },
+            {
+              "duration": 8,
+              "action": "item preparation"
+            },
+            {
+              "duration": 15,
+              "action": "decorating"
             }
           ]
         },
-        "packaging": {
-          "boxingTemp": 55,
-          "breadsPerBox": 10
+        "guid": "Spekulatios",
+        "batch": {
+          "breadsPerOven": 10
         },
-        "salesPrice": 2.9,
-        "productionCost": 0.3
-    },
-    {
+        "salesPrice": 4.66,
+        "packaging": {
+          "breadsPerBox": 5,
+          "boxingTemp": 150
+        },
+        "productionCost": 0.75
+      },
+      {
+        "recipe": {
+          "bakingTemp": 190,
+          "steps": [
+            {
+              "duration": 12,
+              "action": "kneading"
+            },
+            {
+              "duration": 8,
+              "action": "filling"
+            },
+            {
+              "duration": 7,
+              "action": "sheeting"
+            },
+            {
+              "duration": 7,
+              "action": "item preparation"
+            },
+            {
+              "duration": 9,
+              "action": "resting"
+            },
+            {
+              "duration": 15,
+              "action": "twisting"
+            },
+            {
+              "duration": 12,
+              "action": "proofing"
+            },
+            {
+              "duration": 12,
+              "action": "baking"
+            },
+            {
+              "duration": 15,
+              "action": "twisting"
+            },
+            {
+              "duration": 8,
+              "action": "item preparation"
+            },
+            {
+              "duration": 3,
+              "action": "cooling"
+            },
+            {
+              "duration": 5,
+              "action": "item preparation"
+            },
+            {
+              "duration": 7,
+              "action": "sprinkling"
+            },
+            {
+              "duration": 8,
+              "action": "decorating"
+            },
+            {
+              "duration": 11,
+              "action": "filling"
+            },
+            {
+              "duration": 6,
+              "action": "resting"
+            }
+          ]
+        },
+        "guid": "Bun",
+        "batch": {
+          "breadsPerOven": 14
+        },
+        "salesPrice": 4.97,
+        "packaging": {
+          "breadsPerBox": 15,
+          "boxingTemp": 150
+        },
+        "productionCost": 0.49
+      },
+      {
+        "recipe": {
+          "bakingTemp": 180,
+          "steps": [
+            {
+              "duration": 6,
+              "action": "kneading"
+            },
+            {
+              "duration": 12,
+              "action": "resting"
+            },
+            {
+              "duration": 12,
+              "action": "sheeting"
+            },
+            {
+              "duration": 9,
+              "action": "item preparation"
+            },
+            {
+              "duration": 15,
+              "action": "filling"
+            },
+            {
+              "duration": 10,
+              "action": "twisting"
+            },
+            {
+              "duration": 8,
+              "action": "proofing"
+            },
+            {
+              "duration": 14,
+              "action": "baking"
+            },
+            {
+              "duration": 14,
+              "action": "item preparation"
+            },
+            {
+              "duration": 15,
+              "action": "item preparation"
+            },
+            {
+              "duration": 5,
+              "action": "cooling"
+            },
+            {
+              "duration": 9,
+              "action": "resting"
+            },
+            {
+              "duration": 5,
+              "action": "filling"
+            },
+            {
+              "duration": 14,
+              "action": "sprinkling"
+            },
+            {
+              "duration": 8,
+              "action": "item preparation"
+            },
+            {
+              "duration": 5,
+              "action": "decorating"
+            }
+          ]
+        },
+        "guid": "Puddingbrezel",
+        "batch": {
+          "breadsPerOven": 12
+        },
+        "salesPrice": 3.59,
+        "packaging": {
+          "breadsPerBox": 10,
+          "boxingTemp": 140
+        },
+        "productionCost": 1.19
+      },
+      {
+        "recipe": {
+          "bakingTemp": 195,
+          "steps": [
+            {
+              "duration": 10,
+              "action": "kneading"
+            },
+            {
+              "duration": 7,
+              "action": "filling"
+            },
+            {
+              "duration": 10,
+              "action": "resting"
+            },
+            {
+              "duration": 14,
+              "action": "twisting"
+            },
+            {
+              "duration": 14,
+              "action": "sheeting"
+            },
+            {
+              "duration": 15,
+              "action": "item preparation"
+            },
+            {
+              "duration": 9,
+              "action": "proofing"
+            },
+            {
+              "duration": 10,
+              "action": "baking"
+            },
+            {
+              "duration": 11,
+              "action": "sheeting"
+            },
+            {
+              "duration": 9,
+              "action": "item preparation"
+            },
+            {
+              "duration": 3,
+              "action": "cooling"
+            },
+            {
+              "duration": 7,
+              "action": "decorating"
+            },
+            {
+              "duration": 7,
+              "action": "sprinkling"
+            },
+            {
+              "duration": 14,
+              "action": "resting"
+            },
+            {
+              "duration": 6,
+              "action": "filling"
+            },
+            {
+              "duration": 15,
+              "action": "item preparation"
+            }
+          ]
+        },
         "guid": "Berliner",
         "batch": {
-          "breadsPerOven": 14
+          "breadsPerOven": 12
         },
+        "salesPrice": 2.94,
+        "packaging": {
+          "breadsPerBox": 10,
+          "boxingTemp": 155
+        },
+        "productionCost": 1.92
+      },
+      {
         "recipe": {
-          "coolingRate": 5,
-          "bakingTemp": 195,
+          "bakingTemp": 180,
           "steps": [
             {
-              "action": "kneading",
-              "duration": 5
+              "duration": 7,
+              "action": "kneading"
             },
             {
-              "action": "resting",
-              "duration": 1
+              "duration": 9,
+              "action": "resting"
             },
             {
-              "action": "item preparation",
-              "duration": 1
+              "duration": 12,
+              "action": "filling"
             },
             {
-              "action": "proofing",
-              "duration": 1
+              "duration": 13,
+              "action": "sheeting"
             },
             {
-              "action": "cooling",
-              "duration": 1
+              "duration": 15,
+              "action": "item preparation"
             },
             {
-              "action": "filling",
-              "duration": 1
+              "duration": 13,
+              "action": "twisting"
             },
             {
-              "action": "baking",
-              "duration": 1
+              "duration": 9,
+              "action": "proofing"
             },
             {
-              "action": "decorating",
-              "duration": 1
+              "duration": 5,
+              "action": "baking"
             },
             {
-              "action": "sprinkling",
-              "duration": 1
+              "duration": 14,
+              "action": "item preparation"
+            },
+            {
+              "duration": 15,
+              "action": "frying"
+            },
+            {
+              "duration": 2,
+              "action": "cooling"
+            },
+            {
+              "duration": 15,
+              "action": "item preparation"
+            },
+            {
+              "duration": 9,
+              "action": "resting"
+            },
+            {
+              "duration": 10,
+              "action": "filling"
+            },
+            {
+              "duration": 6,
+              "action": "decorating"
+            },
+            {
+              "duration": 10,
+              "action": "sprinkling"
             }
           ]
         },
-        "packaging": {
-          "boxingTemp": 55,
-          "breadsPerBox": 10
+        "guid": "Waffles",
+        "batch": {
+          "breadsPerOven": 10
         },
-        "salesPrice": 2.9,
-        "productionCost": 0.3
-    },
-    {
+        "salesPrice": 4.67,
+        "packaging": {
+          "breadsPerBox": 5,
+          "boxingTemp": 140
+        },
+        "productionCost": 1.98
+      },
+      {
+        "recipe": {
+          "bakingTemp": 200,
+          "steps": [
+            {
+              "duration": 14,
+              "action": "kneading"
+            },
+            {
+              "duration": 13,
+              "action": "sheeting"
+            },
+            {
+              "duration": 9,
+              "action": "item preparation"
+            },
+            {
+              "duration": 5,
+              "action": "twisting"
+            },
+            {
+              "duration": 5,
+              "action": "filling"
+            },
+            {
+              "duration": 15,
+              "action": "resting"
+            },
+            {
+              "duration": 14,
+              "action": "proofing"
+            },
+            {
+              "duration": 6,
+              "action": "baking"
+            },
+            {
+              "duration": 8,
+              "action": "twisting"
+            },
+            {
+              "duration": 13,
+              "action": "item preparation"
+            },
+            {
+              "duration": 5,
+              "action": "cooling"
+            },
+            {
+              "duration": 8,
+              "action": "item preparation"
+            },
+            {
+              "duration": 15,
+              "action": "resting"
+            },
+            {
+              "duration": 9,
+              "action": "filling"
+            },
+            {
+              "duration": 7,
+              "action": "decorating"
+            },
+            {
+              "duration": 10,
+              "action": "sprinkling"
+            }
+          ]
+        },
+        "guid": "Broetchen",
+        "batch": {
+          "breadsPerOven": 10
+        },
+        "salesPrice": 4.52,
+        "packaging": {
+          "breadsPerBox": 5,
+          "boxingTemp": 160
+        },
+        "productionCost": 1.98
+      },
+      {
+        "recipe": {
+          "bakingTemp": 195,
+          "steps": [
+            {
+              "duration": 5,
+              "action": "kneading"
+            },
+            {
+              "duration": 15,
+              "action": "resting"
+            },
+            {
+              "duration": 6,
+              "action": "twisting"
+            },
+            {
+              "duration": 7,
+              "action": "sheeting"
+            },
+            {
+              "duration": 10,
+              "action": "filling"
+            },
+            {
+              "duration": 6,
+              "action": "item preparation"
+            },
+            {
+              "duration": 14,
+              "action": "proofing"
+            },
+            {
+              "duration": 11,
+              "action": "baking"
+            },
+            {
+              "duration": 6,
+              "action": "sheeting"
+            },
+            {
+              "duration": 5,
+              "action": "frying"
+            },
+            {
+              "duration": 2,
+              "action": "cooling"
+            },
+            {
+              "duration": 12,
+              "action": "item preparation"
+            },
+            {
+              "duration": 9,
+              "action": "resting"
+            },
+            {
+              "duration": 5,
+              "action": "decorating"
+            },
+            {
+              "duration": 15,
+              "action": "filling"
+            },
+            {
+              "duration": 15,
+              "action": "sprinkling"
+            }
+          ]
+        },
+        "guid": "Donut",
+        "batch": {
+          "breadsPerOven": 6
+        },
+        "salesPrice": 4.54,
+        "packaging": {
+          "breadsPerBox": 10,
+          "boxingTemp": 155
+        },
+        "productionCost": 1.01
+      },
+      {
+        "recipe": {
+          "bakingTemp": 200,
+          "steps": [
+            {
+              "duration": 8,
+              "action": "kneading"
+            },
+            {
+              "duration": 11,
+              "action": "item preparation"
+            },
+            {
+              "duration": 6,
+              "action": "filling"
+            },
+            {
+              "duration": 6,
+              "action": "sheeting"
+            },
+            {
+              "duration": 13,
+              "action": "resting"
+            },
+            {
+              "duration": 8,
+              "action": "twisting"
+            },
+            {
+              "duration": 9,
+              "action": "proofing"
+            },
+            {
+              "duration": 14,
+              "action": "baking"
+            },
+            {
+              "duration": 11,
+              "action": "filling"
+            },
+            {
+              "duration": 6,
+              "action": "item preparation"
+            },
+            {
+              "duration": 2,
+              "action": "cooling"
+            },
+            {
+              "duration": 7,
+              "action": "resting"
+            },
+            {
+              "duration": 10,
+              "action": "filling"
+            },
+            {
+              "duration": 12,
+              "action": "decorating"
+            },
+            {
+              "duration": 9,
+              "action": "item preparation"
+            },
+            {
+              "duration": 12,
+              "action": "sprinkling"
+            }
+          ]
+        },
+        "guid": "Rosinenschnecke",
+        "batch": {
+          "breadsPerOven": 8
+        },
+        "salesPrice": 3.59,
+        "packaging": {
+          "breadsPerBox": 5,
+          "boxingTemp": 160
+        },
+        "productionCost": 0.58
+      },
+      {
+        "recipe": {
+          "bakingTemp": 185,
+          "steps": [
+            {
+              "duration": 5,
+              "action": "kneading"
+            },
+            {
+              "duration": 11,
+              "action": "twisting"
+            },
+            {
+              "duration": 12,
+              "action": "resting"
+            },
+            {
+              "duration": 11,
+              "action": "filling"
+            },
+            {
+              "duration": 14,
+              "action": "sheeting"
+            },
+            {
+              "duration": 11,
+              "action": "item preparation"
+            },
+            {
+              "duration": 15,
+              "action": "proofing"
+            },
+            {
+              "duration": 14,
+              "action": "baking"
+            },
+            {
+              "duration": 13,
+              "action": "filling"
+            },
+            {
+              "duration": 8,
+              "action": "item preparation"
+            },
+            {
+              "duration": 2,
+              "action": "cooling"
+            },
+            {
+              "duration": 14,
+              "action": "filling"
+            },
+            {
+              "duration": 10,
+              "action": "sprinkling"
+            },
+            {
+              "duration": 13,
+              "action": "decorating"
+            },
+            {
+              "duration": 7,
+              "action": "item preparation"
+            },
+            {
+              "duration": 13,
+              "action": "resting"
+            }
+          ]
+        },
+        "guid": "Toast",
+        "batch": {
+          "breadsPerOven": 8
+        },
+        "salesPrice": 4.29,
+        "packaging": {
+          "breadsPerBox": 10,
+          "boxingTemp": 145
+        },
+        "productionCost": 1.88
+      },
+      {
+        "recipe": {
+          "bakingTemp": 180,
+          "steps": [
+            {
+              "duration": 11,
+              "action": "kneading"
+            },
+            {
+              "duration": 9,
+              "action": "filling"
+            },
+            {
+              "duration": 11,
+              "action": "resting"
+            },
+            {
+              "duration": 13,
+              "action": "item preparation"
+            },
+            {
+              "duration": 6,
+              "action": "sheeting"
+            },
+            {
+              "duration": 12,
+              "action": "twisting"
+            },
+            {
+              "duration": 9,
+              "action": "proofing"
+            },
+            {
+              "duration": 12,
+              "action": "baking"
+            },
+            {
+              "duration": 14,
+              "action": "filling"
+            },
+            {
+              "duration": 10,
+              "action": "item preparation"
+            },
+            {
+              "duration": 2,
+              "action": "cooling"
+            },
+            {
+              "duration": 7,
+              "action": "resting"
+            },
+            {
+              "duration": 15,
+              "action": "item preparation"
+            },
+            {
+              "duration": 12,
+              "action": "filling"
+            },
+            {
+              "duration": 7,
+              "action": "sprinkling"
+            },
+            {
+              "duration": 9,
+              "action": "decorating"
+            }
+          ]
+        },
+        "guid": "Tart",
+        "batch": {
+          "breadsPerOven": 16
+        },
+        "salesPrice": 3.72,
+        "packaging": {
+          "breadsPerBox": 15,
+          "boxingTemp": 140
+        },
+        "productionCost": 1.76
+      },
+      {
+        "recipe": {
+          "bakingTemp": 190,
+          "steps": [
+            {
+              "duration": 11,
+              "action": "kneading"
+            },
+            {
+              "duration": 7,
+              "action": "filling"
+            },
+            {
+              "duration": 9,
+              "action": "item preparation"
+            },
+            {
+              "duration": 10,
+              "action": "sheeting"
+            },
+            {
+              "duration": 9,
+              "action": "twisting"
+            },
+            {
+              "duration": 8,
+              "action": "resting"
+            },
+            {
+              "duration": 12,
+              "action": "proofing"
+            },
+            {
+              "duration": 10,
+              "action": "baking"
+            },
+            {
+              "duration": 7,
+              "action": "twisting"
+            },
+            {
+              "duration": 13,
+              "action": "item preparation"
+            },
+            {
+              "duration": 2,
+              "action": "cooling"
+            },
+            {
+              "duration": 7,
+              "action": "item preparation"
+            },
+            {
+              "duration": 7,
+              "action": "sprinkling"
+            },
+            {
+              "duration": 10,
+              "action": "filling"
+            },
+            {
+              "duration": 8,
+              "action": "decorating"
+            },
+            {
+              "duration": 6,
+              "action": "resting"
+            }
+          ]
+        },
+        "guid": "Gingerbread cookies",
+        "batch": {
+          "breadsPerOven": 4
+        },
+        "salesPrice": 2.92,
+        "packaging": {
+          "breadsPerBox": 5,
+          "boxingTemp": 150
+        },
+        "productionCost": 1.04
+      },
+      {
+        "recipe": {
+          "bakingTemp": 185,
+          "steps": [
+            {
+              "duration": 5,
+              "action": "kneading"
+            },
+            {
+              "duration": 9,
+              "action": "filling"
+            },
+            {
+              "duration": 12,
+              "action": "sheeting"
+            },
+            {
+              "duration": 8,
+              "action": "resting"
+            },
+            {
+              "duration": 15,
+              "action": "twisting"
+            },
+            {
+              "duration": 11,
+              "action": "item preparation"
+            },
+            {
+              "duration": 5,
+              "action": "proofing"
+            },
+            {
+              "duration": 14,
+              "action": "baking"
+            },
+            {
+              "duration": 8,
+              "action": "resting"
+            },
+            {
+              "duration": 13,
+              "action": "frying"
+            },
+            {
+              "duration": 5,
+              "action": "cooling"
+            },
+            {
+              "duration": 11,
+              "action": "filling"
+            },
+            {
+              "duration": 7,
+              "action": "resting"
+            },
+            {
+              "duration": 13,
+              "action": "decorating"
+            },
+            {
+              "duration": 11,
+              "action": "sprinkling"
+            },
+            {
+              "duration": 7,
+              "action": "item preparation"
+            }
+          ]
+        },
+        "guid": "Croissant",
+        "batch": {
+          "breadsPerOven": 4
+        },
+        "salesPrice": 3.75,
+        "packaging": {
+          "breadsPerBox": 15,
+          "boxingTemp": 145
+        },
+        "productionCost": 1.28
+      },
+      {
+        "recipe": {
+          "bakingTemp": 190,
+          "steps": [
+            {
+              "duration": 7,
+              "action": "kneading"
+            },
+            {
+              "duration": 9,
+              "action": "resting"
+            },
+            {
+              "duration": 13,
+              "action": "sheeting"
+            },
+            {
+              "duration": 12,
+              "action": "filling"
+            },
+            {
+              "duration": 8,
+              "action": "item preparation"
+            },
+            {
+              "duration": 9,
+              "action": "twisting"
+            },
+            {
+              "duration": 5,
+              "action": "proofing"
+            },
+            {
+              "duration": 5,
+              "action": "baking"
+            },
+            {
+              "duration": 7,
+              "action": "sheeting"
+            },
+            {
+              "duration": 11,
+              "action": "frying"
+            },
+            {
+              "duration": 3,
+              "action": "cooling"
+            },
+            {
+              "duration": 14,
+              "action": "decorating"
+            },
+            {
+              "duration": 15,
+              "action": "resting"
+            },
+            {
+              "duration": 13,
+              "action": "sprinkling"
+            },
+            {
+              "duration": 7,
+              "action": "item preparation"
+            },
+            {
+              "duration": 14,
+              "action": "filling"
+            }
+          ]
+        },
+        "guid": "Bread",
+        "batch": {
+          "breadsPerOven": 4
+        },
+        "salesPrice": 4.7,
+        "packaging": {
+          "breadsPerBox": 10,
+          "boxingTemp": 150
+        },
+        "productionCost": 1.06
+      },
+      {
+        "recipe": {
+          "bakingTemp": 185,
+          "steps": [
+            {
+              "duration": 6,
+              "action": "kneading"
+            },
+            {
+              "duration": 8,
+              "action": "twisting"
+            },
+            {
+              "duration": 5,
+              "action": "resting"
+            },
+            {
+              "duration": 8,
+              "action": "sheeting"
+            },
+            {
+              "duration": 13,
+              "action": "item preparation"
+            },
+            {
+              "duration": 13,
+              "action": "filling"
+            },
+            {
+              "duration": 7,
+              "action": "proofing"
+            },
+            {
+              "duration": 12,
+              "action": "baking"
+            },
+            {
+              "duration": 5,
+              "action": "filling"
+            },
+            {
+              "duration": 7,
+              "action": "frying"
+            },
+            {
+              "duration": 2,
+              "action": "cooling"
+            },
+            {
+              "duration": 6,
+              "action": "decorating"
+            },
+            {
+              "duration": 8,
+              "action": "sprinkling"
+            },
+            {
+              "duration": 11,
+              "action": "resting"
+            },
+            {
+              "duration": 5,
+              "action": "item preparation"
+            },
+            {
+              "duration": 8,
+              "action": "filling"
+            }
+          ]
+        },
+        "guid": "Bread roll",
+        "batch": {
+          "breadsPerOven": 12
+        },
+        "salesPrice": 3.27,
+        "packaging": {
+          "breadsPerBox": 5,
+          "boxingTemp": 145
+        },
+        "productionCost": 1.11
+      },
+      {
+        "recipe": {
+          "bakingTemp": 185,
+          "steps": [
+            {
+              "duration": 12,
+              "action": "kneading"
+            },
+            {
+              "duration": 13,
+              "action": "twisting"
+            },
+            {
+              "duration": 14,
+              "action": "resting"
+            },
+            {
+              "duration": 15,
+              "action": "filling"
+            },
+            {
+              "duration": 8,
+              "action": "item preparation"
+            },
+            {
+              "duration": 15,
+              "action": "sheeting"
+            },
+            {
+              "duration": 11,
+              "action": "proofing"
+            },
+            {
+              "duration": 11,
+              "action": "baking"
+            },
+            {
+              "duration": 9,
+              "action": "twisting"
+            },
+            {
+              "duration": 8,
+              "action": "item preparation"
+            },
+            {
+              "duration": 2,
+              "action": "cooling"
+            },
+            {
+              "duration": 9,
+              "action": "sprinkling"
+            },
+            {
+              "duration": 11,
+              "action": "decorating"
+            },
+            {
+              "duration": 9,
+              "action": "item preparation"
+            },
+            {
+              "duration": 6,
+              "action": "filling"
+            },
+            {
+              "duration": 15,
+              "action": "resting"
+            }
+          ]
+        },
         "guid": "Muffin",
         "batch": {
           "breadsPerOven": 14
         },
+        "salesPrice": 4.43,
+        "packaging": {
+          "breadsPerBox": 5,
+          "boxingTemp": 145
+        },
+        "productionCost": 1.08
+      },
+      {
         "recipe": {
-          "coolingRate": 5,
-          "bakingTemp": 195,
+          "bakingTemp": 190,
           "steps": [
             {
-              "action": "kneading",
-              "duration": 5
+              "duration": 8,
+              "action": "kneading"
             },
             {
-              "action": "resting",
-              "duration": 1
+              "duration": 10,
+              "action": "resting"
             },
             {
-              "action": "item preparation",
-              "duration": 1
+              "duration": 10,
+              "action": "filling"
             },
             {
-              "action": "proofing",
-              "duration": 1
+              "duration": 10,
+              "action": "sheeting"
             },
             {
-              "action": "cooling",
-              "duration": 1
+              "duration": 15,
+              "action": "twisting"
             },
             {
-              "action": "filling",
-              "duration": 1
+              "duration": 6,
+              "action": "item preparation"
             },
             {
-              "action": "baking",
-              "duration": 1
+              "duration": 10,
+              "action": "proofing"
             },
             {
-              "action": "decorating",
-              "duration": 1
+              "duration": 11,
+              "action": "baking"
             },
             {
-              "action": "sprinkling",
-              "duration": 1
+              "duration": 6,
+              "action": "twisting"
+            },
+            {
+              "duration": 7,
+              "action": "frying"
+            },
+            {
+              "duration": 5,
+              "action": "cooling"
+            },
+            {
+              "duration": 15,
+              "action": "item preparation"
+            },
+            {
+              "duration": 7,
+              "action": "sprinkling"
+            },
+            {
+              "duration": 9,
+              "action": "resting"
+            },
+            {
+              "duration": 5,
+              "action": "filling"
+            },
+            {
+              "duration": 14,
+              "action": "decorating"
             }
           ]
         },
-        "packaging": {
-          "boxingTemp": 55,
-          "breadsPerBox": 10
-        },
-        "salesPrice": 2.9,
-        "productionCost": 0.3
-    },
-    {
-        "guid": "Bread",
+        "guid": "Rice bread",
         "batch": {
-          "breadsPerOven": 14
+          "breadsPerOven": 4
         },
+        "salesPrice": 4.9,
+        "packaging": {
+          "breadsPerBox": 5,
+          "boxingTemp": 150
+        },
+        "productionCost": 1.43
+      },
+      {
         "recipe": {
-          "coolingRate": 5,
-          "bakingTemp": 195,
+          "bakingTemp": 190,
           "steps": [
             {
-              "action": "kneading",
-              "duration": 5
+              "duration": 14,
+              "action": "kneading"
             },
             {
-              "action": "resting",
-              "duration": 1
+              "duration": 13,
+              "action": "twisting"
             },
             {
-              "action": "item preparation",
-              "duration": 1
+              "duration": 8,
+              "action": "item preparation"
             },
             {
-              "action": "proofing",
-              "duration": 1
+              "duration": 5,
+              "action": "sheeting"
             },
             {
-              "action": "cooling",
-              "duration": 1
+              "duration": 8,
+              "action": "resting"
             },
             {
-              "action": "filling",
-              "duration": 1
+              "duration": 12,
+              "action": "filling"
             },
             {
-              "action": "baking",
-              "duration": 1
+              "duration": 12,
+              "action": "proofing"
             },
             {
-              "action": "decorating",
-              "duration": 1
+              "duration": 10,
+              "action": "baking"
             },
             {
-              "action": "sprinkling",
-              "duration": 1
+              "duration": 14,
+              "action": "item preparation"
+            },
+            {
+              "duration": 8,
+              "action": "item preparation"
+            },
+            {
+              "duration": 2,
+              "action": "cooling"
+            },
+            {
+              "duration": 13,
+              "action": "item preparation"
+            },
+            {
+              "duration": 9,
+              "action": "decorating"
+            },
+            {
+              "duration": 6,
+              "action": "resting"
+            },
+            {
+              "duration": 15,
+              "action": "filling"
+            },
+            {
+              "duration": 7,
+              "action": "sprinkling"
             }
           ]
         },
-        "packaging": {
-          "boxingTemp": 55,
-          "breadsPerBox": 10
+        "guid": "Bun",
+        "batch": {
+          "breadsPerOven": 10
         },
-        "salesPrice": 2.9,
-        "productionCost": 0.3
-    }
+        "salesPrice": 4.48,
+        "packaging": {
+          "breadsPerBox": 5,
+          "boxingTemp": 150
+        },
+        "productionCost": 1.28
+      },
+      {
+        "recipe": {
+          "bakingTemp": 190,
+          "steps": [
+            {
+              "duration": 11,
+              "action": "kneading"
+            },
+            {
+              "duration": 12,
+              "action": "twisting"
+            },
+            {
+              "duration": 15,
+              "action": "resting"
+            },
+            {
+              "duration": 5,
+              "action": "item preparation"
+            },
+            {
+              "duration": 14,
+              "action": "sheeting"
+            },
+            {
+              "duration": 8,
+              "action": "filling"
+            },
+            {
+              "duration": 7,
+              "action": "proofing"
+            },
+            {
+              "duration": 9,
+              "action": "baking"
+            },
+            {
+              "duration": 8,
+              "action": "twisting"
+            },
+            {
+              "duration": 6,
+              "action": "frying"
+            },
+            {
+              "duration": 2,
+              "action": "cooling"
+            },
+            {
+              "duration": 14,
+              "action": "resting"
+            },
+            {
+              "duration": 11,
+              "action": "decorating"
+            },
+            {
+              "duration": 12,
+              "action": "sprinkling"
+            },
+            {
+              "duration": 8,
+              "action": "item preparation"
+            },
+            {
+              "duration": 8,
+              "action": "filling"
+            }
+          ]
+        },
+        "guid": "Multigrain Bread",
+        "batch": {
+          "breadsPerOven": 10
+        },
+        "salesPrice": 2.88,
+        "packaging": {
+          "breadsPerBox": 5,
+          "boxingTemp": 150
+        },
+        "productionCost": 0.81
+      },
+      {
+        "recipe": {
+          "bakingTemp": 185,
+          "steps": [
+            {
+              "duration": 10,
+              "action": "kneading"
+            },
+            {
+              "duration": 13,
+              "action": "item preparation"
+            },
+            {
+              "duration": 10,
+              "action": "sheeting"
+            },
+            {
+              "duration": 6,
+              "action": "twisting"
+            },
+            {
+              "duration": 12,
+              "action": "resting"
+            },
+            {
+              "duration": 5,
+              "action": "filling"
+            },
+            {
+              "duration": 13,
+              "action": "proofing"
+            },
+            {
+              "duration": 8,
+              "action": "baking"
+            },
+            {
+              "duration": 5,
+              "action": "twisting"
+            },
+            {
+              "duration": 6,
+              "action": "frying"
+            },
+            {
+              "duration": 2,
+              "action": "cooling"
+            },
+            {
+              "duration": 8,
+              "action": "sprinkling"
+            },
+            {
+              "duration": 7,
+              "action": "item preparation"
+            },
+            {
+              "duration": 15,
+              "action": "filling"
+            },
+            {
+              "duration": 6,
+              "action": "decorating"
+            },
+            {
+              "duration": 12,
+              "action": "resting"
+            }
+          ]
+        },
+        "guid": "Baguette",
+        "batch": {
+          "breadsPerOven": 8
+        },
+        "salesPrice": 3.83,
+        "packaging": {
+          "breadsPerBox": 5,
+          "boxingTemp": 145
+        },
+        "productionCost": 1.92
+      },
+      {
+        "recipe": {
+          "bakingTemp": 195,
+          "steps": [
+            {
+              "duration": 10,
+              "action": "kneading"
+            },
+            {
+              "duration": 6,
+              "action": "sheeting"
+            },
+            {
+              "duration": 11,
+              "action": "filling"
+            },
+            {
+              "duration": 6,
+              "action": "twisting"
+            },
+            {
+              "duration": 11,
+              "action": "item preparation"
+            },
+            {
+              "duration": 6,
+              "action": "resting"
+            },
+            {
+              "duration": 7,
+              "action": "proofing"
+            },
+            {
+              "duration": 15,
+              "action": "baking"
+            },
+            {
+              "duration": 13,
+              "action": "resting"
+            },
+            {
+              "duration": 12,
+              "action": "frying"
+            },
+            {
+              "duration": 2,
+              "action": "cooling"
+            },
+            {
+              "duration": 12,
+              "action": "sprinkling"
+            },
+            {
+              "duration": 11,
+              "action": "decorating"
+            },
+            {
+              "duration": 6,
+              "action": "filling"
+            },
+            {
+              "duration": 9,
+              "action": "item preparation"
+            },
+            {
+              "duration": 11,
+              "action": "resting"
+            }
+          ]
+        },
+        "guid": "Bagel",
+        "batch": {
+          "breadsPerOven": 6
+        },
+        "salesPrice": 3.21,
+        "packaging": {
+          "breadsPerBox": 15,
+          "boxingTemp": 155
+        },
+        "productionCost": 1.37
+      },
+      {
+        "recipe": {
+          "bakingTemp": 195,
+          "steps": [
+            {
+              "duration": 7,
+              "action": "kneading"
+            },
+            {
+              "duration": 13,
+              "action": "sheeting"
+            },
+            {
+              "duration": 10,
+              "action": "item preparation"
+            },
+            {
+              "duration": 14,
+              "action": "resting"
+            },
+            {
+              "duration": 11,
+              "action": "filling"
+            },
+            {
+              "duration": 6,
+              "action": "twisting"
+            },
+            {
+              "duration": 9,
+              "action": "proofing"
+            },
+            {
+              "duration": 10,
+              "action": "baking"
+            },
+            {
+              "duration": 11,
+              "action": "twisting"
+            },
+            {
+              "duration": 8,
+              "action": "frying"
+            },
+            {
+              "duration": 3,
+              "action": "cooling"
+            },
+            {
+              "duration": 13,
+              "action": "sprinkling"
+            },
+            {
+              "duration": 7,
+              "action": "filling"
+            },
+            {
+              "duration": 10,
+              "action": "decorating"
+            },
+            {
+              "duration": 7,
+              "action": "item preparation"
+            },
+            {
+              "duration": 8,
+              "action": "resting"
+            }
+          ]
+        },
+        "guid": "Arepa",
+        "batch": {
+          "breadsPerOven": 12
+        },
+        "salesPrice": 3.05,
+        "packaging": {
+          "breadsPerBox": 10,
+          "boxingTemp": 155
+        },
+        "productionCost": 1.99
+      },
+      {
+        "recipe": {
+          "bakingTemp": 180,
+          "steps": [
+            {
+              "duration": 9,
+              "action": "kneading"
+            },
+            {
+              "duration": 8,
+              "action": "resting"
+            },
+            {
+              "duration": 6,
+              "action": "twisting"
+            },
+            {
+              "duration": 11,
+              "action": "sheeting"
+            },
+            {
+              "duration": 13,
+              "action": "filling"
+            },
+            {
+              "duration": 15,
+              "action": "item preparation"
+            },
+            {
+              "duration": 6,
+              "action": "proofing"
+            },
+            {
+              "duration": 12,
+              "action": "baking"
+            },
+            {
+              "duration": 11,
+              "action": "twisting"
+            },
+            {
+              "duration": 10,
+              "action": "item preparation"
+            },
+            {
+              "duration": 3,
+              "action": "cooling"
+            },
+            {
+              "duration": 15,
+              "action": "sprinkling"
+            },
+            {
+              "duration": 12,
+              "action": "item preparation"
+            },
+            {
+              "duration": 6,
+              "action": "resting"
+            },
+            {
+              "duration": 9,
+              "action": "filling"
+            },
+            {
+              "duration": 6,
+              "action": "decorating"
+            }
+          ]
+        },
+        "guid": "Focaccia",
+        "batch": {
+          "breadsPerOven": 6
+        },
+        "salesPrice": 4.0,
+        "packaging": {
+          "breadsPerBox": 10,
+          "boxingTemp": 140
+        },
+        "productionCost": 1.65
+      },
+      {
+        "recipe": {
+          "bakingTemp": 180,
+          "steps": [
+            {
+              "duration": 7,
+              "action": "kneading"
+            },
+            {
+              "duration": 7,
+              "action": "twisting"
+            },
+            {
+              "duration": 5,
+              "action": "item preparation"
+            },
+            {
+              "duration": 9,
+              "action": "resting"
+            },
+            {
+              "duration": 15,
+              "action": "sheeting"
+            },
+            {
+              "duration": 10,
+              "action": "filling"
+            },
+            {
+              "duration": 14,
+              "action": "proofing"
+            },
+            {
+              "duration": 7,
+              "action": "baking"
+            },
+            {
+              "duration": 12,
+              "action": "resting"
+            },
+            {
+              "duration": 11,
+              "action": "item preparation"
+            },
+            {
+              "duration": 2,
+              "action": "cooling"
+            },
+            {
+              "duration": 11,
+              "action": "item preparation"
+            },
+            {
+              "duration": 8,
+              "action": "sprinkling"
+            },
+            {
+              "duration": 14,
+              "action": "decorating"
+            },
+            {
+              "duration": 5,
+              "action": "filling"
+            },
+            {
+              "duration": 11,
+              "action": "resting"
+            }
+          ]
+        },
+        "guid": "Biscuit",
+        "batch": {
+          "breadsPerOven": 8
+        },
+        "salesPrice": 3.05,
+        "packaging": {
+          "breadsPerBox": 5,
+          "boxingTemp": 140
+        },
+        "productionCost": 1.59
+      },
+      {
+        "recipe": {
+          "bakingTemp": 190,
+          "steps": [
+            {
+              "duration": 7,
+              "action": "kneading"
+            },
+            {
+              "duration": 10,
+              "action": "sheeting"
+            },
+            {
+              "duration": 11,
+              "action": "twisting"
+            },
+            {
+              "duration": 9,
+              "action": "resting"
+            },
+            {
+              "duration": 6,
+              "action": "filling"
+            },
+            {
+              "duration": 9,
+              "action": "item preparation"
+            },
+            {
+              "duration": 14,
+              "action": "proofing"
+            },
+            {
+              "duration": 14,
+              "action": "baking"
+            },
+            {
+              "duration": 12,
+              "action": "sheeting"
+            },
+            {
+              "duration": 11,
+              "action": "item preparation"
+            },
+            {
+              "duration": 4,
+              "action": "cooling"
+            },
+            {
+              "duration": 7,
+              "action": "decorating"
+            },
+            {
+              "duration": 7,
+              "action": "sprinkling"
+            },
+            {
+              "duration": 8,
+              "action": "resting"
+            },
+            {
+              "duration": 8,
+              "action": "filling"
+            },
+            {
+              "duration": 6,
+              "action": "item preparation"
+            }
+          ]
+        },
+        "guid": "Breadstick",
+        "batch": {
+          "breadsPerOven": 10
+        },
+        "salesPrice": 3.6,
+        "packaging": {
+          "breadsPerBox": 10,
+          "boxingTemp": 150
+        },
+        "productionCost": 1.1
+      },
+      {
+        "recipe": {
+          "bakingTemp": 190,
+          "steps": [
+            {
+              "duration": 12,
+              "action": "kneading"
+            },
+            {
+              "duration": 15,
+              "action": "sheeting"
+            },
+            {
+              "duration": 12,
+              "action": "twisting"
+            },
+            {
+              "duration": 9,
+              "action": "resting"
+            },
+            {
+              "duration": 15,
+              "action": "filling"
+            },
+            {
+              "duration": 12,
+              "action": "item preparation"
+            },
+            {
+              "duration": 5,
+              "action": "proofing"
+            },
+            {
+              "duration": 14,
+              "action": "baking"
+            },
+            {
+              "duration": 5,
+              "action": "item preparation"
+            },
+            {
+              "duration": 6,
+              "action": "item preparation"
+            },
+            {
+              "duration": 3,
+              "action": "cooling"
+            },
+            {
+              "duration": 6,
+              "action": "item preparation"
+            },
+            {
+              "duration": 6,
+              "action": "filling"
+            },
+            {
+              "duration": 15,
+              "action": "decorating"
+            },
+            {
+              "duration": 11,
+              "action": "resting"
+            },
+            {
+              "duration": 14,
+              "action": "sprinkling"
+            }
+          ]
+        },
+        "guid": "Cupcake",
+        "batch": {
+          "breadsPerOven": 4
+        },
+        "salesPrice": 4.69,
+        "packaging": {
+          "breadsPerBox": 5,
+          "boxingTemp": 150
+        },
+        "productionCost": 1.33
+      },
+      {
+        "recipe": {
+          "bakingTemp": 195,
+          "steps": [
+            {
+              "duration": 5,
+              "action": "kneading"
+            },
+            {
+              "duration": 15,
+              "action": "filling"
+            },
+            {
+              "duration": 5,
+              "action": "resting"
+            },
+            {
+              "duration": 12,
+              "action": "item preparation"
+            },
+            {
+              "duration": 11,
+              "action": "sheeting"
+            },
+            {
+              "duration": 14,
+              "action": "twisting"
+            },
+            {
+              "duration": 13,
+              "action": "proofing"
+            },
+            {
+              "duration": 14,
+              "action": "baking"
+            },
+            {
+              "duration": 12,
+              "action": "sheeting"
+            },
+            {
+              "duration": 15,
+              "action": "frying"
+            },
+            {
+              "duration": 3,
+              "action": "cooling"
+            },
+            {
+              "duration": 5,
+              "action": "sprinkling"
+            },
+            {
+              "duration": 12,
+              "action": "filling"
+            },
+            {
+              "duration": 8,
+              "action": "decorating"
+            },
+            {
+              "duration": 12,
+              "action": "resting"
+            },
+            {
+              "duration": 15,
+              "action": "item preparation"
+            }
+          ]
+        },
+        "guid": "Cookie",
+        "batch": {
+          "breadsPerOven": 6
+        },
+        "salesPrice": 3.47,
+        "packaging": {
+          "breadsPerBox": 5,
+          "boxingTemp": 155
+        },
+        "productionCost": 0.55
+      },
+      {
+        "recipe": {
+          "bakingTemp": 195,
+          "steps": [
+            {
+              "duration": 5,
+              "action": "kneading"
+            },
+            {
+              "duration": 14,
+              "action": "item preparation"
+            },
+            {
+              "duration": 6,
+              "action": "resting"
+            },
+            {
+              "duration": 8,
+              "action": "twisting"
+            },
+            {
+              "duration": 5,
+              "action": "filling"
+            },
+            {
+              "duration": 10,
+              "action": "sheeting"
+            },
+            {
+              "duration": 9,
+              "action": "proofing"
+            },
+            {
+              "duration": 9,
+              "action": "baking"
+            },
+            {
+              "duration": 5,
+              "action": "twisting"
+            },
+            {
+              "duration": 9,
+              "action": "frying"
+            },
+            {
+              "duration": 2,
+              "action": "cooling"
+            },
+            {
+              "duration": 8,
+              "action": "sprinkling"
+            },
+            {
+              "duration": 15,
+              "action": "decorating"
+            },
+            {
+              "duration": 9,
+              "action": "resting"
+            },
+            {
+              "duration": 6,
+              "action": "filling"
+            },
+            {
+              "duration": 7,
+              "action": "item preparation"
+            }
+          ]
+        },
+        "guid": "Schoko-Wuppi",
+        "batch": {
+          "breadsPerOven": 16
+        },
+        "salesPrice": 3.99,
+        "packaging": {
+          "breadsPerBox": 5,
+          "boxingTemp": 155
+        },
+        "productionCost": 1.51
+      },
+      {
+        "recipe": {
+          "bakingTemp": 180,
+          "steps": [
+            {
+              "duration": 15,
+              "action": "kneading"
+            },
+            {
+              "duration": 10,
+              "action": "item preparation"
+            },
+            {
+              "duration": 9,
+              "action": "resting"
+            },
+            {
+              "duration": 14,
+              "action": "filling"
+            },
+            {
+              "duration": 13,
+              "action": "twisting"
+            },
+            {
+              "duration": 15,
+              "action": "sheeting"
+            },
+            {
+              "duration": 14,
+              "action": "proofing"
+            },
+            {
+              "duration": 13,
+              "action": "baking"
+            },
+            {
+              "duration": 14,
+              "action": "twisting"
+            },
+            {
+              "duration": 11,
+              "action": "item preparation"
+            },
+            {
+              "duration": 2,
+              "action": "cooling"
+            },
+            {
+              "duration": 5,
+              "action": "filling"
+            },
+            {
+              "duration": 5,
+              "action": "item preparation"
+            },
+            {
+              "duration": 10,
+              "action": "decorating"
+            },
+            {
+              "duration": 11,
+              "action": "sprinkling"
+            },
+            {
+              "duration": 8,
+              "action": "resting"
+            }
+          ]
+        },
+        "guid": "Ciabatta",
+        "batch": {
+          "breadsPerOven": 4
+        },
+        "salesPrice": 4.8,
+        "packaging": {
+          "breadsPerBox": 10,
+          "boxingTemp": 140
+        },
+        "productionCost": 0.63
+      },
+      {
+        "recipe": {
+          "bakingTemp": 180,
+          "steps": [
+            {
+              "duration": 6,
+              "action": "kneading"
+            },
+            {
+              "duration": 7,
+              "action": "sheeting"
+            },
+            {
+              "duration": 12,
+              "action": "resting"
+            },
+            {
+              "duration": 11,
+              "action": "item preparation"
+            },
+            {
+              "duration": 14,
+              "action": "filling"
+            },
+            {
+              "duration": 15,
+              "action": "twisting"
+            },
+            {
+              "duration": 7,
+              "action": "proofing"
+            },
+            {
+              "duration": 11,
+              "action": "baking"
+            },
+            {
+              "duration": 11,
+              "action": "item preparation"
+            },
+            {
+              "duration": 6,
+              "action": "item preparation"
+            },
+            {
+              "duration": 2,
+              "action": "cooling"
+            },
+            {
+              "duration": 15,
+              "action": "decorating"
+            },
+            {
+              "duration": 11,
+              "action": "filling"
+            },
+            {
+              "duration": 11,
+              "action": "sprinkling"
+            },
+            {
+              "duration": 10,
+              "action": "item preparation"
+            },
+            {
+              "duration": 5,
+              "action": "resting"
+            }
+          ]
+        },
+        "guid": "Brezel",
+        "batch": {
+          "breadsPerOven": 8
+        },
+        "salesPrice": 3.54,
+        "packaging": {
+          "breadsPerBox": 5,
+          "boxingTemp": 140
+        },
+        "productionCost": 1.21
+      }
     ],
     "equipment": {
       "ovens": [
         {
-          "coolingRate": 3,
-          "guid": "oven-001",
-          "heatingRate": 4
+          "heating_rate": 4,
+          "cooling_rate": 4,
+          "guid": "oven-001"
         },
         {
+          "heating_rate": 5,
+          "cooling_rate": 4,
+          "guid": "oven-002"
+        },
+        {
+          "heating_rate": 4,
+          "cooling_rate": 2,
+          "guid": "oven-003"
+        },
+        {
+          "heating_rate": 4,
+          "cooling_rate": 2,
+          "guid": "oven-004"
+        },
+        {
+          "heating_rate": 4,
+          "cooling_rate": 2,
+          "guid": "oven-005"
+        },
+        {
+          "heating_rate": 4,
           "cooling_rate": 5,
-          "guid": "oven-002",
-          "heating_rate": 2
+          "guid": "oven-006"
+        },
+        {
+          "heating_rate": 2,
+          "cooling_rate": 3,
+          "guid": "oven-007"
+        },
+        {
+          "heating_rate": 3,
+          "cooling_rate": 2,
+          "guid": "oven-008"
+        },
+        {
+          "heating_rate": 2,
+          "cooling_rate": 4,
+          "guid": "oven-009"
+        },
+        {
+          "heating_rate": 3,
+          "cooling_rate": 3,
+          "guid": "oven-010"
         }
       ],
       "doughPrepTables": [
@@ -297,13 +2492,21 @@
         },
         {
           "guid": "prep-table-002"
+        },
+        {
+          "guid": "prep-table-003"
         }
       ],
       "kneadingMachines": [
         {
           "guid": "kneading-machine-001"
+        },
+        {
+          "guid": "kneading-machine-002"
         }
       ]
-    }
+    },
+    "guid": "bakery-001",
+    "location": null
   }
 ]
