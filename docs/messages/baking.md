@@ -58,8 +58,8 @@ Step
 ## Preparation Notification
 ```
 {
-    "productType": String,
     "guids": Vector<String>
+    "productType": String,
 }
 ```  
 
