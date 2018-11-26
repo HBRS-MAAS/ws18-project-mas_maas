@@ -1,10 +1,17 @@
 package org.mas_maas.agents;
 
 import java.util.Vector;
+import java.util.Scanner;
+import java.io.File;
+import java.io.FileNotFoundException;
 
 import org.mas_maas.JSONConverter;
 import org.mas_maas.messages.KneadingNotification;
 import org.mas_maas.messages.KneadingRequest;
+
+import org.mas_maas.objects.Bakery;
+import org.mas_maas.objects.KneadingMachine;
+import org.mas_maas.objects.Equipment;
 
 import com.google.gson.Gson;
 
@@ -21,6 +28,11 @@ import jade.lang.acl.MessageTemplate;
 public class KneadingMachineAgent extends BaseAgent {
     private AID [] doughManagerAgents;
 
+    private Bakery bakery;
+    private Vector<Equipment> kneadingMachines = new Vector<Equipment> ();
+    private Vector<Boolean> machinesAvailable = new Vector<Boolean> ();
+    private Vector<Equipment> equipment;
+
     private Vector<String> guids;
     private String productType;
 
@@ -34,6 +46,12 @@ public class KneadingMachineAgent extends BaseAgent {
 
         // Get Agents AIDS
         this.getDoughManagerAIDs();
+
+        // Load bakery information (includes recipes for each product)
+        getbakery();
+
+        // Get KneadingMachines
+        this.getKneadingMachines();
 
         // Creating receive kneading requests behaviour
         addBehaviour(new ReceiveKneadingRequests());
@@ -70,17 +88,54 @@ public class KneadingMachineAgent extends BaseAgent {
         }
     }
 
+    public void getbakery(){
+
+        String jsonDir = "src/main/resources/config/shared_stage_communication/";
+        try {
+            // System.out.println("Working Directory = " + System.getProperty("user.dir"));
+            String bakeryFile = new Scanner(new File(jsonDir + "bakery.json")).useDelimiter("\\Z").next();
+            Vector<Bakery> bakeries = JSONConverter.parseBakeries(bakeryFile);
+            for (Bakery bakery : bakeries)
+            {
+                this.bakery = bakery;
+            }
+        } catch (FileNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+
+    public void getKneadingMachines(){
+        equipment = bakery.getEquipment();
+        System.out.println("==============================================");
+        System.out.println("Bakery name " + bakery.getName());
+
+        for (int i = 0; i < equipment.size(); i++){
+            if (equipment.get(i) instanceof KneadingMachine){
+                // System.out.println("Kneading machines found " + equipment.get(i));
+                kneadingMachines.add(equipment.get(i));
+                machinesAvailable.add(true);
+            }
+        }
+
+        System.out.println("Kneading machines found " + kneadingMachines.size());
+        System.out.println("Kneading machines flags " + machinesAvailable);
+        System.out.println("==============================================");
+
+    }
+
     // Receiving Kneading requests behavior
     private class ReceiveKneadingRequests extends CyclicBehaviour {
         public void action() {
 
-            MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
+            MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
+                MessageTemplate.MatchConversationId("kneading-request"));
 
             ACLMessage msg = myAgent.receive(mt);
 
             if (msg != null) {
 
-                System.out.println(getAID().getLocalName() + " received requests.");
+                System.out.println(getAID().getLocalName() + " received kneading requests from " + msg.getSender());
 
                 String content = msg.getContent();
 
@@ -116,20 +171,38 @@ public class KneadingMachineAgent extends BaseAgent {
         private Float kneadingTime;
         private Float kneadingCounter = (float) 0;
         private int option = 0;
+        private int machineAvailable;
 
         public Kneading(Float kneadingTime){
             this.kneadingTime = kneadingTime;
             System.out.println("----> "+ getAID().getLocalName() + " Kneading for " + kneadingTime);
         }
 
+        public int findAvailableMachines(){
+            for (int i = 0; i < kneadingMachines.size(); i++){
+                if (machinesAvailable.get(i) == true){
+                    return i;
+                }
+            }
+            return (int) 99;
+        }
+
         public void action(){
-            if (getAllowAction()){
+            // NOTE: Should I block the process until kneading is done?
+            machineAvailable = this.findAvailableMachines();
+
+            if (getAllowAction() && machineAvailable != 99){
+                machinesAvailable.set(machineAvailable,false);
+                System.out.println("----> Using kneading machine " + kneadingMachines.get(machineAvailable));
                 while(kneadingCounter < kneadingTime){
                     kneadingCounter++;
                     System.out.println("----> " + getAID().getLocalName() + " Kneading counter " + kneadingCounter);
                 }
+                machinesAvailable.set(machineAvailable,true);
                 addBehaviour(new SendKneadingNotification());
                 this.done();
+            }else{
+                System.out.println("----> No kneading machine currently available");
             }
 
         }
@@ -141,17 +214,11 @@ public class KneadingMachineAgent extends BaseAgent {
 
     // Send a kneadingNotification msg to the doughManager agents
     private class SendKneadingNotification extends Behaviour {
-        // private AID [] doughManagerAgents;
         private MessageTemplate mt;
         private int option = 0;
         private Gson gson = new Gson();
         private KneadingNotification kneadingNotification = new KneadingNotification(guids, productType);
         private String kneadingNotificationString = gson.toJson(kneadingNotification);
-
-        // public SendKneadingNotification(AID [] doughManagerAgents){
-        //
-        //     this.doughManagerAgents = doughManagerAgents;
-        // }
 
         public void action() {
             switch (option) {
@@ -169,8 +236,6 @@ public class KneadingMachineAgent extends BaseAgent {
                     for (int i = 0; i < doughManagerAgents.length; i++){
                         msg.addReceiver(doughManagerAgents[i]);
                     }
-
-                    // msg.setReplyWith("msg" + System.currentTimeMillis());
 
                     baseAgent.sendMessage(msg);
 

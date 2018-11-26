@@ -6,13 +6,13 @@ import java.util.Scanner;
 import java.util.Vector;
 
 import org.mas_maas.JSONConverter;
-import org.mas_maas.messages.BakingNotification;
-import org.mas_maas.messages.BakingRequest;
-import org.mas_maas.messages.CoolingRequest;
 import org.mas_maas.messages.DoughNotification;
-import org.mas_maas.messages.LoadingBayMessage;
-import org.mas_maas.messages.PreparationNotification;
+import org.mas_maas.messages.BakingRequest;
+import org.mas_maas.messages.BakingNotification;
 import org.mas_maas.messages.PreparationRequest;
+import org.mas_maas.messages.PreparationNotification;
+import org.mas_maas.messages.CoolingRequest;
+import org.mas_maas.messages.LoadingBayMessage;
 import org.mas_maas.messages.ProofingRequest;
 import org.mas_maas.objects.BakedGood;
 import org.mas_maas.objects.Bakery;
@@ -40,8 +40,8 @@ public class BakingManager extends BaseAgent {
 
 	private AID [] prooferAgents;
 	private AID [] ovenAgents;
+	private AID [] bakingPreparationAgents; // similar to the preparationTableAgents in the Dough Stage
 	private AID [] coolingRackAgents;
-	private AID [] bakingPreparationAgents; // similar to the preparationTableAgents in the Dough Stage 
 
 	private WorkQueue needsBaking;
 	private WorkQueue needsPreparation;
@@ -55,20 +55,25 @@ public class BakingManager extends BaseAgent {
 	protected void setup() {
 		super.setup();
 		System.out.println(getAID().getLocalName() + " is ready.");
-		this.register("Baking-manager", "JADE-bakery");
-		this.getProoferAIDs();
-		this.getOvenAIDs();
-		this.getCoolingRackAIDs();
-		this.getBakingPreparationAIDs();
 
 		// Load bakery information (includes recipes for each product)
 		getbakery();
+
 		// Queue of productStatus which require baking
 		needsBaking = new WorkQueue();
 		// Queue of productStatus which require preparation (twisting, frying, ...)
 		needsPreparation = new WorkQueue();
 		// Queue of productStatus which require cooling
 		needsCooling = new WorkQueue();
+
+		// Register the Baking-manager in the yellow pages
+		this.register("Baking-manager", "JADE-bakery");
+
+		this.getProoferAIDs();
+		this.getOvenAIDs();
+		this.getBakingPreparationAIDs();
+		this.getCoolingRackAIDs();
+
 
 		// Activate behavior that receives orders
 		// addBehaviour(new ReceiveOrders());
@@ -99,6 +104,7 @@ public class BakingManager extends BaseAgent {
 		addBehaviour(new ReceivePreparationNotification());
 
 	}
+
 	protected void takeDown() {
 		System.out.println(getAID().getLocalName() + ": Terminating.");
 		this.deRegister();
@@ -130,11 +136,11 @@ public class BakingManager extends BaseAgent {
 		DFAgentDescription template = new DFAgentDescription();
 		ServiceDescription sd = new ServiceDescription();
 
-		sd.setType("Oven");
+		sd.setType("OvenAgent");
 		template.addServices(sd);
 		try {
 			DFAgentDescription [] result = DFService.search(this, template);
-			System.out.println(getAID().getLocalName() + "Found the following Proofer agents:");
+			System.out.println(getAID().getLocalName() + "Found the following Oven agents:");
 			ovenAgents = new AID [result.length];
 
 			for (int i = 0; i < result.length; ++i) {
@@ -156,7 +162,7 @@ public class BakingManager extends BaseAgent {
 		template.addServices(sd);
 		try {
 			DFAgentDescription [] result = DFService.search(this, template);
-			System.out.println(getAID().getLocalName() + "Found the following Proofer agents:");
+			System.out.println(getAID().getLocalName() + "Found the following Cooling agents:");
 			coolingRackAgents = new AID [result.length];
 
 			for (int i = 0; i < result.length; ++i) {
@@ -335,7 +341,8 @@ public class BakingManager extends BaseAgent {
 	public Vector<CoolingRequest> createCoolingRequests() {
 		// Checks the needsCooling WorkQueue and creates a coolingRequestMessage
 		Vector<ProductStatus> products = needsCooling.getProductBatch();
-		Vector<CoolingRequest> coolingRequests = null;
+		Vector<CoolingRequest> coolingRequests = new Vector<CoolingRequest>();
+
 
 		if (products != null) {
 
@@ -343,15 +350,22 @@ public class BakingManager extends BaseAgent {
 			Vector<Integer> productQuantities = new Vector<Integer>();
 
 
+
 			for (ProductStatus productStatus : products) {
 
 				String productName = productStatus.getProduct().getGuid();
+
 				float coolingTime = productStatus.getProduct().getRecipe().getActionTime(Step.COOLING_STEP);
+
 				int boxingTemp = productStatus.getProduct().getPackaging().getBoxingTemp();
+
 				int quantity = productStatus.getAmount();
+
 				CoolingRequest coolingRequest = new CoolingRequest(productName, coolingTime, quantity, boxingTemp);
+				// System.out.println("-------> HERE");
 				coolingRequests.add(coolingRequest);
 			}
+
 
 		}
 
@@ -471,7 +485,7 @@ public class BakingManager extends BaseAgent {
 			// baseAgent.finished(); //call it if there are no generic behaviours
 
 			MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
-					MessageTemplate.MatchConversationId("baking-preparation-notification"));
+					MessageTemplate.MatchConversationId("preparationBaking-notification"));
 
 			ACLMessage msg = baseAgent.receive(mt);
 
@@ -561,10 +575,10 @@ public class BakingManager extends BaseAgent {
 		}
 		public boolean done(){
 			if (step == 1){
-				baseAgent.finished();
-				// For now the BakingManager terminates after sending the bakingRequest. This needs to change when adding the other agents (ovens and cooling racks) 
-				// Terminate the BakingManager after it sends a coolingRequest (this is for you Erick!)
-				baseAgent.doDelete();
+				// baseAgent.finished();
+				// // For now the BakingManager terminates after sending the bakingRequest. This needs to change when adding the other agents (ovens and cooling racks)
+				// // Terminate the BakingManager after it sends a coolingRequest (this is for you Erick!)
+				// baseAgent.doDelete();
 				return true;
 
 			}
@@ -591,7 +605,7 @@ public class BakingManager extends BaseAgent {
 			case 0:
 				ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
 				msg.setContent(preparationRequest);
-				msg.setConversationId("preparation-request");
+				msg.setConversationId("preparationBaking-request");
 				// Send preparationRequest msg to all preparationTableAgents
 				for (int i=0; i<bakingPreparationAgents.length; i++){
 					msg.addReceiver(bakingPreparationAgents[i]);
@@ -601,7 +615,7 @@ public class BakingManager extends BaseAgent {
 
 				baseAgent.sendMessage(msg);  // calling sendMessage instead of send
 
-				mt = MessageTemplate.and(MessageTemplate.MatchConversationId("baking-preparation-request"),
+				mt = MessageTemplate.and(MessageTemplate.MatchConversationId("preparationBaking-request"),
 						MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
 
 				System.out.println(getLocalName()+" Sent baking preparationRequest" + preparationRequest);
@@ -630,7 +644,7 @@ public class BakingManager extends BaseAgent {
 		}
 		public boolean done(){
 			if (step == 2){
-				baseAgent.finished();
+				// baseAgent.finished();
 				return true;
 
 			}
@@ -660,7 +674,8 @@ public class BakingManager extends BaseAgent {
 
 				ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
 				msg.setContent(coolingRequest);
-				msg.setConversationId("baked-products-" + Integer.toString(coolingRequestCounter));
+				// msg.setConversationId("baked-products-" + Integer.toString(coolingRequestCounter));
+				msg.setConversationId("cooling-request");
 
 				// Send kneadingRequest msg to all kneadingMachineAgents
 				for (int i=0; i<coolingRackAgents.length; i++){
@@ -669,7 +684,9 @@ public class BakingManager extends BaseAgent {
 				msg.setReplyWith("msg"+System.currentTimeMillis());
 				baseAgent.sendMessage(msg);  // calling sendMessage instead of send
 
-				mt = MessageTemplate.and(MessageTemplate.MatchConversationId("baked-products-" + Integer.toString(coolingRequestCounter)),
+				// mt = MessageTemplate.and(MessageTemplate.MatchConversationId("baked-products-" + Integer.toString(coolingRequestCounter)),
+				// 		MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
+				mt = MessageTemplate.and(MessageTemplate.MatchConversationId("cooling-request"),
 						MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
 
 				System.out.println(getLocalName()+" Sent coolingRequest" + coolingRequest);

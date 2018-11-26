@@ -34,9 +34,10 @@ import jade.lang.acl.MessageTemplate;
 
 public class DoughManager extends BaseAgent {
     private AID [] orderProcessingAgents;
-    private AID [] prooferAgents;
-    private AID [] preparationTableAgents;
     private AID [] kneadingMachineAgents;
+    private AID [] preparationTableAgents;
+    private AID [] prooferAgents;
+
     private Bakery bakery;
     private WorkQueue needsKneading;
     private WorkQueue needsPreparation;
@@ -65,9 +66,9 @@ public class DoughManager extends BaseAgent {
         this.register("Dough-manager", "JADE-bakery");
 
         this.getOrderProcessingAIDs();
-        this.getProoferAIDs();
-        this.getPreparationTableAIDS();
         this.getKneadingMachineAIDs();
+        this.getPreparationTableAIDS();
+        this.getProoferAIDs();
 
         // Activate behavior that receives orders
         // addBehaviour(new ReceiveOrders());
@@ -450,7 +451,7 @@ public class DoughManager extends BaseAgent {
 
             if (msg != null) {
 
-                System.out.println("-------> " + getAID().getLocalName()+" Received Preparation Notification from " + msg.getSender());
+                System.out.println("----> " + getAID().getLocalName()+" Received Preparation Notification from " + msg.getSender());
 
                 String preparationNotificationString = msg.getContent();
 
@@ -566,7 +567,7 @@ public class DoughManager extends BaseAgent {
                 ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
                 msg.setContent(preparationRequest);
                 msg.setConversationId("preparation-request");
-                // Send kneadingRequest msg to all preparationTableAgents
+                // Send preparation requests msg to all preparationTableAgents
                 for (int i=0; i<preparationTableAgents.length; i++){
                     msg.addReceiver(preparationTableAgents[i]);
                 }
@@ -604,7 +605,7 @@ public class DoughManager extends BaseAgent {
         }
         public boolean done(){
             if (step == 2){
-                baseAgent.finished();
+                // baseAgent.finished();
                 return true;
 
             }
@@ -643,7 +644,7 @@ public class DoughManager extends BaseAgent {
                 mt = MessageTemplate.and(MessageTemplate.MatchConversationId("proofing-request"),
                         MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
 
-                System.out.println(getLocalName()+" Sent proofingRequest" + proofingRequest);
+                System.out.println("-----> " + getLocalName()+" Sent proofingRequest" + proofingRequest);
                 step = 1;
                 break;
 

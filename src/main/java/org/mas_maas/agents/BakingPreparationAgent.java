@@ -1,18 +1,11 @@
 package org.mas_maas.agents;
 
 import java.util.Vector;
-import java.util.Scanner;
-import java.io.File;
-import java.io.FileNotFoundException;
 
 import org.mas_maas.JSONConverter;
 import org.mas_maas.messages.PreparationNotification;
 import org.mas_maas.messages.PreparationRequest;
-
 import org.mas_maas.objects.Step;
-import org.mas_maas.objects.Bakery;
-import org.mas_maas.objects.DoughPrepTable;
-import org.mas_maas.objects.Equipment;
 
 import com.google.gson.Gson;
 
@@ -26,13 +19,8 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
-public class PreparationTableAgent extends BaseAgent {
-    private AID [] doughManagerAgents;
-
-    private Bakery bakery;
-    private Vector<Equipment> preparationTables = new Vector<Equipment> ();
-    private Vector<Boolean> tablesAvailable = new Vector<Boolean> ();
-    private Vector<Equipment> equipment;
+public class BakingPreparationAgent extends BaseAgent {
+    private AID [] bakingManagerAgents;
 
     private Vector<String> guids;
     private Vector<Integer> productQuantities;
@@ -41,19 +29,9 @@ public class PreparationTableAgent extends BaseAgent {
 
     protected void setup() {
         super.setup();
-
         System.out.println(getAID().getLocalName() + " is ready.");
-
-        this.register("Preparation-table", "JADE-bakery");
-
-        this.getDoughManagerAIDs();
-
-        // Load bakery information (includes recipes for each product)
-        getbakery();
-
-        // Get KneadingMachines
-        this.getPreparationTables();
-
+        this.register("BakingPreparation", "JADE-bakery");
+        this.getBakingManagerAIDs();
 
         // Creating receive kneading requests behaviour
         addBehaviour(new ReceivePreparationRequests());
@@ -64,23 +42,23 @@ public class PreparationTableAgent extends BaseAgent {
         this.deRegister();
     }
 
-    public void getDoughManagerAIDs() {
+    public void getBakingManagerAIDs() {
         /*
         Object the AID of all the dough-manager agents found
         */
         DFAgentDescription template = new DFAgentDescription();
         ServiceDescription sd = new ServiceDescription();
 
-        sd.setType("Dough-manager");
+        sd.setType("Baking-manager");
         template.addServices(sd);
         try {
             DFAgentDescription [] result = DFService.search(this, template);
-            System.out.println(getAID().getLocalName() + "Found the following Dough-manager agents:");
-            doughManagerAgents = new AID [result.length];
+            System.out.println(getAID().getLocalName() + "Found the following Baking-manager agents:");
+            bakingManagerAgents = new AID [result.length];
 
             for (int i = 0; i < result.length; ++i) {
-                doughManagerAgents[i] = result[i].getName();
-                System.out.println(doughManagerAgents[i].getName());
+                bakingManagerAgents[i] = result[i].getName();
+                System.out.println(bakingManagerAgents[i].getName());
             }
 
         }
@@ -89,53 +67,18 @@ public class PreparationTableAgent extends BaseAgent {
         }
     }
 
-    public void getbakery(){
-
-        String jsonDir = "src/main/resources/config/shared_stage_communication/";
-        try {
-            // System.out.println("Working Directory = " + System.getProperty("user.dir"));
-            String bakeryFile = new Scanner(new File(jsonDir + "bakery.json")).useDelimiter("\\Z").next();
-            Vector<Bakery> bakeries = JSONConverter.parseBakeries(bakeryFile);
-            for (Bakery bakery : bakeries)
-            {
-                this.bakery = bakery;
-            }
-        } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-    }
-
-    public void getPreparationTables(){
-        equipment = bakery.getEquipment();
-        System.out.println("==============================================");
-        System.out.println("Bakery name " + bakery.getName());
-
-        for (int i = 0; i < equipment.size(); i++){
-            if (equipment.get(i) instanceof DoughPrepTable){
-                preparationTables.add(equipment.get(i));
-                tablesAvailable.add(true);
-            }
-        }
-
-        System.out.println("Preparation tables found " + preparationTables.size());
-        System.out.println("Preparation tables flags " + tablesAvailable);
-        System.out.println("==============================================");
-
-    }
-
     // Receiving Preparation requests behaviour
     private class ReceivePreparationRequests extends CyclicBehaviour {
         public void action() {
 
             MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
-                MessageTemplate.MatchConversationId("preparation-request"));
+                MessageTemplate.MatchConversationId("preparationBaking-request"));
 
             ACLMessage msg = myAgent.receive(mt);
 
             if (msg != null) {
 
-                System.out.println(getAID().getLocalName() + " Received preparation request from " + msg.getSender());
+                System.out.println(getAID().getLocalName() + " Received baking preparation request from " + msg.getSender());
 
                 String content = msg.getContent();
                 System.out.println("Preparation request contains -> " + content);
@@ -164,34 +107,16 @@ public class PreparationTableAgent extends BaseAgent {
     private class Preparation extends Behaviour {
         private float stepCounter = (float) 0;
         private Float stepDuration;
-        private int tableAvailable;
-
-        public int findAvailableTables(){
-            for (int i = 0; i < preparationTables.size(); i++){
-                if (tablesAvailable.get(i) == true){
-                    return i;
-                }
-            }
-            return (int) 99;
-        }
 
         public void action(){
-            tableAvailable = this.findAvailableTables();
-
-            if (getAllowAction() && tableAvailable != 99){
-                tablesAvailable.set(tableAvailable,false);
-                System.out.println("----> Using preparation table " + preparationTables.get(tableAvailable));
+            if (getAllowAction()){
 
                 for (int i = 0; i < guids.size(); i++){
                     for (Step step : steps){
                         System.out.println("---------------------------");
                         System.out.println(guids.get(i) + " Performing " + step.getAction());
 
-                        if (step.getAction().equals(Step.ITEM_PREPARATION_STEP)){
-                            stepDuration = step.getDuration() * productQuantities.get(i);
-                        }else{
-                            stepDuration = step.getDuration();
-                        }
+                        stepDuration = step.getDuration();
 
                         System.out.println(" Preparation for " + stepDuration);
 
@@ -202,13 +127,10 @@ public class PreparationTableAgent extends BaseAgent {
 
                         stepCounter = (float) 0;
                     }
-                    tablesAvailable.set(tableAvailable,true);
-                    addBehaviour(new SendPreparationNotification(doughManagerAgents));
+                    addBehaviour(new SendPreparationNotification(bakingManagerAgents));
                 }
 
                 this.done();
-            } else{
-                System.out.println("----> No preparation table currently available");
             }
 
 
@@ -223,15 +145,15 @@ public class PreparationTableAgent extends BaseAgent {
 
   // Send a preparationNotification msg to the doughManager agents
   private class SendPreparationNotification extends Behaviour {
-    private AID [] doughManagerAgents;
+    private AID [] bakingManagerAgents;
     private MessageTemplate mt;
     private int step = 0;
     private Gson gson = new Gson();
     private PreparationNotification preparationNotification = new PreparationNotification(guids,productType);
     private String preparationNotificationString = gson.toJson(preparationNotification);
 
-    public SendPreparationNotification(AID [] doughManagerAgents){
-        this.doughManagerAgents = doughManagerAgents;
+    public SendPreparationNotification(AID [] bakingManagerAgents){
+        this.bakingManagerAgents = bakingManagerAgents;
     }
 
        public void action() {
@@ -242,25 +164,24 @@ public class PreparationTableAgent extends BaseAgent {
 
                     msg.setContent(preparationNotificationString);
 
-                    msg.setConversationId("preparation-notification");
+                    msg.setConversationId("preparationBaking-notification");
 
-                    // Send preparationNotification msg to doughManagerAgents
-                    for (int i = 0; i < doughManagerAgents.length; i++){
-                        msg.addReceiver(doughManagerAgents[i]);
+                    // Send preparationNotification msg to bakingManagerAgents
+                    for (int i = 0; i < bakingManagerAgents.length; i++){
+                        msg.addReceiver(bakingManagerAgents[i]);
                     }
 
                     msg.setReplyWith("msg" + System.currentTimeMillis());
 
                     baseAgent.sendMessage(msg);
 
-                    mt = MessageTemplate.and(MessageTemplate.MatchConversationId("preparation-notification"),
+                    mt = MessageTemplate.and(MessageTemplate.MatchConversationId("preparationBaking-notification"),
 
                     MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
 
-                    System.out.println(getAID().getLocalName() + " Sent preparationNotification");
-
                     step = 1;
 
+                    System.out.println(getAID().getLocalName() + " Sent baking preparationNotification");
                     break;
 
                 case 1:
