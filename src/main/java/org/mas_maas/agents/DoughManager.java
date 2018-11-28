@@ -488,8 +488,6 @@ public class DoughManager extends BaseAgent {
 
                 // Send preparationRequestMessage
                 addBehaviour(new RequestProofing(proofingRequestString, prooferAgents));
-
-
             }
             else {
                 block();
@@ -640,6 +638,7 @@ public class DoughManager extends BaseAgent {
         }
         public void action(){
             //blocking actio
+            // System.out.println("HERE");
             if (!baseAgent.getAllowAction() && !proofingRequested.get()) {
                 return;
             }
@@ -684,6 +683,7 @@ public class DoughManager extends BaseAgent {
             if (option == 2){
                 baseAgent.finished();
                 System.out.println(getAID().getLocalName() + " My life is over ");
+                proofingRequested.set(false);
                 // For now the DoughManager terminates after processing one order
                 baseAgent.doDelete();
                 return true;
