@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Scanner;
 import java.util.Vector;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.mas_maas.JSONConverter;
 import org.mas_maas.messages.DoughNotification;
@@ -42,6 +43,8 @@ public class BakingManager extends BaseAgent {
 	private AID [] ovenAgents;
 	private AID [] bakingPreparationAgents; // similar to the preparationTableAgents in the Dough Stage
 	private AID [] coolingRackAgents;
+
+	private AtomicBoolean coolingRequested = new AtomicBoolean(false);
 
 	private WorkQueue needsBaking;
 	private WorkQueue needsPreparation;
@@ -102,6 +105,9 @@ public class BakingManager extends BaseAgent {
 		addBehaviour(new ReceiveDoughNotification());
 		addBehaviour(new ReceiveBakingNotification());
 		addBehaviour(new ReceivePreparationNotification());
+
+		// Time tracker behavior
+        addBehaviour(new timeTracker());
 
 	}
 
@@ -197,6 +203,18 @@ public class BakingManager extends BaseAgent {
 			fe.printStackTrace();
 		}
 	}
+
+	private class timeTracker extends CyclicBehaviour {
+        public void action() {
+            if (!baseAgent.getAllowAction()) {
+                return;
+            }
+            // else{
+            //     System.out.println("-------> Baking Manager -> " + baseAgent.getCurrentHour());
+            // }
+            baseAgent.finished();
+        }
+    }
 
 	public void getbakery(){
 
@@ -384,19 +402,16 @@ public class BakingManager extends BaseAgent {
 			ACLMessage msg = baseAgent.receive(mt);
 
 			if (msg != null) {
-				System.out.println("-------> " + getAID().getLocalName()+" Received dough Notification from " + msg.getSender());
-
+				System.out.println(getAID().getLocalName()+" Received dough Notification from " + msg.getSender());
 				String doughNotificationString = msg.getContent();
+				System.out.println("Dough notification contains -> " +doughNotificationString);
 
 				ACLMessage reply = msg.createReply();
-
 				reply.setPerformative(ACLMessage.CONFIRM);
-
 				reply.setContent("Dough Notification was received");
-
+				reply.setConversationId("dough-notification-reply");
 				baseAgent.sendMessage(reply);
 
-				System.out.println(doughNotificationString);
 
 				DoughNotification doughNotification = JSONConverter.parseDoughNotification(doughNotificationString);
 				String productType = doughNotification.getProductType();
@@ -413,10 +428,8 @@ public class BakingManager extends BaseAgent {
 				String bakingRequestString = gson.toJson(bakingRequest);
 
 				// Send bakingRequestMessage
-				System.out.println("Requesting baking");
+				// System.out.println("Requesting baking");
 				addBehaviour(new RequestBaking(bakingRequestString));
-
-				//myAgent.doDelete();
 
 			}
 			else {

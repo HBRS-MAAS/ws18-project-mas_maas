@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Scanner;
 import java.util.Vector;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.mas_maas.JSONConverter;
 import org.mas_maas.messages.KneadingNotification;
@@ -37,6 +38,8 @@ public class DoughManager extends BaseAgent {
     private AID [] kneadingMachineAgents;
     private AID [] preparationTableAgents;
     private AID [] prooferAgents;
+
+    private AtomicBoolean proofingRequested = new AtomicBoolean(false);
 
     private Bakery bakery;
     private WorkQueue needsKneading;
@@ -112,6 +115,21 @@ public class DoughManager extends BaseAgent {
         addBehaviour(new ReceiveKneadingNotification());
 
         addBehaviour(new ReceivePreparationNotification());
+
+        // Time tracker behavior
+        addBehaviour(new timeTracker());
+    }
+
+    private class timeTracker extends CyclicBehaviour {
+        public void action() {
+            if (!baseAgent.getAllowAction()) {
+                return;
+            }
+            // else{
+            //     System.out.println("-------> Dough Manager -> " + baseAgent.getCurrentHour());
+            // }
+            baseAgent.finished();
+        }
     }
 
     protected void takeDown() {
@@ -303,7 +321,7 @@ public class DoughManager extends BaseAgent {
         template.addServices(sd);
         try {
             DFAgentDescription [] result = DFService.search(this, template);
-            System.out.println("Found the following Proofer agents:");
+            System.out.println(getAID().getLocalName() + " Found the following Proofer agents:");
             prooferAgents = new AID [result.length];
 
             for (int i = 0; i < result.length; ++i) {
@@ -325,7 +343,7 @@ public class DoughManager extends BaseAgent {
         template.addServices(sd);
         try {
             DFAgentDescription [] result = DFService.search(this, template);
-            System.out.println("Found the following Preparation-table agents:");
+            System.out.println(getAID().getLocalName() + " Found the following Preparation-table agents:");
             preparationTableAgents = new AID [result.length];
 
             for (int i = 0; i < result.length; ++i) {
@@ -347,7 +365,7 @@ public class DoughManager extends BaseAgent {
         template.addServices(sd);
         try {
             DFAgentDescription [] result = DFService.search(this, template);
-            System.out.println("Found the following Kneading-machine agents:");
+            System.out.println(getAID().getLocalName() + " Found the following Kneading-machine agents:");
             kneadingMachineAgents = new AID [result.length];
 
             for (int i = 0; i < result.length; ++i) {
@@ -394,29 +412,22 @@ public class DoughManager extends BaseAgent {
             if (msg != null) {
 
                 System.out.println("-------> " + getAID().getLocalName()+" Received Kneading Notification from " + msg.getSender());
-
                 String kneadingNotificationString = msg.getContent();
-
-                System.out.println("-----> Kneading notification " + kneadingNotificationString);
+                // System.out.println("-----> Kneading notification " + kneadingNotificationString);
 
                 ACLMessage reply = msg.createReply();
-
                 reply.setPerformative(ACLMessage.CONFIRM);
-
                 reply.setContent("Kneading Notification was received");
-
+                reply.setConversationId("kneading-notification-reply");
                 baseAgent.sendMessage(reply);
 
                 // Convert kneadingNotificationString to kneadingNotification object
                 KneadingNotification kneadingNotification = JSONConverter.parseKneadingNotification(kneadingNotificationString);
-
                 String productType = kneadingNotification.getProductType();
-
                 Vector<String> guids = kneadingNotification.getGuids();
 
-                System.out.println("-----> product type " + productType);
-
-                System.out.println("-----> guid " + guids);
+                // System.out.println("-----> product type " + productType);
+                // System.out.println("-----> guid " + guids);
 
                 // Add guids with this productType to the queuePreparation
                 queuePreparation(productType, guids);
@@ -452,21 +463,16 @@ public class DoughManager extends BaseAgent {
             if (msg != null) {
 
                 System.out.println("----> " + getAID().getLocalName()+" Received Preparation Notification from " + msg.getSender());
-
                 String preparationNotificationString = msg.getContent();
 
                 ACLMessage reply = msg.createReply();
-
                 reply.setPerformative(ACLMessage.CONFIRM);
-
                 reply.setContent("Preparation Notification was received");
-
+                reply.setConversationId("preparation-notification-reply");
                 baseAgent.sendMessage(reply);
 
                 // Convert preparationNotificationString to preparationNotification object
-
                 PreparationNotification preparationNotification = JSONConverter.parsePreparationNotification(preparationNotificationString);
-
                 String productType = preparationNotification.getProductType();
                 Vector<String> guids = preparationNotification.getGuids();
 
@@ -499,7 +505,7 @@ public class DoughManager extends BaseAgent {
         private AID [] kneadingMachineAgents;
         private MessageTemplate mt;
         // private ACLMessage msg;
-        private int step = 0;
+        private int option = 0;
 
         public RequestKneading(String kneadingRequest, AID [] kneadingMachineAgents){
             this.kneadingRequest = kneadingRequest;
@@ -510,33 +516,45 @@ public class DoughManager extends BaseAgent {
             if (!baseAgent.getAllowAction()) {
                 return;
             }
-            switch(step){
-            case 0:
+            switch(option){
+                case 0:
+                    ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+                    msg.setContent(kneadingRequest);
+                    msg.setConversationId("kneading-request");
 
-                ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-                msg.setContent(kneadingRequest);
-                msg.setConversationId("kneading-request");
+                    // Send kneadingRequest msg to all kneadingMachineAgents
+                    for (int i=0; i<kneadingMachineAgents.length; i++){
+                        msg.addReceiver(kneadingMachineAgents[i]);
+                    }
+                    // msg.setReplyWith("msg"+System.currentTimeMillis());
+                    baseAgent.sendMessage(msg);  // calling sendMessage instead of send
 
-                // Send kneadingRequest msg to all kneadingMachineAgents
-                for (int i=0; i<kneadingMachineAgents.length; i++){
-                    msg.addReceiver(kneadingMachineAgents[i]);
-                }
-                msg.setReplyWith("msg"+System.currentTimeMillis());
-                baseAgent.sendMessage(msg);  // calling sendMessage instead of send
+                    option = 1;
+                    System.out.println(getLocalName()+" Sent kneadingRequest" + kneadingRequest);
+                    break;
 
-                mt = MessageTemplate.and(MessageTemplate.MatchConversationId("kneading-request"),
-                        MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
+                case 1:
 
-                System.out.println(getLocalName()+" Sent kneadingRequest" + kneadingRequest);
-                step = 1;
-                break;
+                    mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.CONFIRM),
+                        MessageTemplate.MatchConversationId("kneading-request-reply"));
 
-            default:
-                break;
+                    ACLMessage reply = baseAgent.receive(mt);
+
+                    if (reply != null) {
+                        System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
+                        option = 2;
+                    }
+                    else {
+                        block();
+                    }
+                    break;
+
+                default:
+                    break;
             }
         }
         public boolean done(){
-            if (step == 1){
+            if (option == 2){
                 // baseAgent.finished();
                 return true;
 
@@ -551,7 +569,7 @@ public class DoughManager extends BaseAgent {
         private AID [] preparationTableAgents;
         private MessageTemplate mt;
         private ACLMessage msg;
-        private int step = 0;
+        private int option = 0;
 
         public RequestPreparation(String preparationRequest, AID [] preparationTableAgents){
             this.preparationRequest = preparationRequest;
@@ -559,52 +577,48 @@ public class DoughManager extends BaseAgent {
         }
         public void action(){
             //blocking action
-            if (!baseAgent.getAllowAction()) {
-                return;
-            }
-            switch(step){
-            case 0:
-                ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-                msg.setContent(preparationRequest);
-                msg.setConversationId("preparation-request");
-                // Send preparation requests msg to all preparationTableAgents
-                for (int i=0; i<preparationTableAgents.length; i++){
-                    msg.addReceiver(preparationTableAgents[i]);
-                }
+            // if (!baseAgent.getAllowAction()) {
+            //     return;
+            // }
+            switch(option){
+                case 0:
+                    ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+                    msg.setContent(preparationRequest);
+                    msg.setConversationId("preparation-request");
 
-                msg.setReplyWith("msg"+System.currentTimeMillis());
-
-                baseAgent.sendMessage(msg);  // calling sendMessage instead of send
-
-                mt = MessageTemplate.and(MessageTemplate.MatchConversationId("preparation-request"),
-                        MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
-
-                System.out.println(getLocalName()+" Sent preparationRequest" + preparationRequest);
-
-                step = 1;
-
-                break;
-            case 1:
-                ACLMessage reply = baseAgent.receive(mt);
-
-                if (reply != null) {
-
-                    if (reply.getPerformative() == ACLMessage.CONFIRM) {
-                        System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
-                        step = 2;
+                    // Send preparation requests msg to all preparationTableAgents
+                    for (int i=0; i<preparationTableAgents.length; i++){
+                        msg.addReceiver(preparationTableAgents[i]);
                     }
-                }
-                else {
-                    block();
-                }
-                break;
+
+                    // msg.setReplyWith("msg"+System.currentTimeMillis());
+                    baseAgent.sendMessage(msg);  // calling sendMessage instead of send
+
+                    option = 1;
+                    System.out.println(getLocalName()+" Sent preparationRequest");
+                    break;
+
+                case 1:
+                    mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.CONFIRM),
+                        MessageTemplate.MatchConversationId("preparation-request-reply"));
+                    ACLMessage reply = baseAgent.receive(mt);
+
+                    if (reply != null) {
+
+                        System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
+                        option = 2;
+                    }
+                    else {
+                        block();
+                    }
+                    break;
 
             default:
                 break;
             }
         }
         public boolean done(){
-            if (step == 2){
+            if (option == 2){
                 // baseAgent.finished();
                 return true;
 
@@ -618,43 +632,58 @@ public class DoughManager extends BaseAgent {
         private String proofingRequest;
         private AID [] prooferAgents;
         private MessageTemplate mt;
-        private ACLMessage msg;
-        private int step = 0;
+        private int option = 0;
 
         public RequestProofing(String proofingRequest, AID [] prooferAgents){
             this.proofingRequest = proofingRequest;
             this.prooferAgents = prooferAgents;
         }
         public void action(){
-            //blocking action
-            if (!baseAgent.getAllowAction()) {
+            //blocking actio
+            if (!baseAgent.getAllowAction() && !proofingRequested.get()) {
                 return;
             }
-            switch(step){
-            case 0:
-                ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-                msg.setContent(proofingRequest);
-                msg.setConversationId("proofing-request");
-                // Send proofingRequest msg to all prooferAgents
-                for (int i=0; i<prooferAgents.length; i++){
-                    msg.addReceiver(prooferAgents[i]);
-                }
-                msg.setReplyWith("msg"+System.currentTimeMillis());
-                baseAgent.sendMessage(msg);  // calling sendMessage instead of send
-                mt = MessageTemplate.and(MessageTemplate.MatchConversationId("proofing-request"),
-                        MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
+            switch(option){
+                case 0:
+                    ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+                    msg.setContent(proofingRequest);
+                    msg.setConversationId("proofing-request");
 
-                System.out.println("-----> " + getLocalName()+" Sent proofingRequest" + proofingRequest);
-                step = 1;
-                break;
+                    // Send proofingRequest msg to all prooferAgents
+                    for (int i=0; i<prooferAgents.length; i++){
+                        msg.addReceiver(prooferAgents[i]);
+                    }
+                    // msg.setReplyWith("msg"+System.currentTimeMillis());
+                    baseAgent.sendMessage(msg);  // calling sendMessage instead of send
 
-            default:
-                break;
+                    option = 1;
+                    proofingRequested.set(true);
+                    System.out.println("-----> " + getLocalName()+" Sent proofingRequest" + proofingRequest);
+                    break;
+
+                case 1:
+                    mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.CONFIRM),
+                        MessageTemplate.MatchConversationId("proofing-request-reply"));
+                    ACLMessage reply = baseAgent.receive(mt);
+
+
+                    if (reply != null) {
+                        System.out.println("-----> " +getAID().getLocalName() + " Received confirmation from " + reply.getSender());
+                        option = 2;
+                    }
+                    else {
+                        block();
+                    }
+                    break;
+
+                default:
+                    break;
             }
         }
         public boolean done(){
-            if (step == 1){
+            if (option == 2){
                 baseAgent.finished();
+                System.out.println(getAID().getLocalName() + " My life is over ");
                 // For now the DoughManager terminates after processing one order
                 baseAgent.doDelete();
                 return true;
