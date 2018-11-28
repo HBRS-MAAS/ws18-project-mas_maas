@@ -36,6 +36,8 @@ public class KneadingMachineAgent extends BaseAgent {
     private Vector<String> guids;
     private String productType;
 
+    private int kneadingCounter = 0;
+
     protected void setup() {
         super.setup();
 
@@ -123,6 +125,28 @@ public class KneadingMachineAgent extends BaseAgent {
         System.out.println("==============================================");
 
     }
+
+    // private class timeTracker extends CyclicBehaviour {
+    //     public void action() {
+    //
+    //         if (!baseAgent.getAllowAction()) {
+    //             return;
+    //         }else{
+    //             System.out.println("=========================================" );
+    //             System.out.println("-------> Dummy -> " + baseAgent.getCurrentHour());
+    //             System.out.println("=========================================" );
+    //             counter++;
+    //             if (counter > 5){
+    //                 addBehaviour(new SendDummyRequest());
+    //                 functionCalls++;
+    //                 System.out.println("----> Function calls " + functionCalls);
+    //                 counter = 0;
+    //             }
+    //
+    //         }
+    //         baseAgent.finished();
+    //     }
+    // }
 
     // Receiving Kneading requests behavior
     private class ReceiveKneadingRequests extends CyclicBehaviour {
