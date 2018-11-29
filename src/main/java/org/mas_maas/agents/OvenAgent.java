@@ -415,11 +415,8 @@ public class OvenAgent extends BaseAgent {
                 case 0:
 
                     ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-
                     System.out.println("-----> Baking notification string " + bakingNotificationString);
-
                     msg.setContent(bakingNotificationString);
-
                     msg.setConversationId("baking-notification");
 
                     // Send bakingNotification msg to bakingManagerAgents
@@ -429,24 +426,18 @@ public class OvenAgent extends BaseAgent {
 
                     baseAgent.sendMessage(msg);
 
-                    mt = MessageTemplate.MatchConversationId("baking-notification");
-
-                    System.out.println(getAID().getLocalName() + " Sent bakingNotification");
-
                     option = 1;
-
-
+                    System.out.println(getAID().getLocalName() + " Sent bakingNotification");
                     break;
 
                 case 1:
+                    mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.CONFIRM),
+                        MessageTemplate.MatchConversationId("baking-notification-reply"));
                     ACLMessage reply = baseAgent.receive(mt);
 
                     if (reply != null) {
-
-                        if (reply.getPerformative() == ACLMessage.CONFIRM) {
-                            System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
-                            option = 2;
-                        }
+                        System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
+                        option = 2;
                     }
                     else {
                         block();

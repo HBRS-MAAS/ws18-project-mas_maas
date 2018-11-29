@@ -1,6 +1,7 @@
 package org.mas_maas.agents;
 
 import java.util.Vector;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.mas_maas.JSONConverter;
 import org.mas_maas.messages.PreparationNotification;
@@ -22,16 +23,24 @@ import jade.lang.acl.MessageTemplate;
 public class BakingPreparationAgent extends BaseAgent {
     private AID [] bakingManagerAgents;
 
+    private AtomicBoolean preparationInProcess = new AtomicBoolean(false);
+    private AtomicBoolean fullPrepDone = new AtomicBoolean(false);
+
     private Vector<String> guids;
     private Vector<Integer> productQuantities;
     private String productType;
     private Vector<Step> steps;
+    private int stepCounter;
 
     protected void setup() {
         super.setup();
         System.out.println(getAID().getLocalName() + " is ready.");
         this.register("BakingPreparation", "JADE-bakery");
         this.getBakingManagerAIDs();
+
+        stepCounter = 0;
+        // Time tracker behavior
+        addBehaviour(new timeTracker());
 
         // Creating receive kneading requests behaviour
         addBehaviour(new ReceivePreparationRequests());
@@ -67,6 +76,21 @@ public class BakingPreparationAgent extends BaseAgent {
         }
     }
 
+    private class timeTracker extends CyclicBehaviour {
+        public void action() {
+            if (!baseAgent.getAllowAction()) {
+                return;
+            }else{
+                if (preparationInProcess.get() && !fullPrepDone.get()){
+                    stepCounter++;
+                    System.out.println("-------> Baking Prep Clock-> " + baseAgent.getCurrentHour());
+                    System.out.println("-------> step Counter -> " + stepCounter);
+                }
+            }
+            baseAgent.finished();
+        }
+    }
+
     // Receiving Preparation requests behaviour
     private class ReceivePreparationRequests extends CyclicBehaviour {
         public void action() {
@@ -77,23 +101,23 @@ public class BakingPreparationAgent extends BaseAgent {
             ACLMessage msg = myAgent.receive(mt);
 
             if (msg != null) {
-
                 System.out.println(getAID().getLocalName() + " Received baking preparation request from " + msg.getSender());
-
                 String content = msg.getContent();
                 System.out.println("Preparation request contains -> " + content);
-
                 PreparationRequest preparationRequest = JSONConverter.parsePreparationRequest(content);
-                ACLMessage reply = msg.createReply();
 
+                ACLMessage reply = msg.createReply();
                 reply.setPerformative(ACLMessage.CONFIRM);
                 reply.setContent("Preparation request was received");
-
+                reply.setConversationId("preparationBaking-request-reply");
                 baseAgent.sendMessage(reply);
 
                 guids = preparationRequest.getGuids();
                 productType = preparationRequest.getProductType();
                 steps = preparationRequest.getSteps();
+                System.out.println("==================================================");
+                System.out.println("----> I should do the following actions " + steps);
+                System.out.println("==================================================");
                 productQuantities = preparationRequest.getProductQuantities();
                 addBehaviour(new Preparation());
             }
@@ -105,39 +129,46 @@ public class BakingPreparationAgent extends BaseAgent {
 
     // performs Preparation process
     private class Preparation extends Behaviour {
-        private float stepCounter = (float) 0;
         private Float stepDuration;
+        private int stepIdx = 0;
+        private int guidIdx = 0;
+        private String stepAction;
 
         public void action(){
-            if (getAllowAction()){
-
-                for (int i = 0; i < guids.size(); i++){
-                    for (Step step : steps){
-                        System.out.println("---------------------------");
-                        System.out.println(guids.get(i) + " Performing " + step.getAction());
-
-                        stepDuration = step.getDuration();
-
-                        System.out.println(" Preparation for " + stepDuration);
-
-                        while(stepCounter < stepDuration){
-                            stepCounter++;
-                            System.out.println("----> " + getAID().getLocalName() + " Step counter " + stepCounter);
-                        }
-
-                        stepCounter = (float) 0;
-                    }
+            // TODO: Iterate over different guids
+            if (!preparationInProcess.get() && !fullPrepDone.get()){
+                preparationInProcess.set(true);
+                if (stepIdx < steps.size()){
+                    stepAction = steps.get(stepIdx).getAction();
+                    // if (stepAction.equals(Step.ITEM_PREPARATION_STEP)){
+                    //     stepDuration = steps.get(stepIdx).getDuration() * productQuantities.get(guidIdx);
+                    // }else{
+                    stepDuration = steps.get(stepIdx).getDuration();
+                    // }
+                    System.out.println("-----> Performing " + stepAction);
+                    System.out.println("-----> Preparation for " + stepDuration);
+                }else{
+                    fullPrepDone.set(true);
+                    stepIdx = 0;
                     addBehaviour(new SendPreparationNotification(bakingManagerAgents));
+                    // this.done();
                 }
-
-                this.done();
             }
 
+            if (stepCounter >= stepDuration && !fullPrepDone.get()){
+                preparationInProcess.set(false);
+                stepIdx++;
+                stepCounter = 0;
+            }
 
         }
         public boolean done(){
-            baseAgent.finished();
-            return true;
+            if (fullPrepDone.get()){
+                fullPrepDone.set(false);
+                return true;
+            }{
+                return false;
+            }
         }
   }
 
@@ -147,7 +178,7 @@ public class BakingPreparationAgent extends BaseAgent {
   private class SendPreparationNotification extends Behaviour {
     private AID [] bakingManagerAgents;
     private MessageTemplate mt;
-    private int step = 0;
+    private int option = 0;
     private Gson gson = new Gson();
     private PreparationNotification preparationNotification = new PreparationNotification(guids,productType);
     private String preparationNotificationString = gson.toJson(preparationNotification);
@@ -158,41 +189,31 @@ public class BakingPreparationAgent extends BaseAgent {
 
        public void action() {
 
-           switch (step) {
+           switch (option) {
                 case 0:
                     ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-
                     msg.setContent(preparationNotificationString);
-
                     msg.setConversationId("preparationBaking-notification");
 
                     // Send preparationNotification msg to bakingManagerAgents
                     for (int i = 0; i < bakingManagerAgents.length; i++){
                         msg.addReceiver(bakingManagerAgents[i]);
                     }
-
-                    msg.setReplyWith("msg" + System.currentTimeMillis());
-
+                    // msg.setReplyWith("msg" + System.currentTimeMillis());
                     baseAgent.sendMessage(msg);
 
-                    mt = MessageTemplate.and(MessageTemplate.MatchConversationId("preparationBaking-notification"),
-
-                    MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
-
-                    step = 1;
-
+                    option = 1;
                     System.out.println(getAID().getLocalName() + " Sent baking preparationNotification");
                     break;
 
                 case 1:
+                    mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.CONFIRM),
+                        MessageTemplate.MatchConversationId("preparationBaking-notification-reply"));
                     ACLMessage reply = baseAgent.receive(mt);
 
                     if (reply != null) {
-
-                        if (reply.getPerformative() == ACLMessage.CONFIRM) {
-                            System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
-                            step = 2;
-                        }
+                        System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
+                        option = 2;
                     }
                     else {
                         block();
@@ -205,7 +226,7 @@ public class BakingPreparationAgent extends BaseAgent {
        }
 
        public boolean done() {
-           if (step == 2) {
+           if (option == 2) {
                baseAgent.finished(); // calling finished method
                myAgent.doDelete();
                return true;

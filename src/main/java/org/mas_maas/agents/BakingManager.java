@@ -451,21 +451,16 @@ public class BakingManager extends BaseAgent {
 			if (msg != null) {
 
 				System.out.println("-------> " + getAID().getLocalName()+" Received Baking Notification from " + msg.getSender());
-
 				String bakingNotificationString = msg.getContent();
 
 				ACLMessage reply = msg.createReply();
-
 				reply.setPerformative(ACLMessage.CONFIRM);
-
 				reply.setContent("Baking Notification was received");
-
+				reply.setConversationId("baking-notification-reply");
 				baseAgent.sendMessage(reply);
 
 				// Convert bakingNotificationString to bakingNotification object
 				BakingNotification bakingNotification = JSONConverter.parseBakingNotification(bakingNotificationString);
-
-
 				String productType = bakingNotification.getProductType();
 				Vector<String> guids = bakingNotification.getGuids();
 				Vector<Integer> productQuantities = bakingNotification.getProductQuantities();
@@ -505,21 +500,16 @@ public class BakingManager extends BaseAgent {
 			if (msg != null) {
 
 				System.out.println("-------> " + getAID().getLocalName()+" Received Baking Preparation Notification from " + msg.getSender());
-
 				String preparationNotificationString = msg.getContent();
 
 				ACLMessage reply = msg.createReply();
-
 				reply.setPerformative(ACLMessage.CONFIRM);
-
 				reply.setContent("Baking Preparation Notification was received");
-
+				reply.setConversationId("preparationBaking-notification-reply");
 				baseAgent.sendMessage(reply);
 
 				// Convert preparationNotificationString to preparationNotification object
-
 				PreparationNotification preparationNotification = JSONConverter.parsePreparationNotification(preparationNotificationString);
-
 				String productType = preparationNotification.getProductType();
 				Vector<String> guids = preparationNotification.getGuids();
 
@@ -609,62 +599,56 @@ public class BakingManager extends BaseAgent {
 		private String preparationRequest;
 		private MessageTemplate mt;
 		private ACLMessage msg;
-		private int step = 0;
+		private int option = 0;
 
 		public RequestPreparation(String preparationRequest){
 			this.preparationRequest = preparationRequest;
 		}
 		public void action(){
 			//blocking action
-			if (!baseAgent.getAllowAction()) {
-				return;
-			}
-			switch(step){
-			case 0:
-				ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-				msg.setContent(preparationRequest);
-				msg.setConversationId("preparationBaking-request");
-				// Send preparationRequest msg to all preparationTableAgents
-				for (int i=0; i<bakingPreparationAgents.length; i++){
-					msg.addReceiver(bakingPreparationAgents[i]);
-				}
+			// if (!baseAgent.getAllowAction()) {
+			// 	return;
+			// }
+			switch(option){
+				case 0:
+					ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+					msg.setContent(preparationRequest);
+					msg.setConversationId("preparationBaking-request");
 
-				msg.setReplyWith("msg"+System.currentTimeMillis());
-
-				baseAgent.sendMessage(msg);  // calling sendMessage instead of send
-
-				mt = MessageTemplate.and(MessageTemplate.MatchConversationId("preparationBaking-request"),
-						MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
-
-				System.out.println(getLocalName()+" Sent baking preparationRequest" + preparationRequest);
-
-				step = 1;
-
-				break;
-			case 1:
-				ACLMessage reply = baseAgent.receive(mt);
-
-				if (reply != null) {
-
-					if (reply.getPerformative() == ACLMessage.CONFIRM) {
-						System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
-						step = 2;
+					// Send preparationRequest msg to all preparationTableAgents
+					for (int i=0; i<bakingPreparationAgents.length; i++){
+						msg.addReceiver(bakingPreparationAgents[i]);
 					}
-				}
-				else {
-					block();
-				}
-				break;
+					// msg.setReplyWith("msg"+System.currentTimeMillis());
+					baseAgent.sendMessage(msg);  // calling sendMessage instead of send
 
-			default:
-				break;
+					option = 1;
+					System.out.println(getLocalName()+" Sent baking preparationRequest" + preparationRequest);
+					break;
+
+				case 1:
+					mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.CONFIRM),
+                        MessageTemplate.MatchConversationId("preparationBaking-request-reply"));
+					ACLMessage reply = baseAgent.receive(mt);
+
+
+					if (reply != null) {
+                        System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
+                        option = 2;
+                    }
+                    else {
+                        block();
+                    }
+                    break;
+
+				default:
+					break;
 			}
 		}
 		public boolean done(){
-			if (step == 2){
+			if (option == 2){
 				// baseAgent.finished();
 				return true;
-
 			}
 			return false;
 		}

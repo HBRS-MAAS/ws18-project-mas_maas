@@ -114,7 +114,6 @@ public class PreparationTableAgent extends BaseAgent {
 
     public void getPreparationTables(){
         equipment = bakery.getEquipment();
-        System.out.println("==============================================");
         System.out.println("Bakery name " + bakery.getName());
 
         for (int i = 0; i < equipment.size(); i++){
@@ -124,7 +123,6 @@ public class PreparationTableAgent extends BaseAgent {
         }
 
         System.out.println("Preparation tables found " + preparationTables.size());
-        System.out.println("==============================================");
 
     }
 
@@ -207,6 +205,7 @@ public class PreparationTableAgent extends BaseAgent {
         }
 
         public void action(){
+            // TODO: Iterate over different guids
             if (!preparationInProcess.get() && !fullPrepDone.get()){
                 guidTableAvailable = findAvailableTables();
                 if (guidTableAvailable != "NOT_AVAILABLE"){
