@@ -165,7 +165,7 @@ public class Proofer extends BaseAgent {
                 proofingInProcess.set(false);
                 proofingCounter = 0;
                 addBehaviour(new SendDoughNotification());
-                this.done();
+                // this.done();
             }
         }
         public boolean done(){
@@ -219,9 +219,7 @@ public class Proofer extends BaseAgent {
                     ACLMessage reply = baseAgent.receive(mt);
 
                     if (reply != null) {
-                        System.out.println("=========================================" );
                         System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
-                        System.out.println("=========================================" );
                         option = 2;
                     }
                     else {

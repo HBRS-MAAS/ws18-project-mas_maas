@@ -14,7 +14,7 @@ public class Start {
         agents.add("KneadingMachineAgent:org.mas_maas.agents.KneadingMachineAgent");
         agents.add("PreparationTableAgent:org.mas_maas.agents.PreparationTableAgent");
         agents.add("Proofer:org.mas_maas.agents.Proofer");
-        // agents.add("OvenAgent:org.mas_maas.agents.OvenAgent");
+        agents.add("OvenAgent:org.mas_maas.agents.OvenAgent");
         // agents.add("dummyAgent:org.mas_maas.agents.dummyAgent");
         // agents.add("dummy2Agent:org.mas_maas.agents.dummy2Agent");
         // agents.add("BakingPreparationAgent:org.mas_maas.agents.BakingPreparationAgent");

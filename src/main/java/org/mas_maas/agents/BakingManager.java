@@ -551,7 +551,7 @@ public class BakingManager extends BaseAgent {
 	private class RequestBaking extends Behaviour{
 		private String bakingRequest;
 		private MessageTemplate mt;
-		private int step = 0;
+		private int option = 0;
 
 		public RequestBaking(String bakingRequest){
 			this.bakingRequest = bakingRequest;
@@ -561,40 +561,45 @@ public class BakingManager extends BaseAgent {
 			if (!baseAgent.getAllowAction()) {
 				return;
 			}
-			switch(step){
-			case 0:
+			switch(option){
+				case 0:
 
-				ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-				msg.setContent(bakingRequest);
-				msg.setConversationId("baking-request");
+					ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+					msg.setContent(bakingRequest);
+					msg.setConversationId("baking-request");
 
-				// Send kneadingRequest msg to all kneadingMachineAgents
-				for (int i=0; i<ovenAgents.length; i++){
-					msg.addReceiver(ovenAgents[i]);
-				}
-				msg.setReplyWith("msg"+System.currentTimeMillis());
-				baseAgent.sendMessage(msg);  // calling sendMessage instead of send
+					// Send kneadingRequest msg to all kneadingMachineAgents
+					for (int i=0; i<ovenAgents.length; i++){
+						msg.addReceiver(ovenAgents[i]);
+					}
+					// msg.setReplyWith("msg"+System.currentTimeMillis());
+					baseAgent.sendMessage(msg);  // calling sendMessage instead of send
 
-				mt = MessageTemplate.and(MessageTemplate.MatchConversationId("baking-request"),
-						MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
+					option = 1;
+					System.out.println(getLocalName()+" Sent bakingRequest" + bakingRequest);
+					break;
 
-				System.out.println(getLocalName()+" Sent bakingRequest" + bakingRequest);
-				step = 1;
-				break;
+				case 1:
+						mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.CONFIRM),
+	                        MessageTemplate.MatchConversationId("baking-request-reply"));
+						ACLMessage reply = baseAgent.receive(mt);
 
+	                    if (reply != null) {
+	                        System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
+	                        option = 2;
+	                    }
+	                    else {
+	                        block();
+	                    }
+	                    break;
 			default:
 				break;
 			}
 		}
 		public boolean done(){
-			if (step == 1){
-				// baseAgent.finished();
-				// // For now the BakingManager terminates after sending the bakingRequest. This needs to change when adding the other agents (ovens and cooling racks)
-				// // Terminate the BakingManager after it sends a coolingRequest (this is for you Erick!)
-				// baseAgent.doDelete();
-				return true;
-
-			}
+			if (option == 2) {
+                return true;
+            }
 			return false;
 		}
 	}

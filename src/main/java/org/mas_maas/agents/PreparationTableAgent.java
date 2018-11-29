@@ -228,7 +228,7 @@ public class PreparationTableAgent extends BaseAgent {
                     fullPrepDone.set(true);
                     stepIdx = 0;
                     addBehaviour(new SendPreparationNotification(doughManagerAgents));
-                    this.done();
+                    // this.done();
                 }
             }
 

@@ -224,7 +224,7 @@ public class KneadingMachineAgent extends BaseAgent {
                 releaseUsedMachine(guidAvailable);
                 kneadingCounter = 0;
                 addBehaviour(new SendKneadingNotification());
-                this.done();
+                // this.done();
             }
         }
         public boolean done(){
