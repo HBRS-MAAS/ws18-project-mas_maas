@@ -1,6 +1,7 @@
 package org.mas_maas.agents;
 
 import java.util.Vector;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.mas_maas.JSONConverter;
 import org.mas_maas.messages.LoadingBayMessage;
@@ -23,9 +24,13 @@ import jade.lang.acl.MessageTemplate;
 public class CoolingAgent extends BaseAgent {
     private AID [] bakingManagerAgents;
 
+    private AtomicBoolean coolingInProcess = new AtomicBoolean(false);
+
     private String productName;
     private int quantity;
     private int boxingTemp;
+
+    private int coolingCounter;
 
     protected void setup() {
         super.setup();
@@ -38,6 +43,10 @@ public class CoolingAgent extends BaseAgent {
         // Get Agents AIDS
         this.getBakingManagerAIDs();
 
+        coolingCounter = 0;
+        // Time tracker behavior
+        addBehaviour(new timeTracker());
+
         // Creating receive cooling requests behaviour
         addBehaviour(new ReceiveCoolingRequests());
 
@@ -46,6 +55,21 @@ public class CoolingAgent extends BaseAgent {
     protected void takeDown() {
         System.out.println(getAID().getLocalName() + ": Terminating.");
         this.deRegister();
+    }
+
+    private class timeTracker extends CyclicBehaviour {
+        public void action() {
+            if (!baseAgent.getAllowAction()) {
+                return;
+            }else{
+                if (coolingInProcess.get()){
+                    coolingCounter++;
+                    System.out.println("-------> Cooler Clock-> " + baseAgent.getCurrentHour());
+                    System.out.println("-------> Cooler Counter -> " + coolingCounter);
+                }
+            }
+            baseAgent.finished();
+        }
     }
 
     public void getBakingManagerAIDs() {
@@ -83,23 +107,18 @@ public class CoolingAgent extends BaseAgent {
             ACLMessage msg = myAgent.receive(mt);
 
             if (msg != null) {
-
                 System.out.println("-------> " + getAID().getLocalName() + " received cooling requests from " + msg.getSender());
-
                 String content = msg.getContent();
-
+                System.out.println("Cooling request contains -> " + content);
                 CoolingRequest coolingRequest = JSONConverter.parseCoolingRequest(content);
 
                 ACLMessage reply = msg.createReply();
-
                 reply.setPerformative(ACLMessage.CONFIRM);
-
                 reply.setContent("Cooling request was received");
-
+                reply.setConversationId("cooling-request-reply");
                 baseAgent.sendMessage(reply);
 
                 Float coolingTime = coolingRequest.getCoolingTime();
-
                 productName = coolingRequest.getProductName();
                 quantity = coolingRequest.getQuantity();
                 boxingTemp = coolingRequest.getBoxingTemp();
@@ -117,28 +136,30 @@ public class CoolingAgent extends BaseAgent {
     // performs Cooling process
     private class Cooling extends Behaviour {
         private Float coolingTime;
-        private Float coolingCounter = (float) 0;
         private int option = 0;
 
         public Cooling(Float coolingTime){
             this.coolingTime = coolingTime;
             System.out.println("----> "+ getAID().getLocalName() + " Cooling for " + coolingTime);
+            coolingInProcess.set(true);
         }
 
         public void action(){
-            if (getAllowAction()){
-                while(coolingCounter < coolingTime){
-                    coolingCounter++;
-                    System.out.println("----> " + getAID().getLocalName() + " Cooling counter " + coolingCounter);
-                }
-                // addBehaviour(new SendLoadingBayMessage());
-                this.done();
+            if (coolingCounter >= coolingTime){
+                coolingInProcess.set(false);
+                coolingCounter = 0;
+                // addBehaviour(new SendDoughNotification());
+                System.out.println("----> I should send a loadingBay Message");
+                // this.done();
             }
 
         }
         public boolean done(){
-            baseAgent.finished();
-            return true;
+            if (coolingInProcess.get()){
+                return false;
+            }else{
+                return true;
+            }
         }
     }
 

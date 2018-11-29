@@ -660,7 +660,7 @@ public class BakingManager extends BaseAgent {
 		private String coolingRequest;
 		private int coolingRequestcounter;
 		private MessageTemplate mt;
-		private int step = 0;
+		private int option = 0;
 
 		public RequestCooling(String coolingRequest, int coolingRequestCounter){
 			this.coolingRequest = coolingRequest;
@@ -668,39 +668,48 @@ public class BakingManager extends BaseAgent {
 		}
 		public void action(){
 			//blocking action
-			if (!baseAgent.getAllowAction()) {
-				return;
-			}
-			switch(step){
-			case 0:
+			// if (!baseAgent.getAllowAction()) {
+			// 	return;
+			// }
+			switch(option){
+				case 0:
 
-				ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-				msg.setContent(coolingRequest);
-				// msg.setConversationId("baked-products-" + Integer.toString(coolingRequestCounter));
-				msg.setConversationId("cooling-request");
+					ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+					msg.setContent(coolingRequest);
+					msg.setConversationId("cooling-request");
 
-				// Send kneadingRequest msg to all kneadingMachineAgents
-				for (int i=0; i<coolingRackAgents.length; i++){
-					msg.addReceiver(coolingRackAgents[i]);
-				}
-				msg.setReplyWith("msg"+System.currentTimeMillis());
-				baseAgent.sendMessage(msg);  // calling sendMessage instead of send
+					// Send kneadingRequest msg to all kneadingMachineAgents
+					for (int i=0; i<coolingRackAgents.length; i++){
+						msg.addReceiver(coolingRackAgents[i]);
+					}
+					// msg.setReplyWith("msg"+System.currentTimeMillis());
+					baseAgent.sendMessage(msg);  // calling sendMessage instead of send
 
-				// mt = MessageTemplate.and(MessageTemplate.MatchConversationId("baked-products-" + Integer.toString(coolingRequestCounter)),
-				// 		MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
-				mt = MessageTemplate.and(MessageTemplate.MatchConversationId("cooling-request"),
-						MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
+					option = 1;
+					System.out.println(getLocalName()+" Sent coolingRequest" + coolingRequest);
+					break;
 
-				System.out.println(getLocalName()+" Sent coolingRequest" + coolingRequest);
-				step = 1;
-				break;
+				case 1:
+					mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.CONFIRM),
+                        MessageTemplate.MatchConversationId("cooling-request-reply"));
+
+                    ACLMessage reply = baseAgent.receive(mt);
+
+                    if (reply != null) {
+                        System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
+                        option = 2;
+                    }
+                    else {
+                        block();
+                    }
+                    break;
 
 			default:
 				break;
 			}
 		}
 		public boolean done(){
-			if (step == 1){
+			if (option == 2){
 				// baseAgent.finished();
 				return true;
 
