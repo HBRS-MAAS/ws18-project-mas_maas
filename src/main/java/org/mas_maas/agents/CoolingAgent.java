@@ -1,13 +1,9 @@
 package org.mas_maas.agents;
 
-import java.util.Vector;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.mas_maas.JSONConverter;
-import org.mas_maas.messages.LoadingBayMessage;
 import org.mas_maas.messages.CoolingRequest;
-
-import org.mas_maas.objects.Bakery;
 
 import com.google.gson.Gson;
 
@@ -164,78 +160,77 @@ public class CoolingAgent extends BaseAgent {
     }
 
     // Send a loadingBayMessage msg to the doughManager agents
-    // private class SendLoadingBayMessage extends Behaviour {
-    //     private AID [] bakingManagerAgents;
-    //     private MessageTemplate mt;
-    //     private int option = 0;
-    //     // private Vector<ProductPair> products;
-    //     private Gson gson = new Gson();
-    //     // private LoadingBayMessage loadingBayMessage = new LoadingBayMessage(guids, productName);
-    //     // private String loadingBayMessageString = gson.toJson(loadingBayMessage);
-    //
-    //     public SendLoadingBayMessage(AID [] bakingManagerAgents){
-    //
-    //         this.bakingManagerAgents = bakingManagerAgents;
-    //     }
-    //
-    //     public void action() {
-    //         switch (option) {
-    //             case 0:
-    //
-    //                 ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-    //
-    //                 System.out.println("-----> Cooling notification string " + loadingBayMessageString);
-    //
-    //                 msg.setContent(loadingBayMessageString);
-    //
-    //                 msg.setConversationId("loadingBay-message");
-    //
-    //                 // Send loadingBayMessage msg to bakingManagerAgents
-    //                 for (int i = 0; i < bakingManagerAgents.length; i++){
-    //                     msg.addReceiver(bakingManagerAgents[i]);
-    //                 }
-    //
-    //                 // msg.setReplyWith("msg" + System.currentTimeMillis());
-    //
-    //                 baseAgent.sendMessage(msg);
-    //
-    //                 mt = MessageTemplate.MatchConversationId("loadingBay-message");
-    //
-    //                 option = 1;
-    //
-    //                 System.out.println(getAID().getLocalName() + " Sent loadingBayMessage");
-    //
-    //                 break;
-    //
-    //             case 1:
-    //                 ACLMessage reply = baseAgent.receive(mt);
-    //
-    //                 if (reply != null) {
-    //
-    //                     if (reply.getPerformative() == ACLMessage.CONFIRM) {
-    //                         System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
-    //                         option = 2;
-    //                     }
-    //                 }
-    //                 else {
-    //                     block();
-    //                 }
-    //                 break;
-    //
-    //             default:
-    //                 break;
-    //         }
-    //     }
-    //
-    //     public boolean done() {
-    //         if (option == 2) {
-    //             baseAgent.finished();
-    //             myAgent.doDelete();
-    //             return true;
-    //         }
-    //
-    //        return false;
-    //    }
-    // }
+     private class SendLoadingBayMessage extends Behaviour {
+         private AID [] bakingManagerAgents;
+         private MessageTemplate mt;
+         private int option = 0;
+         // private Vector<ProductPair> products;
+         private Gson gson = new Gson();
+         // private LoadingBayMessage loadingBayMessage = new LoadingBayMessage(guids, productName);
+         // private String loadingBayMessageString = gson.toJson(loadingBayMessage);
 
+         public SendLoadingBayMessage(AID [] bakingManagerAgents){
+
+             this.bakingManagerAgents = bakingManagerAgents;
+         }
+
+         public void action() {
+             switch (option) {
+                 case 0:
+
+                     ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+
+                     System.out.println("-----> Cooling notification string " + loadingBayMessageString);
+
+                     msg.setContent(loadingBayMessageString);
+
+                     msg.setConversationId("loadingBay-message");
+
+                     // Send loadingBayMessage msg to bakingManagerAgents
+                     for (int i = 0; i < bakingManagerAgents.length; i++){
+                         msg.addReceiver(bakingManagerAgents[i]);
+                     }
+
+                     // msg.setReplyWith("msg" + System.currentTimeMillis());
+
+                     baseAgent.sendMessage(msg);
+
+                     mt = MessageTemplate.MatchConversationId("loadingBay-message");
+
+                     option = 1;
+
+                     System.out.println(getAID().getLocalName() + " Sent loadingBayMessage");
+
+                     break;
+
+                 case 1:
+                     ACLMessage reply = baseAgent.receive(mt);
+
+                     if (reply != null) {
+
+                         if (reply.getPerformative() == ACLMessage.CONFIRM) {
+                             System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
+                             option = 2;
+                         }
+                     }
+                     else {
+                         block();
+                     }
+                     break;
+
+                 default:
+                     break;
+             }
+         }
+
+         public boolean done() {
+             if (option == 2) {
+                 baseAgent.finished();
+                 myAgent.doDelete();
+                 return true;
+             }
+
+            return false;
+        }
+     }
 }
