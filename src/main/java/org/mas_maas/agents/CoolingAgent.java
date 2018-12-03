@@ -4,6 +4,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.mas_maas.JSONConverter;
 import org.mas_maas.messages.CoolingRequest;
+import org.mas_maas.messages.LoadingBayMessage;
 
 import com.google.gson.Gson;
 
@@ -19,6 +20,7 @@ import jade.lang.acl.MessageTemplate;
 
 public class CoolingAgent extends BaseAgent {
     private AID [] bakingManagerAgents;
+    private AID [] packagingInterfaceAgents;
 
     private AtomicBoolean coolingInProcess = new AtomicBoolean(false);
 
@@ -39,6 +41,8 @@ public class CoolingAgent extends BaseAgent {
         // Get Agents AIDS
         this.getBakingManagerAIDs();
 
+        this.getPackagingInterfaceManagerAIDs();
+
         coolingCounter = 0;
         // Time tracker behavior
         addBehaviour(new timeTracker());
@@ -46,6 +50,13 @@ public class CoolingAgent extends BaseAgent {
         // Creating receive cooling requests behaviour
         addBehaviour(new ReceiveCoolingRequests());
 
+    }
+    
+    public LoadingBayMessage createLoadingBayMessage(String productName, int quantity) {
+    	LoadingBayMessage loadingBayMessage = new LoadingBayMessage();
+    	loadingBayMessage.addProduct(productName, quantity);
+    	
+    	return loadingBayMessage;
     }
 
     protected void takeDown() {
@@ -93,6 +104,32 @@ public class CoolingAgent extends BaseAgent {
         }
     }
 
+    public void getPackagingInterfaceManagerAIDs() {
+        /*
+        Object the AID of all the dough-manager agents found
+        */
+        DFAgentDescription template = new DFAgentDescription();
+        ServiceDescription sd = new ServiceDescription();
+
+        sd.setType("Packaging-interface");
+        template.addServices(sd);
+        try {
+            DFAgentDescription [] result = DFService.search(this, template);
+            System.out.println(getAID().getLocalName() + "Found the following packaging-interface agents:");
+            packagingInterfaceAgents = new AID [result.length];
+
+            for (int i = 0; i < result.length; ++i) {
+                packagingInterfaceAgents[i] = result[i].getName();
+                System.out.println(packagingInterfaceAgents[i].getName());
+            }
+
+        }
+        catch (FIPAException fe) {
+            fe.printStackTrace();
+        }
+    }
+
+
     // Receiving Cooling requests behavior
     private class ReceiveCoolingRequests extends CyclicBehaviour {
         public void action() {
@@ -119,7 +156,7 @@ public class CoolingAgent extends BaseAgent {
                 quantity = coolingRequest.getQuantity();
                 boxingTemp = coolingRequest.getBoxingTemp();
 
-                addBehaviour(new Cooling(coolingTime));
+                addBehaviour(new Cooling(coolingTime, productName, quantity));
 
             }
 
@@ -133,9 +170,13 @@ public class CoolingAgent extends BaseAgent {
     private class Cooling extends Behaviour {
         private Float coolingTime;
         private int option = 0;
+        private String productName;
+        private int quantity;
 
-        public Cooling(Float coolingTime){
+        public Cooling(Float coolingTime, String productName, int quantity){
             this.coolingTime = coolingTime;
+            this.productName = productName;
+            this.quantity = quantity;
             System.out.println("----> "+ getAID().getLocalName() + " Cooling for " + coolingTime);
             coolingInProcess.set(true);
         }
@@ -144,8 +185,12 @@ public class CoolingAgent extends BaseAgent {
             if (coolingCounter >= coolingTime){
                 coolingInProcess.set(false);
                 coolingCounter = 0;
-                // addBehaviour(new SendDoughNotification());
-                System.out.println("----> I should send a loadingBay Message");
+                LoadingBayMessage loadingBayMessage = createLoadingBayMessage(productName, quantity);
+				
+                Gson gson = new Gson();
+                String loadingBayMessageString = gson.toJson(loadingBayMessage);
+                
+                addBehaviour(new SendLoadingBayMessage(packagingInterfaceAgents, loadingBayMessageString));
                 // this.done();
             }
 
@@ -161,7 +206,8 @@ public class CoolingAgent extends BaseAgent {
 
     // Send a loadingBayMessage msg to the doughManager agents
      private class SendLoadingBayMessage extends Behaviour {
-         private AID [] bakingManagerAgents;
+         private AID [] packagingInterfaceAgents;
+         private String loadingBayMessageString;
          private MessageTemplate mt;
          private int option = 0;
          // private Vector<ProductPair> products;
@@ -169,9 +215,10 @@ public class CoolingAgent extends BaseAgent {
          // private LoadingBayMessage loadingBayMessage = new LoadingBayMessage(guids, productName);
          // private String loadingBayMessageString = gson.toJson(loadingBayMessage);
 
-         public SendLoadingBayMessage(AID [] bakingManagerAgents){
+         public SendLoadingBayMessage(AID []packagingInterfaceAgents, String loadingBayMessageString){
 
-             this.bakingManagerAgents = bakingManagerAgents;
+             this.packagingInterfaceAgents = packagingInterfaceAgents;
+             this.loadingBayMessageString = loadingBayMessageString;
          }
 
          public void action() {
@@ -179,16 +226,17 @@ public class CoolingAgent extends BaseAgent {
                  case 0:
 
                      ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+                     System.out.println("---->  Sending a loadingBay Message");
 
-                     System.out.println("-----> Cooling notification string " + loadingBayMessageString);
+                     System.out.println("-----> LoadingBayMessage " + loadingBayMessageString);
 
                      msg.setContent(loadingBayMessageString);
 
                      msg.setConversationId("loadingBay-message");
 
-                     // Send loadingBayMessage msg to bakingManagerAgents
-                     for (int i = 0; i < bakingManagerAgents.length; i++){
-                         msg.addReceiver(bakingManagerAgents[i]);
+                     // Send loadingBayMessage msg to packagingInterfaceAgents
+                     for (int i = 0; i < packagingInterfaceAgents.length; i++){
+                         msg.addReceiver(packagingInterfaceAgents[i]);
                      }
 
                      // msg.setReplyWith("msg" + System.currentTimeMillis());

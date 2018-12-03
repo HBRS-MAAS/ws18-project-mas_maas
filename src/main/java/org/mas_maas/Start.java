@@ -19,6 +19,7 @@ public class Start {
         // agents.add("dummy2Agent:org.mas_maas.agents.dummy2Agent");
         agents.add("BakingPreparationAgent:org.mas_maas.agents.BakingPreparationAgent");
         agents.add("CoolingAgent:org.mas_maas.agents.CoolingAgent");
+        agents.add("PackagingInterfaceAgent:org.mas_maas.agents.PackagingInterfaceAgent");
 
         List<String> cmd = new Vector<>();
         cmd.add("-agents");
