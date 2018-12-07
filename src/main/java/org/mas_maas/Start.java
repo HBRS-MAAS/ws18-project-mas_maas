@@ -1,4 +1,5 @@
 package org.mas_maas;
+package org.maas;
 
 import java.util.List;
 import java.util.Vector;

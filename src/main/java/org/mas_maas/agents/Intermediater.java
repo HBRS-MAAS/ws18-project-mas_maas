@@ -35,79 +35,18 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
-public class BakingManager extends BaseAgent {
-	private Bakery bakery;
-	private HashMap<String, Order> orders = new HashMap<String, Order>();
+public class Intermediater extends BaseAgent {
 
-	private AID [] prooferAgents;
-	private AID [] ovenAgents;
-	private AID [] bakingPreparationAgents; // similar to the preparationTableAgents in the Dough Stage
 	private AID [] coolingRackAgents;
-
-	private AtomicBoolean coolingRequested = new AtomicBoolean(false);
-
-	private WorkQueue needsBaking;
-	private WorkQueue needsPreparation;
-	private WorkQueue needsCooling;
-	private static final String NEEDS_BAKING = "needsBaking";
-	private static final String NEEDS_PREPARATION = "needsPreparation";
-	private static final String NEEDS_COOLING = "needsCooling";
-	private int coolingRequestCounter = 0;
-
 
 	protected void setup() {
 		super.setup();
 		System.out.println(getAID().getLocalName() + " is ready.");
 
-		// Load bakery information (includes recipes for each product)
-		getbakery();
-
-		// Queue of productStatus which require baking
-		needsBaking = new WorkQueue();
-		// Queue of productStatus which require preparation (twisting, frying, ...)
-		needsPreparation = new WorkQueue();
-		// Queue of productStatus which require cooling
-		needsCooling = new WorkQueue();
-
 		// Register the Baking-manager in the yellow pages
-		this.register("Baking-manager", "JADE-bakery");
+		this.register("intermediater", "JADE-bakery");
 
-		this.getProoferAIDs();
-		this.getOvenAIDs();
-		this.getBakingPreparationAIDs();
 		this.getCoolingRackAIDs();
-
-
-		// Activate behavior that receives orders
-		// addBehaviour(new ReceiveOrders());
-
-		// For now, the orderProcessingAgents do not exist. The manager has an order object.
-		// Create order object
-
-		String productName = "Bagel";
-		int amount = 5;
-		BakedGood bakedGood = new BakedGood(productName, amount);
-
-		String customerId = "001";
-		String guid = "order-001";
-		int orderDay = 12;
-		int orderHour = 4;
-		int deliveryDate = 13;
-		int deliveryHour = 4;
-		Vector<BakedGood> bakedGoods = new Vector<BakedGood>();
-		bakedGoods.add(bakedGood);
-		Order order = new Order(customerId, guid, orderDay, orderHour, deliveryDate, deliveryHour, bakedGoods);
-
-		System.out.println(getAID().getName() + " received the order " + order);
-
-		orders.put(order.getGuid(), order);
-
-		addBehaviour(new ReceiveDoughNotification());
-		addBehaviour(new ReceiveBakingNotification());
-		addBehaviour(new ReceivePreparationNotification());
-
-		// Time tracker behavior
-        addBehaviour(new timeTracker());
 
 	}
 
@@ -116,59 +55,15 @@ public class BakingManager extends BaseAgent {
 		this.deRegister();
 	}
 
-	public void getProoferAIDs() {
-		DFAgentDescription template = new DFAgentDescription();
-		ServiceDescription sd = new ServiceDescription();
-
-		sd.setType("Proofer");
-		template.addServices(sd);
-		try {
-			DFAgentDescription [] result = DFService.search(this, template);
-			System.out.println(getAID().getLocalName() + "Found the following Proofer agents:");
-			prooferAgents = new AID [result.length];
-
-			for (int i = 0; i < result.length; ++i) {
-				prooferAgents[i] = result[i].getName();
-				System.out.println(prooferAgents[i].getName());
-			}
-
-		}
-		catch (FIPAException fe) {
-			fe.printStackTrace();
-		}
-	}
-
-	public void getOvenAIDs() {
-		DFAgentDescription template = new DFAgentDescription();
-		ServiceDescription sd = new ServiceDescription();
-
-		sd.setType("OvenAgent");
-		template.addServices(sd);
-		try {
-			DFAgentDescription [] result = DFService.search(this, template);
-			System.out.println(getAID().getLocalName() + "Found the following Oven agents:");
-			ovenAgents = new AID [result.length];
-
-			for (int i = 0; i < result.length; ++i) {
-				ovenAgents[i] = result[i].getName();
-				System.out.println(ovenAgents[i].getName());
-			}
-
-		}
-		catch (FIPAException fe) {
-			fe.printStackTrace();
-		}
-	}
-
 	public void getCoolingRackAIDs() {
 		DFAgentDescription template = new DFAgentDescription();
 		ServiceDescription sd = new ServiceDescription();
 
-		sd.setType("CoolingRack");
+		sd.setType("cooling-rack-agent");
 		template.addServices(sd);
 		try {
 			DFAgentDescription [] result = DFService.search(this, template);
-			System.out.println(getAID().getLocalName() + "Found the following Cooling agents:");
+			System.out.println(getAID().getLocalName() + "Found the following Cooling Rack agents:");
 			coolingRackAgents = new AID [result.length];
 
 			for (int i = 0; i < result.length; ++i) {
@@ -182,181 +77,16 @@ public class BakingManager extends BaseAgent {
 		}
 	}
 
-	public void getBakingPreparationAIDs() {
-		DFAgentDescription template = new DFAgentDescription();
-		ServiceDescription sd = new ServiceDescription();
-
-		sd.setType("BakingPreparation");
-		template.addServices(sd);
-		try {
-			DFAgentDescription [] result = DFService.search(this, template);
-			System.out.println(getAID().getLocalName() + "Found the following Baking Preparation agents:");
-			bakingPreparationAgents = new AID [result.length];
-
-			for (int i = 0; i < result.length; ++i) {
-				bakingPreparationAgents[i] = result[i].getName();
-				System.out.println(bakingPreparationAgents[i].getName());
-			}
-
-		}
-		catch (FIPAException fe) {
-			fe.printStackTrace();
-		}
-	}
-
-	private class timeTracker extends CyclicBehaviour {
-        public void action() {
-            if (!baseAgent.getAllowAction()) {
-                return;
-            }
-            // else{
-            //     System.out.println("-------> Baking Manager -> " + baseAgent.getCurrentHour());
-            // }
-            baseAgent.finished();
-        }
-    }
-
-	public void getbakery(){
-
-		String jsonDir = "src/main/resources/config/shared_stage_communication/";
-		try {
-			System.out.println("Working Directory = " + System.getProperty("user.dir"));
-			String bakeryFile = new Scanner(new File(jsonDir + "bakery.json")).useDelimiter("\\Z").next();
-			Vector<Bakery> bakeries = JSONConverter.parseBakeries(bakeryFile);
-			for (Bakery bakery : bakeries)
-			{
-				this.bakery = bakery;
-			}
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-
-	public void queueBaking(String productType, Vector<String> guids, Vector<Integer> productQuantities ) {
-		// Add productStatus to the needsBaking WorkQueue
-
-		for (String guid : guids) {
-
-			int amount = -1;
-			String status = NEEDS_BAKING;
-			Product product = bakery.findProduct(productType);
-			Order order = orders.get(guid);
-
-			for(BakedGood bakedGood : order.getBakedGoods()) {
-				if (bakedGood.getName().equals(productType)) {
-					amount = bakedGood.getAmount();
-				}
-
-			}
-			ProductStatus productStatus = new ProductStatus(guid, status, amount, product);
-			needsBaking.addProduct(productStatus);
-		}
-	}
-
-	public void queuePreparation(String productType, Vector<String> guids ) {
-		// Add productStatus to the needsPreparation WorkQueue
-
-		for (String guid : guids) {
-
-			int amount = -1;
-			String status = NEEDS_PREPARATION;
-			Product product = bakery.findProduct(productType);
-			Order order = orders.get(guid);
-
-			for(BakedGood bakedGood : order.getBakedGoods()) {
-				if (bakedGood.getName().equals(productType)) {
-					amount = bakedGood.getAmount();
-				}
-
-			}
-			ProductStatus productStatus = new ProductStatus(guid, status, amount, product);
-			needsPreparation.addProduct(productStatus);
-		}
-	}
-
-	public void queueCooling(String productType, Vector<String> guids ) {
-		// Add productStatus to the needsCooling WorkQueue
-
-		for (String guid : guids) {
-
-			int amount = -1;
-			String status = NEEDS_COOLING;
-			Product product = bakery.findProduct(productType);
-			Order order = orders.get(guid);
-
-			for(BakedGood bakedGood : order.getBakedGoods()) {
-				if (bakedGood.getName().equals(productType)) {
-					amount = bakedGood.getAmount();
-				}
-
-			}
-			ProductStatus productStatus = new ProductStatus(guid, status, amount, product);
-			needsCooling.addProduct(productStatus);
-		}
-	}
-
-	public BakingRequest createBakingRequest() {
-		// Checks the needsBaking WorkQueue and creates a bakingRequestMessage
-		Vector<ProductStatus> products = needsBaking.getProductBatch();
-
-		BakingRequest bakingRequest = null;
-
-		if (products != null) {
-
-			Vector<String> guids = new Vector<String>();
-			Vector<Integer> productQuantities = new Vector<Integer>();
-
-
-			for (ProductStatus productStatus : products) {
-				guids.add(productStatus.getGuid());
-				productQuantities.add(productStatus.getAmount());
-			}
-
-			String productType = products.get(0).getProduct().getGuid();
-
-			int bakingTemp = products.get(0).getProduct().getRecipe().getBakingTemp();
-			float bakingTime = products.get(0).getProduct().getRecipe().getActionTime(Step.BAKING_STEP);
-
-
-			bakingRequest = new BakingRequest(guids, productType, bakingTemp, bakingTime, productQuantities);
-
-		}
-
-		return bakingRequest;
-
-	}
-
-	public PreparationRequest createPreparationRequestMessage() {
-		// Checks the needsPreparaion WorkQueue and creates a preparationRequestMessage
-		Vector<ProductStatus> products = needsPreparation.getProductBatch();
-
-		PreparationRequest preparationRequest = null;
-
-		if (products != null) {
-
-			Vector<String> guids = new Vector<String>();
-			Vector<Integer> productQuantities = new Vector<Integer>();
-			Vector<Step> steps = new Vector<Step>();
-
-
-
-			for (ProductStatus productStatus : products) {
-				guids.add(productStatus.getGuid());
-				productQuantities.add(productStatus.getAmount());
-			}
-
-			String productType = products.get(0).getProduct().getGuid();
-			steps = products.get(0).getProduct().getRecipe().getBakingPreparationSteps();
-
-			preparationRequest = new PreparationRequest(guids, productType, productQuantities, steps);
-		}
-
-		return preparationRequest;
-
-	}
-
 	public Vector<CoolingRequest> createCoolingRequests() {
+
+		// Creates a dummy cooling Request Message for testing
+
+		String guid = "Donut";
+		int quantity = 7;
+		float coolingDuration = 1;
+
+		CoolingRequest coolingRequest = new CoolingRequest(guid, coolingTime, quantity)
+
 		// Checks the needsCooling WorkQueue and creates a coolingRequestMessage
 		Vector<ProductStatus> products = needsCooling.getProductBatch();
 		Vector<CoolingRequest> coolingRequests = new Vector<CoolingRequest>();
