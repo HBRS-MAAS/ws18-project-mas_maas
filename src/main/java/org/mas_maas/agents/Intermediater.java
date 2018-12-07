@@ -13,7 +13,8 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
-// This is a dummy agent for testing communication with the CoolingRackAgent
+// This is a dummy agent for testing communication with the CoolingRackAgent. 
+// TODO: Time tracking should be integrated to this agent
 
 public class Intermediater extends BaseAgent {
 
