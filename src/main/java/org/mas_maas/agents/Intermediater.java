@@ -1,14 +1,11 @@
 package org.mas_maas.agents;
 
-import org.maas.utils.JsonConverter;
 import org.mas_maas.messages.CoolingRequest;
-import org.mas_maas.messages.LoadingBayMessage;
 
 import com.google.gson.Gson;
 
 import jade.core.AID;
 import jade.core.behaviours.Behaviour;
-import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -20,109 +17,113 @@ import jade.lang.acl.MessageTemplate;
 
 public class Intermediater extends BaseAgent {
 
-	private AID [] coolingRackAgents;
-	private int coolingRequestCounter = 0;
+    private AID [] coolingRackAgents;
+    private int coolingRequestCounter = 0;
 
-	protected void setup() {
-		super.setup();
-		System.out.println("Hello, intermediater" + getAID().getLocalName() + " is ready.");
+    protected void setup() {
+        super.setup();
+        System.out.println("Hello, intermediater" + getAID().getLocalName() + " is ready.");
 
-		// Register the Baking-manager in the yellow pages
-		this.register("intermediater", "JADE-bakery");
+        // Register the Baking-manager in the yellow pages
+        this.register("intermediater", "JADE-bakery");
 
-		this.getCoolingRackAIDs();
-		// Send dummy coolingRequest
-		CoolingRequest coolingRequest = createCoolingRequest();
-		Gson gson = new Gson();
-		String coolingRequestString = gson.toJson(coolingRequest);
-		
-		//String coolingRequestString = JsonConverter.getJsonString(coolingRequest);
-		
-		System.out.println("Cooling request: " + coolingRequestString);
-		
-		addBehaviour(new RequestCooling(coolingRequestString, coolingRequestCounter));
-		coolingRequestCounter ++;
+        this.getCoolingRackAIDs();
+        // Send dummy coolingRequest
+        CoolingRequest coolingRequest = createCoolingRequest();
+        Gson gson = new Gson();
+        String coolingRequestString = gson.toJson(coolingRequest);
 
-	}
+        // hacky way to remove the charaters before the json array section of the string and the '}' after
+        coolingRequestString = coolingRequestString.replaceFirst(".*?:", "");
+        coolingRequestString = coolingRequestString.substring(0, coolingRequestString.length() - 1);
 
-	protected void takeDown() {
-		System.out.println(getAID().getLocalName() + ": Terminating.");
-		this.deRegister();
-	}
+        //String coolingRequestString = JsonConverter.getJsonString(coolingRequest);
 
-	public void getCoolingRackAIDs() {
-		DFAgentDescription template = new DFAgentDescription();
-		ServiceDescription sd = new ServiceDescription();
+        System.out.println("Cooling request: " + coolingRequestString);
 
-		sd.setType("cooling-rack-agent");
-		template.addServices(sd);
-		try {
-			DFAgentDescription [] result = DFService.search(this, template);
-			System.out.println(getAID().getLocalName() + "Found the following Cooling Rack agents:");
-			coolingRackAgents = new AID [result.length];
+        addBehaviour(new RequestCooling(coolingRequestString, coolingRequestCounter));
+        coolingRequestCounter ++;
 
-			for (int i = 0; i < result.length; ++i) {
-				coolingRackAgents[i] = result[i].getName();
-				System.out.println(coolingRackAgents[i].getName());
-			}
+    }
 
-		}
-		catch (FIPAException fe) {
-			fe.printStackTrace();
-		}
-	}
+    protected void takeDown() {
+        System.out.println(getAID().getLocalName() + ": Terminating.");
+        this.deRegister();
+    }
 
-	public CoolingRequest createCoolingRequest() {
+    public void getCoolingRackAIDs() {
+        DFAgentDescription template = new DFAgentDescription();
+        ServiceDescription sd = new ServiceDescription();
 
-		// Creates a dummy cooling Request Message for testing
+        sd.setType("cooling-rack-agent");
+        template.addServices(sd);
+        try {
+            DFAgentDescription [] result = DFService.search(this, template);
+            System.out.println(getAID().getLocalName() + "Found the following Cooling Rack agents:");
+            coolingRackAgents = new AID [result.length];
 
-		String guid = "Donut";
-		int quantity = 7;
-		float coolingDuration = 1;
+            for (int i = 0; i < result.length; ++i) {
+                coolingRackAgents[i] = result[i].getName();
+                System.out.println(coolingRackAgents[i].getName());
+            }
 
-		CoolingRequest coolingRequest = new CoolingRequest();
-		coolingRequest.addCoolingRequest(guid, coolingDuration, quantity);
-		
-		return coolingRequest;
+        }
+        catch (FIPAException fe) {
+            fe.printStackTrace();
+        }
+    }
 
-	}
+    public CoolingRequest createCoolingRequest() {
 
-	//This is the behaviour used for sending a CoolingRequest
-	private class RequestCooling extends Behaviour{
-		private String coolingRequest;
-		private int coolingRequestcounter;
-		private MessageTemplate mt;
-		private int option = 0;
+        // Creates a dummy cooling Request Message for testing
 
-		public RequestCooling(String coolingRequest, int coolingRequestCounter){
-			this.coolingRequest = coolingRequest;
-			this.coolingRequestcounter = coolingRequestCounter;
-		}
-		public void action(){
-			//blocking action
-			// if (!baseAgent.getAllowAction()) {
-			// 	return;
-			// }
-			switch(option){
-				case 0:
+        String guid = "Donut";
+        int quantity = 7;
+        float coolingDuration = 1;
 
-					ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-					msg.setContent(coolingRequest);
-					msg.setConversationId("cooling-request");
+        CoolingRequest coolingRequest = new CoolingRequest();
+        coolingRequest.addCoolingRequest(guid, coolingDuration, quantity);
+        
+        return coolingRequest;
 
-					// Send kneadingRequest msg to all kneadingMachineAgents
-					for (int i=0; i<coolingRackAgents.length; i++){
-						msg.addReceiver(coolingRackAgents[i]);
-					}
-					// msg.setReplyWith("msg"+System.currentTimeMillis());
-					baseAgent.sendMessage(msg);  // calling sendMessage instead of send
+    }
 
-					option = 1;
-					System.out.println(getLocalName()+" Sent coolingRequest" + coolingRequest);
-					break;
+    //This is the behaviour used for sending a CoolingRequest
+    private class RequestCooling extends Behaviour{
+        private String coolingRequest;
+        private int coolingRequestcounter;
+        private MessageTemplate mt;
+        private int option = 0;
 
-				case 1:
-					mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.CONFIRM),
+        public RequestCooling(String coolingRequest, int coolingRequestCounter){
+            this.coolingRequest = coolingRequest;
+            this.coolingRequestcounter = coolingRequestCounter;
+        }
+        public void action(){
+            //blocking action
+            // if (!baseAgent.getAllowAction()) {
+            //     return;
+            // }
+            switch(option){
+                case 0:
+
+                    ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+                    msg.setContent(coolingRequest);
+                    msg.setConversationId("cooling-request");
+
+                    // Send kneadingRequest msg to all kneadingMachineAgents
+                    for (int i=0; i<coolingRackAgents.length; i++){
+                        msg.addReceiver(coolingRackAgents[i]);
+                    }
+                    // msg.setReplyWith("msg"+System.currentTimeMillis());
+                    baseAgent.sendMessage(msg);  // calling sendMessage instead of send
+
+                    option = 1;
+                    System.out.println(getLocalName()+" Sent coolingRequest" + coolingRequest);
+                    break;
+
+                case 1:
+                    mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.CONFIRM),
                         MessageTemplate.MatchConversationId("cooling-request-reply"));
 
                     ACLMessage reply = baseAgent.receive(mt);
@@ -136,19 +137,19 @@ public class Intermediater extends BaseAgent {
                     }
                     break;
 
-			default:
-				break;
-			}
-		}
-		public boolean done(){
-			if (option == 2){
-				// baseAgent.finished();
-				return true;
+            default:
+                break;
+            }
+        }
+        public boolean done(){
+            if (option == 2){
+                // baseAgent.finished();
+                return true;
 
-			}
-			return false;
-		}
-	}
+            }
+            return false;
+        }
+    }
 
 
 

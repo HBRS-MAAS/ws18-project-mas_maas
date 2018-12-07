@@ -628,23 +628,22 @@ public class JSONConverter
     public static CoolingRequest parseCoolingRequest(String jsonString)
     {
         JsonElement root = new JsonParser().parse(jsonString);
-        JsonObject jsonCoolingRequest = root.getAsJsonObject();
-        
+
         CoolingRequest coolingRequest = new CoolingRequest();
-        
-        JsonArray jsonProducts = jsonCoolingRequest.get("products").getAsJsonArray();
-        for (JsonElement product : jsonProducts)
+
+        JsonArray jsonCoolingRequests = root.getAsJsonArray();
+        for (JsonElement jsonCoolingRequest : jsonCoolingRequests)
         {
-            JsonObject jsonProduct = product.getAsJsonObject();
-            String  = jsonProduct.get("guid").getAsString();
-            int quantity = jsonProduct.get("quantity").getAsInt();
-            float coolingDuration = jsonProduct.get("coolingDuration").getAsFloat();
+            JsonObject CoolingRequeatjson = jsonCoolingRequest.getAsJsonObject();
+            String guid = CoolingRequeatjson.get("guid").getAsString();
+            int quantity = CoolingRequeatjson.get("quantity").getAsInt();
+            float coolingDuration = CoolingRequeatjson.get("coolingDuration").getAsFloat();
 
             coolingRequest.addCoolingRequest(guid, coolingDuration, quantity);
         }
 
         return coolingRequest;
-        
+
     }
 
     public static LoadingBayMessage parseLoadingBayMessage(String jsonString)
