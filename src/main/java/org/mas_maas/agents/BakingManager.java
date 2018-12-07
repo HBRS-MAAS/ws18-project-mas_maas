@@ -4,17 +4,15 @@ import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Scanner;
 import java.util.Vector;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.mas_maas.JSONConverter;
-import org.mas_maas.messages.DoughNotification;
-import org.mas_maas.messages.BakingRequest;
 import org.mas_maas.messages.BakingNotification;
-import org.mas_maas.messages.PreparationRequest;
-import org.mas_maas.messages.PreparationNotification;
+import org.mas_maas.messages.BakingRequest;
 import org.mas_maas.messages.CoolingRequest;
-import org.mas_maas.messages.LoadingBayMessage;
-import org.mas_maas.messages.ProofingRequest;
+import org.mas_maas.messages.DoughNotification;
+import org.mas_maas.messages.PreparationNotification;
+import org.mas_maas.messages.PreparationRequest;
 import org.mas_maas.objects.BakedGood;
 import org.mas_maas.objects.Bakery;
 import org.mas_maas.objects.Order;
@@ -36,661 +34,663 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
 public class BakingManager extends BaseAgent {
-	private Bakery bakery;
-	private HashMap<String, Order> orders = new HashMap<String, Order>();
+    private Bakery bakery;
+    private HashMap<String, Order> orders = new HashMap<String, Order>();
 
-	private AID [] prooferAgents;
-	private AID [] ovenAgents;
-	private AID [] bakingPreparationAgents; // similar to the preparationTableAgents in the Dough Stage
-	private AID [] coolingRackAgents;
+    private AID [] prooferAgents;
+    private AID [] ovenAgents;
+    private AID [] bakingPreparationAgents; // similar to the preparationTableAgents in the Dough Stage
+    private AID [] coolingRackAgents;
 
-	private AtomicBoolean coolingRequested = new AtomicBoolean(false);
+    private AtomicInteger messageProcessing = new AtomicInteger(0);
 
-	private WorkQueue needsBaking;
-	private WorkQueue needsPreparation;
-	private WorkQueue needsCooling;
-	private static final String NEEDS_BAKING = "needsBaking";
-	private static final String NEEDS_PREPARATION = "needsPreparation";
-	private static final String NEEDS_COOLING = "needsCooling";
-	private int coolingRequestCounter = 0;
-
-
-	protected void setup() {
-		super.setup();
-		System.out.println(getAID().getLocalName() + " is ready.");
-
-		// Load bakery information (includes recipes for each product)
-		getbakery();
-
-		// Queue of productStatus which require baking
-		needsBaking = new WorkQueue();
-		// Queue of productStatus which require preparation (twisting, frying, ...)
-		needsPreparation = new WorkQueue();
-		// Queue of productStatus which require cooling
-		needsCooling = new WorkQueue();
-
-		// Register the Baking-manager in the yellow pages
-		this.register("Baking-manager", "JADE-bakery");
-
-		this.getProoferAIDs();
-		this.getOvenAIDs();
-		this.getBakingPreparationAIDs();
-		this.getCoolingRackAIDs();
+    private WorkQueue needsBaking;
+    private WorkQueue needsPreparation;
+    private WorkQueue needsCooling;
+    private static final String NEEDS_BAKING = "needsBaking";
+    private static final String NEEDS_PREPARATION = "needsPreparation";
+    private static final String NEEDS_COOLING = "needsCooling";
+    private int coolingRequestCounter = 0;
 
 
-		// Activate behavior that receives orders
-		// addBehaviour(new ReceiveOrders());
+    protected void setup() {
+        super.setup();
+        System.out.println(getAID().getLocalName() + " is ready.");
 
-		// For now, the orderProcessingAgents do not exist. The manager has an order object.
-		// Create order object
+        // Load bakery information (includes recipes for each product)
+        getbakery();
 
-		String productName = "Bagel";
-		int amount = 5;
-		BakedGood bakedGood = new BakedGood(productName, amount);
+        // Queue of productStatus which require baking
+        needsBaking = new WorkQueue();
+        // Queue of productStatus which require preparation (twisting, frying, ...)
+        needsPreparation = new WorkQueue();
+        // Queue of productStatus which require cooling
+        needsCooling = new WorkQueue();
 
-		String customerId = "001";
-		String guid = "order-001";
-		int orderDay = 12;
-		int orderHour = 4;
-		int deliveryDate = 13;
-		int deliveryHour = 4;
-		Vector<BakedGood> bakedGoods = new Vector<BakedGood>();
-		bakedGoods.add(bakedGood);
-		Order order = new Order(customerId, guid, orderDay, orderHour, deliveryDate, deliveryHour, bakedGoods);
+        // Register the Baking-manager in the yellow pages
+        this.register("Baking-manager", "JADE-bakery");
 
-		System.out.println(getAID().getName() + " received the order " + order);
+        this.getProoferAIDs();
+        this.getOvenAIDs();
+        this.getBakingPreparationAIDs();
+        this.getCoolingRackAIDs();
 
-		orders.put(order.getGuid(), order);
+        // Activate behavior that receives orders
+        // addBehaviour(new ReceiveOrders());
 
-		addBehaviour(new ReceiveDoughNotification());
-		addBehaviour(new ReceiveBakingNotification());
-		addBehaviour(new ReceivePreparationNotification());
+        // For now, the orderProcessingAgents do not exist. The manager has an order object.
+        // Create order object
 
-		// Time tracker behavior
+        String productName = "Bagel";
+        int amount = 5;
+        BakedGood bakedGood = new BakedGood(productName, amount);
+
+        String customerId = "001";
+        String guid = "order-001";
+        int orderDay = 12;
+        int orderHour = 4;
+        int deliveryDate = 13;
+        int deliveryHour = 4;
+        Vector<BakedGood> bakedGoods = new Vector<BakedGood>();
+        bakedGoods.add(bakedGood);
+        Order order = new Order(customerId, guid, orderDay, orderHour, deliveryDate, deliveryHour, bakedGoods);
+
+        System.out.println(getAID().getName() + " received the order " + order);
+
+        orders.put(order.getGuid(), order);
+
+        addBehaviour(new ReceiveDoughNotification());
+        addBehaviour(new ReceiveBakingNotification());
+        addBehaviour(new ReceivePreparationNotification());
+
+        // Time tracker behavior
         addBehaviour(new timeTracker());
 
-	}
+    }
 
-	protected void takeDown() {
-		System.out.println(getAID().getLocalName() + ": Terminating.");
-		this.deRegister();
-	}
+    protected void takeDown() {
+        System.out.println(getAID().getLocalName() + ": Terminating.");
+        this.deRegister();
+    }
 
-	public void getProoferAIDs() {
-		DFAgentDescription template = new DFAgentDescription();
-		ServiceDescription sd = new ServiceDescription();
+    public void getProoferAIDs() {
+        DFAgentDescription template = new DFAgentDescription();
+        ServiceDescription sd = new ServiceDescription();
 
-		sd.setType("Proofer");
-		template.addServices(sd);
-		try {
-			DFAgentDescription [] result = DFService.search(this, template);
-			System.out.println(getAID().getLocalName() + "Found the following Proofer agents:");
-			prooferAgents = new AID [result.length];
+        sd.setType("Proofer");
+        template.addServices(sd);
+        try {
+            DFAgentDescription [] result = DFService.search(this, template);
+            System.out.println(getAID().getLocalName() + "Found the following Proofer agents:");
+            prooferAgents = new AID [result.length];
 
-			for (int i = 0; i < result.length; ++i) {
-				prooferAgents[i] = result[i].getName();
-				System.out.println(prooferAgents[i].getName());
-			}
-
-		}
-		catch (FIPAException fe) {
-			fe.printStackTrace();
-		}
-	}
-
-	public void getOvenAIDs() {
-		DFAgentDescription template = new DFAgentDescription();
-		ServiceDescription sd = new ServiceDescription();
-
-		sd.setType("OvenAgent");
-		template.addServices(sd);
-		try {
-			DFAgentDescription [] result = DFService.search(this, template);
-			System.out.println(getAID().getLocalName() + "Found the following Oven agents:");
-			ovenAgents = new AID [result.length];
-
-			for (int i = 0; i < result.length; ++i) {
-				ovenAgents[i] = result[i].getName();
-				System.out.println(ovenAgents[i].getName());
-			}
-
-		}
-		catch (FIPAException fe) {
-			fe.printStackTrace();
-		}
-	}
-
-	public void getCoolingRackAIDs() {
-		DFAgentDescription template = new DFAgentDescription();
-		ServiceDescription sd = new ServiceDescription();
-
-		sd.setType("CoolingRack");
-		template.addServices(sd);
-		try {
-			DFAgentDescription [] result = DFService.search(this, template);
-			System.out.println(getAID().getLocalName() + "Found the following Cooling agents:");
-			coolingRackAgents = new AID [result.length];
-
-			for (int i = 0; i < result.length; ++i) {
-				coolingRackAgents[i] = result[i].getName();
-				System.out.println(coolingRackAgents[i].getName());
-			}
-
-		}
-		catch (FIPAException fe) {
-			fe.printStackTrace();
-		}
-	}
-
-	public void getBakingPreparationAIDs() {
-		DFAgentDescription template = new DFAgentDescription();
-		ServiceDescription sd = new ServiceDescription();
-
-		sd.setType("BakingPreparation");
-		template.addServices(sd);
-		try {
-			DFAgentDescription [] result = DFService.search(this, template);
-			System.out.println(getAID().getLocalName() + "Found the following Baking Preparation agents:");
-			bakingPreparationAgents = new AID [result.length];
-
-			for (int i = 0; i < result.length; ++i) {
-				bakingPreparationAgents[i] = result[i].getName();
-				System.out.println(bakingPreparationAgents[i].getName());
-			}
-
-		}
-		catch (FIPAException fe) {
-			fe.printStackTrace();
-		}
-	}
-
-	private class timeTracker extends CyclicBehaviour {
-        public void action() {
-            if (!baseAgent.getAllowAction()) {
-                return;
+            for (int i = 0; i < result.length; ++i) {
+                prooferAgents[i] = result[i].getName();
+                System.out.println(prooferAgents[i].getName());
             }
-            // else{
-            //     System.out.println("-------> Baking Manager -> " + baseAgent.getCurrentHour());
-            // }
-            baseAgent.finished();
+
+        }
+        catch (FIPAException fe) {
+            fe.printStackTrace();
         }
     }
 
-	public void getbakery(){
-
-		String jsonDir = "src/main/resources/config/shared_stage_communication/";
-		try {
-			System.out.println("Working Directory = " + System.getProperty("user.dir"));
-			String bakeryFile = new Scanner(new File(jsonDir + "bakery.json")).useDelimiter("\\Z").next();
-			Vector<Bakery> bakeries = JSONConverter.parseBakeries(bakeryFile);
-			for (Bakery bakery : bakeries)
-			{
-				this.bakery = bakery;
-			}
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
+    public void getOvenAIDs() {
+        DFAgentDescription template = new DFAgentDescription();
+        ServiceDescription sd = new ServiceDescription();
+
+        sd.setType("OvenAgent");
+        template.addServices(sd);
+        try {
+            DFAgentDescription [] result = DFService.search(this, template);
+            System.out.println(getAID().getLocalName() + "Found the following Oven agents:");
+            ovenAgents = new AID [result.length];
+
+            for (int i = 0; i < result.length; ++i) {
+                ovenAgents[i] = result[i].getName();
+                System.out.println(ovenAgents[i].getName());
+            }
+
+        }
+        catch (FIPAException fe) {
+            fe.printStackTrace();
+        }
+    }
+
+    public void getCoolingRackAIDs() {
+        DFAgentDescription template = new DFAgentDescription();
+        ServiceDescription sd = new ServiceDescription();
+
+        sd.setType("CoolingRack");
+        template.addServices(sd);
+        try {
+            DFAgentDescription [] result = DFService.search(this, template);
+            System.out.println(getAID().getLocalName() + "Found the following Cooling agents:");
+            coolingRackAgents = new AID [result.length];
+
+            for (int i = 0; i < result.length; ++i) {
+                coolingRackAgents[i] = result[i].getName();
+                System.out.println(coolingRackAgents[i].getName());
+            }
+
+        }
+        catch (FIPAException fe) {
+            fe.printStackTrace();
+        }
+    }
+
+    public void getBakingPreparationAIDs() {
+        DFAgentDescription template = new DFAgentDescription();
+        ServiceDescription sd = new ServiceDescription();
+
+        sd.setType("BakingPreparation");
+        template.addServices(sd);
+        try {
+            DFAgentDescription [] result = DFService.search(this, template);
+            System.out.println(getAID().getLocalName() + "Found the following Baking Preparation agents:");
+            bakingPreparationAgents = new AID [result.length];
+
+            for (int i = 0; i < result.length; ++i) {
+                bakingPreparationAgents[i] = result[i].getName();
+                System.out.println(bakingPreparationAgents[i].getName());
+            }
+
+        }
+        catch (FIPAException fe) {
+            fe.printStackTrace();
+        }
+    }
+
+    private class timeTracker extends CyclicBehaviour {
+        public void action() {
+            // first we make sure we are even allowed to do anything
+            if (!baseAgent.getAllowAction()) {
+                return;
+            }
+
+            // once we know our agent is able to do an action check to make sure we aren't in the middle of processing a message
+            if (messageProcessing.get() == 0)
+            {
+                baseAgent.finished();
+            }
+        }
+    }
+
+    public void getbakery(){
+
+        String jsonDir = "src/main/resources/config/shared_stage_communication/";
+        try {
+            System.out.println("Working Directory = " + System.getProperty("user.dir"));
+            String bakeryFile = new Scanner(new File(jsonDir + "bakery.json")).useDelimiter("\\Z").next();
+            Vector<Bakery> bakeries = JSONConverter.parseBakeries(bakeryFile);
+            for (Bakery bakery : bakeries)
+            {
+                this.bakery = bakery;
+            }
+        } catch (FileNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+
+    public void queueBaking(String productType, Vector<String> guids, Vector<Integer> productQuantities ) {
+        // Add productStatus to the needsBaking WorkQueue
+
+        for (String guid : guids) {
 
-	public void queueBaking(String productType, Vector<String> guids, Vector<Integer> productQuantities ) {
-		// Add productStatus to the needsBaking WorkQueue
+            int amount = -1;
+            String status = NEEDS_BAKING;
+            Product product = bakery.findProduct(productType);
+            Order order = orders.get(guid);
 
-		for (String guid : guids) {
+            for(BakedGood bakedGood : order.getBakedGoods()) {
+                if (bakedGood.getName().equals(productType)) {
+                    amount = bakedGood.getAmount();
+                }
 
-			int amount = -1;
-			String status = NEEDS_BAKING;
-			Product product = bakery.findProduct(productType);
-			Order order = orders.get(guid);
+            }
+            ProductStatus productStatus = new ProductStatus(guid, status, amount, product);
+            needsBaking.addProduct(productStatus);
+        }
+    }
 
-			for(BakedGood bakedGood : order.getBakedGoods()) {
-				if (bakedGood.getName().equals(productType)) {
-					amount = bakedGood.getAmount();
-				}
+    public void queuePreparation(String productType, Vector<String> guids ) {
+        // Add productStatus to the needsPreparation WorkQueue
 
-			}
-			ProductStatus productStatus = new ProductStatus(guid, status, amount, product);
-			needsBaking.addProduct(productStatus);
-		}
-	}
+        for (String guid : guids) {
 
-	public void queuePreparation(String productType, Vector<String> guids ) {
-		// Add productStatus to the needsPreparation WorkQueue
+            int amount = -1;
+            String status = NEEDS_PREPARATION;
+            Product product = bakery.findProduct(productType);
+            Order order = orders.get(guid);
 
-		for (String guid : guids) {
+            for(BakedGood bakedGood : order.getBakedGoods()) {
+                if (bakedGood.getName().equals(productType)) {
+                    amount = bakedGood.getAmount();
+                }
 
-			int amount = -1;
-			String status = NEEDS_PREPARATION;
-			Product product = bakery.findProduct(productType);
-			Order order = orders.get(guid);
+            }
+            ProductStatus productStatus = new ProductStatus(guid, status, amount, product);
+            needsPreparation.addProduct(productStatus);
+        }
+    }
 
-			for(BakedGood bakedGood : order.getBakedGoods()) {
-				if (bakedGood.getName().equals(productType)) {
-					amount = bakedGood.getAmount();
-				}
+    public void queueCooling(String productType, Vector<String> guids ) {
+        // Add productStatus to the needsCooling WorkQueue
 
-			}
-			ProductStatus productStatus = new ProductStatus(guid, status, amount, product);
-			needsPreparation.addProduct(productStatus);
-		}
-	}
+        for (String guid : guids) {
 
-	public void queueCooling(String productType, Vector<String> guids ) {
-		// Add productStatus to the needsCooling WorkQueue
+            int amount = -1;
+            String status = NEEDS_COOLING;
+            Product product = bakery.findProduct(productType);
+            Order order = orders.get(guid);
 
-		for (String guid : guids) {
+            for(BakedGood bakedGood : order.getBakedGoods()) {
+                if (bakedGood.getName().equals(productType)) {
+                    amount = bakedGood.getAmount();
+                }
 
-			int amount = -1;
-			String status = NEEDS_COOLING;
-			Product product = bakery.findProduct(productType);
-			Order order = orders.get(guid);
+            }
+            ProductStatus productStatus = new ProductStatus(guid, status, amount, product);
+            needsCooling.addProduct(productStatus);
+        }
+    }
 
-			for(BakedGood bakedGood : order.getBakedGoods()) {
-				if (bakedGood.getName().equals(productType)) {
-					amount = bakedGood.getAmount();
-				}
+    public BakingRequest createBakingRequest() {
+        // Checks the needsBaking WorkQueue and creates a bakingRequestMessage
+        Vector<ProductStatus> products = needsBaking.getProductBatch();
 
-			}
-			ProductStatus productStatus = new ProductStatus(guid, status, amount, product);
-			needsCooling.addProduct(productStatus);
-		}
-	}
+        BakingRequest bakingRequest = null;
 
-	public BakingRequest createBakingRequest() {
-		// Checks the needsBaking WorkQueue and creates a bakingRequestMessage
-		Vector<ProductStatus> products = needsBaking.getProductBatch();
+        if (products != null) {
 
-		BakingRequest bakingRequest = null;
+            Vector<String> guids = new Vector<String>();
+            Vector<Integer> productQuantities = new Vector<Integer>();
 
-		if (products != null) {
 
-			Vector<String> guids = new Vector<String>();
-			Vector<Integer> productQuantities = new Vector<Integer>();
+            for (ProductStatus productStatus : products) {
+                guids.add(productStatus.getGuid());
+                productQuantities.add(productStatus.getAmount());
+            }
 
+            String productType = products.get(0).getProduct().getGuid();
 
-			for (ProductStatus productStatus : products) {
-				guids.add(productStatus.getGuid());
-				productQuantities.add(productStatus.getAmount());
-			}
+            int bakingTemp = products.get(0).getProduct().getRecipe().getBakingTemp();
+            float bakingTime = products.get(0).getProduct().getRecipe().getActionTime(Step.BAKING_STEP);
 
-			String productType = products.get(0).getProduct().getGuid();
 
-			int bakingTemp = products.get(0).getProduct().getRecipe().getBakingTemp();
-			float bakingTime = products.get(0).getProduct().getRecipe().getActionTime(Step.BAKING_STEP);
+            bakingRequest = new BakingRequest(guids, productType, bakingTemp, bakingTime, productQuantities);
 
+        }
 
-			bakingRequest = new BakingRequest(guids, productType, bakingTemp, bakingTime, productQuantities);
+        return bakingRequest;
 
-		}
+    }
 
-		return bakingRequest;
+    public PreparationRequest createPreparationRequestMessage() {
+        // Checks the needsPreparaion WorkQueue and creates a preparationRequestMessage
+        Vector<ProductStatus> products = needsPreparation.getProductBatch();
 
-	}
+        PreparationRequest preparationRequest = null;
 
-	public PreparationRequest createPreparationRequestMessage() {
-		// Checks the needsPreparaion WorkQueue and creates a preparationRequestMessage
-		Vector<ProductStatus> products = needsPreparation.getProductBatch();
+        if (products != null) {
 
-		PreparationRequest preparationRequest = null;
+            Vector<String> guids = new Vector<String>();
+            Vector<Integer> productQuantities = new Vector<Integer>();
+            Vector<Step> steps = new Vector<Step>();
 
-		if (products != null) {
 
-			Vector<String> guids = new Vector<String>();
-			Vector<Integer> productQuantities = new Vector<Integer>();
-			Vector<Step> steps = new Vector<Step>();
 
+            for (ProductStatus productStatus : products) {
+                guids.add(productStatus.getGuid());
+                productQuantities.add(productStatus.getAmount());
+            }
 
+            String productType = products.get(0).getProduct().getGuid();
+            steps = products.get(0).getProduct().getRecipe().getBakingPreparationSteps();
 
-			for (ProductStatus productStatus : products) {
-				guids.add(productStatus.getGuid());
-				productQuantities.add(productStatus.getAmount());
-			}
+            preparationRequest = new PreparationRequest(guids, productType, productQuantities, steps);
+        }
 
-			String productType = products.get(0).getProduct().getGuid();
-			steps = products.get(0).getProduct().getRecipe().getBakingPreparationSteps();
+        return preparationRequest;
 
-			preparationRequest = new PreparationRequest(guids, productType, productQuantities, steps);
-		}
+    }
 
-		return preparationRequest;
+    public Vector<CoolingRequest> createCoolingRequests() {
+        // Checks the needsCooling WorkQueue and creates a coolingRequestMessage
+        Vector<ProductStatus> products = needsCooling.getProductBatch();
+        Vector<CoolingRequest> coolingRequests = new Vector<CoolingRequest>();
 
-	}
+        if (products != null) {
 
-	public Vector<CoolingRequest> createCoolingRequests() {
-		// Checks the needsCooling WorkQueue and creates a coolingRequestMessage
-		Vector<ProductStatus> products = needsCooling.getProductBatch();
-		Vector<CoolingRequest> coolingRequests = new Vector<CoolingRequest>();
+            Vector<String> guids = new Vector<String>();
+            Vector<Integer> productQuantities = new Vector<Integer>();
 
+            for (ProductStatus productStatus : products) {
+                String productName = productStatus.getProduct().getGuid();
+                float coolingTime = productStatus.getProduct().getRecipe().getActionTime(Step.COOLING_STEP);
+                int boxingTemp = productStatus.getProduct().getPackaging().getBoxingTemp();
+                int quantity = productStatus.getAmount();
 
-		if (products != null) {
+                CoolingRequest coolingRequest = new CoolingRequest(productName, coolingTime, quantity, boxingTemp);
+                // System.out.println("-------> HERE");
+                coolingRequests.add(coolingRequest);
+            }
 
-			Vector<String> guids = new Vector<String>();
-			Vector<Integer> productQuantities = new Vector<Integer>();
 
+        }
 
+        return coolingRequests;
+    }
 
-			for (ProductStatus productStatus : products) {
 
-				String productName = productStatus.getProduct().getGuid();
+    /* This is the behavior used for receiving doughNotifications */
+    private class ReceiveDoughNotification extends CyclicBehaviour {
+        public void action() {
+            messageProcessing.getAndIncrement();
 
-				float coolingTime = productStatus.getProduct().getRecipe().getActionTime(Step.COOLING_STEP);
+            MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
+                    MessageTemplate.MatchConversationId("dough-notification"));
 
-				int boxingTemp = productStatus.getProduct().getPackaging().getBoxingTemp();
+            ACLMessage msg = baseAgent.receive(mt);
 
-				int quantity = productStatus.getAmount();
+            if (msg != null) {
+                System.out.println(getAID().getLocalName()+" Received dough Notification from " + msg.getSender());
+                String doughNotificationString = msg.getContent();
+                System.out.println("Dough notification contains -> " +doughNotificationString);
 
-				CoolingRequest coolingRequest = new CoolingRequest(productName, coolingTime, quantity);
-				// System.out.println("-------> HERE");
-				coolingRequests.add(coolingRequest);
-			}
+                ACLMessage reply = msg.createReply();
+                reply.setPerformative(ACLMessage.CONFIRM);
+                reply.setContent("Dough Notification was received");
+                reply.setConversationId("dough-notification-reply");
+                baseAgent.sendMessage(reply);
 
 
-		}
+                DoughNotification doughNotification = JSONConverter.parseDoughNotification(doughNotificationString);
+                String productType = doughNotification.getProductType();
+                Vector<String> guids = doughNotification.getGuids();
+                Vector<Integer> productQuantities = doughNotification.getProductQuantities();
 
-		return coolingRequests;
+                //Add the new request to the needsBaking workqueue
+                queueBaking(productType, guids, productQuantities);
+                // Create bakingRequest
+                BakingRequest bakingRequest = createBakingRequest();
 
-	}
+                // Convert bakingRequest to String
+                Gson gson = new Gson();
+                String bakingRequestString = gson.toJson(bakingRequest);
 
+                // Send bakingRequestMessage
+                // System.out.println("Requesting baking");
+                addBehaviour(new RequestBaking(bakingRequestString));
+                messageProcessing.getAndDecrement();
+            }
+            else {
+                messageProcessing.getAndDecrement();
+                block();
+            }
+        }
+    }
 
-	/* This is the behavior used for receiving doughNotifications */
-	private class ReceiveDoughNotification extends CyclicBehaviour {
-		public void action() {
-			// baseAgent.finished(); //call it if there are no generic behaviours
-			MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
-					MessageTemplate.MatchConversationId("dough-notification"));
+    /* This is the behaviour used for receiving baking notification */
+    private class ReceiveBakingNotification extends CyclicBehaviour {
+        public void action() {
+            messageProcessing.getAndIncrement();
 
-			ACLMessage msg = baseAgent.receive(mt);
+            MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
+                    MessageTemplate.MatchConversationId("baking-notification"));
+            ACLMessage msg = baseAgent.receive(mt);
 
-			if (msg != null) {
-				System.out.println(getAID().getLocalName()+" Received dough Notification from " + msg.getSender());
-				String doughNotificationString = msg.getContent();
-				System.out.println("Dough notification contains -> " +doughNotificationString);
+            if (msg != null) {
 
-				ACLMessage reply = msg.createReply();
-				reply.setPerformative(ACLMessage.CONFIRM);
-				reply.setContent("Dough Notification was received");
-				reply.setConversationId("dough-notification-reply");
-				baseAgent.sendMessage(reply);
+                System.out.println("-------> " + getAID().getLocalName()+" Received Baking Notification from " + msg.getSender());
+                String bakingNotificationString = msg.getContent();
 
+                ACLMessage reply = msg.createReply();
+                reply.setPerformative(ACLMessage.CONFIRM);
+                reply.setContent("Baking Notification was received");
+                reply.setConversationId("baking-notification-reply");
+                baseAgent.sendMessage(reply);
 
-				DoughNotification doughNotification = JSONConverter.parseDoughNotification(doughNotificationString);
-				String productType = doughNotification.getProductType();
-				Vector<String> guids = doughNotification.getGuids();
-				Vector<Integer> productQuantities = doughNotification.getProductQuantities();
+                // Convert bakingNotificationString to bakingNotification object
+                BakingNotification bakingNotification = JSONConverter.parseBakingNotification(bakingNotificationString);
+                String productType = bakingNotification.getProductType();
+                Vector<String> guids = bakingNotification.getGuids();
+                Vector<Integer> productQuantities = bakingNotification.getProductQuantities();
 
-				//Add the new request to the needsBaking workqueue
-				queueBaking(productType, guids, productQuantities);
-				// Create bakingRequest
-				BakingRequest bakingRequest = createBakingRequest();
+                // Add guids with this productType to the queuePreparation
+                queuePreparation(productType, guids);
 
-				// Convert bakingRequest to String
-				Gson gson = new Gson();
-				String bakingRequestString = gson.toJson(bakingRequest);
+                // Create preparationRequestMessage with the information in the queuePreparation
+                PreparationRequest preparationRequestMessage = createPreparationRequestMessage();
 
-				// Send bakingRequestMessage
-				// System.out.println("Requesting baking");
-				addBehaviour(new RequestBaking(bakingRequestString));
+                // Convert preparationRequestMessage to String
+                Gson gson = new Gson();
+                String preparationRequestString = gson.toJson(preparationRequestMessage);
 
-			}
-			else {
-				block();
-			}
-		}
-	}
+                // Send preparationRequestMessage
+                addBehaviour(new RequestPreparation(preparationRequestString));
+                messageProcessing.getAndDecrement();
+            }
 
-	/* This is the behaviour used for receiving baking notification */
-	private class ReceiveBakingNotification extends CyclicBehaviour {
-		public void action() {
-			// baseAgent.finished(); //call it if there are no generic behaviours
+            else {
+                messageProcessing.getAndDecrement();
+                block();
+            }
+        }
+    }
 
-			MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
-					MessageTemplate.MatchConversationId("baking-notification"));
+    /* This is the behavior used for receiving preparation notifications */
+    private class ReceivePreparationNotification extends CyclicBehaviour {
+        public void action() {
 
-			ACLMessage msg = baseAgent.receive(mt);
+            messageProcessing.getAndIncrement();
+            MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
+                    MessageTemplate.MatchConversationId("preparationBaking-notification"));
 
-			if (msg != null) {
+            ACLMessage msg = baseAgent.receive(mt);
 
-				System.out.println("-------> " + getAID().getLocalName()+" Received Baking Notification from " + msg.getSender());
-				String bakingNotificationString = msg.getContent();
+            if (msg != null) {
 
-				ACLMessage reply = msg.createReply();
-				reply.setPerformative(ACLMessage.CONFIRM);
-				reply.setContent("Baking Notification was received");
-				reply.setConversationId("baking-notification-reply");
-				baseAgent.sendMessage(reply);
+                System.out.println("-------> " + getAID().getLocalName()+" Received Baking Preparation Notification from " + msg.getSender());
+                String preparationNotificationString = msg.getContent();
 
-				// Convert bakingNotificationString to bakingNotification object
-				BakingNotification bakingNotification = JSONConverter.parseBakingNotification(bakingNotificationString);
-				String productType = bakingNotification.getProductType();
-				Vector<String> guids = bakingNotification.getGuids();
-				Vector<Integer> productQuantities = bakingNotification.getProductQuantities();
+                ACLMessage reply = msg.createReply();
+                reply.setPerformative(ACLMessage.CONFIRM);
+                reply.setContent("Baking Preparation Notification was received");
+                reply.setConversationId("preparationBaking-notification-reply");
+                baseAgent.sendMessage(reply);
 
-				// Add guids with this productType to the queuePreparation
-				queuePreparation(productType, guids);
+                // Convert preparationNotificationString to preparationNotification object
+                PreparationNotification preparationNotification = JSONConverter.parsePreparationNotification(preparationNotificationString);
+                String productType = preparationNotification.getProductType();
+                Vector<String> guids = preparationNotification.getGuids();
 
-				// Create preparationRequestMessage with the information in the queuePreparation
-				PreparationRequest preparationRequestMessage = createPreparationRequestMessage();
+                // TODO: Check if there are products in the needsBaking workqueue and send a bakingRequest accordingly
 
-				// Convert preparationRequestMessage to String
-				Gson gson = new Gson();
+                // Add guids with this productType to the queueCooling
+                queueCooling(productType, guids);
 
-				String preparationRequestString = gson.toJson(preparationRequestMessage);
+                //Create coollingRequestMessages with the information in the queueCooling
+                Vector<CoolingRequest> coolingRequests = createCoolingRequests();
 
-				// Send preparationRequestMessage
-				addBehaviour(new RequestPreparation(preparationRequestString));
+                Gson gson = new Gson();
 
-			}
+                for (CoolingRequest coolingRequest : coolingRequests) {
+                    String coolingRequestString = gson.toJson(coolingRequest);
+                    // Adds one behaviour per coolingRequest
+                    addBehaviour(new RequestCooling(coolingRequestString, coolingRequestCounter));
+                    coolingRequestCounter ++;
+                }
+                messageProcessing.getAndDecrement();
+            }
+            else {
+                messageProcessing.getAndDecrement();
+                block();
+            }
+        }
+    }
 
-			else {
-				block();
-			}
-		}
-	}
+    //This is the behaviour used for sending a BakingRequest
+    private class RequestBaking extends Behaviour{
+        private String bakingRequest;
+        private MessageTemplate mt;
+        private int option = 0;
 
-	/* This is the behavior used for receiving preparation notifications */
-	private class ReceivePreparationNotification extends CyclicBehaviour {
-		public void action() {
-			// baseAgent.finished(); //call it if there are no generic behaviours
+        public RequestBaking(String bakingRequest){
+            this.bakingRequest = bakingRequest;
+        }
+        public void action(){
+            messageProcessing.getAndIncrement();
+            if (!baseAgent.getAllowAction()) {
+                return;
+            }
 
-			MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
-					MessageTemplate.MatchConversationId("preparationBaking-notification"));
+            switch(option){
+                case 0:
 
-			ACLMessage msg = baseAgent.receive(mt);
+                    ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+                    msg.setContent(bakingRequest);
+                    msg.setConversationId("baking-request");
 
-			if (msg != null) {
+                    // Send kneadingRequest msg to all kneadingMachineAgents
+                    for (int i=0; i<ovenAgents.length; i++){
+                        msg.addReceiver(ovenAgents[i]);
+                    }
+                    // msg.setReplyWith("msg"+System.currentTimeMillis());
+                    baseAgent.sendMessage(msg);  // calling sendMessage instead of send
 
-				System.out.println("-------> " + getAID().getLocalName()+" Received Baking Preparation Notification from " + msg.getSender());
-				String preparationNotificationString = msg.getContent();
+                    option = 1;
+                    System.out.println(getLocalName()+" Sent bakingRequest" + bakingRequest);
+                    messageProcessing.getAndDecrement();
+                    break;
 
-				ACLMessage reply = msg.createReply();
-				reply.setPerformative(ACLMessage.CONFIRM);
-				reply.setContent("Baking Preparation Notification was received");
-				reply.setConversationId("preparationBaking-notification-reply");
-				baseAgent.sendMessage(reply);
+                case 1:
+                        mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.CONFIRM),
+                            MessageTemplate.MatchConversationId("baking-request-reply"));
+                        ACLMessage reply = baseAgent.receive(mt);
 
-				// Convert preparationNotificationString to preparationNotification object
-				PreparationNotification preparationNotification = JSONConverter.parsePreparationNotification(preparationNotificationString);
-				String productType = preparationNotification.getProductType();
-				Vector<String> guids = preparationNotification.getGuids();
-
-				// TODO: Check if there are products in the needsBaking workqueue and send a bakingRequest accordingly
-
-				// Add guids with this productType to the queueCooling
-				queueCooling(productType, guids);
-
-				//Create coollingRequestMessages with the information in the queueCooling
-				Vector<CoolingRequest> coolingRequests = createCoolingRequests();
-
-				Gson gson = new Gson();
-
-				for (CoolingRequest coolingRequest : coolingRequests) {
-					String coolingRequestString = gson.toJson(coolingRequest);
-					// Adds one behaviour per coolingRequest
-					addBehaviour(new RequestCooling(coolingRequestString, coolingRequestCounter));
-					coolingRequestCounter ++;
-
-				}
-			}
-			else {
-				block();
-			}
-		}
-	}
-
-	//This is the behaviour used for sending a BakingRequest
-	private class RequestBaking extends Behaviour{
-		private String bakingRequest;
-		private MessageTemplate mt;
-		private int option = 0;
-
-		public RequestBaking(String bakingRequest){
-			this.bakingRequest = bakingRequest;
-		}
-		public void action(){
-			//blocking action
-			if (!baseAgent.getAllowAction()) {
-				return;
-			}
-			switch(option){
-				case 0:
-
-					ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-					msg.setContent(bakingRequest);
-					msg.setConversationId("baking-request");
-
-					// Send kneadingRequest msg to all kneadingMachineAgents
-					for (int i=0; i<ovenAgents.length; i++){
-						msg.addReceiver(ovenAgents[i]);
-					}
-					// msg.setReplyWith("msg"+System.currentTimeMillis());
-					baseAgent.sendMessage(msg);  // calling sendMessage instead of send
-
-					option = 1;
-					System.out.println(getLocalName()+" Sent bakingRequest" + bakingRequest);
-					break;
-
-				case 1:
-						mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.CONFIRM),
-	                        MessageTemplate.MatchConversationId("baking-request-reply"));
-						ACLMessage reply = baseAgent.receive(mt);
-
-	                    if (reply != null) {
-	                        System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
-	                        option = 2;
-	                    }
-	                    else {
-	                        block();
-	                    }
-	                    break;
-			default:
-				break;
-			}
-		}
-		public boolean done(){
-			if (option == 2) {
+                        if (reply != null) {
+                            System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
+                            option = 2;
+                            messageProcessing.getAndDecrement();
+                        }
+                        else {
+                            messageProcessing.getAndDecrement();
+                            block();
+                        }
+                        break;
+            default:
+                messageProcessing.getAndDecrement();
+                break;
+            }
+        }
+        public boolean done(){
+            if (option == 2) {
                 return true;
             }
-			return false;
-		}
-	}
+            return false;
+        }
+    }
 
-	//This is the behaviour used for sending a PreparationRequest
-	private class RequestPreparation extends Behaviour{
-		private String preparationRequest;
-		private MessageTemplate mt;
-		private ACLMessage msg;
-		private int option = 0;
+    //This is the behaviour used for sending a PreparationRequest
+    private class RequestPreparation extends Behaviour{
+        private String preparationRequest;
+        private MessageTemplate mt;
+        private ACLMessage msg;
+        private int option = 0;
 
-		public RequestPreparation(String preparationRequest){
-			this.preparationRequest = preparationRequest;
-		}
-		public void action(){
-			//blocking action
-			// if (!baseAgent.getAllowAction()) {
-			// 	return;
-			// }
-			switch(option){
-				case 0:
-					ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-					msg.setContent(preparationRequest);
-					msg.setConversationId("preparationBaking-request");
+        public RequestPreparation(String preparationRequest){
+            this.preparationRequest = preparationRequest;
+        }
+        public void action(){
+            messageProcessing.getAndIncrement();
 
-					// Send preparationRequest msg to all preparationTableAgents
-					for (int i=0; i<bakingPreparationAgents.length; i++){
-						msg.addReceiver(bakingPreparationAgents[i]);
-					}
-					// msg.setReplyWith("msg"+System.currentTimeMillis());
-					baseAgent.sendMessage(msg);  // calling sendMessage instead of send
+            switch(option){
+                case 0:
+                    ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+                    msg.setContent(preparationRequest);
+                    msg.setConversationId("preparationBaking-request");
 
-					option = 1;
-					System.out.println(getLocalName()+" Sent baking preparationRequest" + preparationRequest);
-					break;
+                    // Send preparationRequest msg to all preparationTableAgents
+                    for (int i=0; i<bakingPreparationAgents.length; i++){
+                        msg.addReceiver(bakingPreparationAgents[i]);
+                    }
+                    // msg.setReplyWith("msg"+System.currentTimeMillis());
+                    baseAgent.sendMessage(msg);  // calling sendMessage instead of send
 
-				case 1:
-					mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.CONFIRM),
+                    option = 1;
+                    System.out.println(getLocalName()+" Sent baking preparationRequest" + preparationRequest);
+                    messageProcessing.getAndDecrement();
+                    break;
+
+                case 1:
+                    mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.CONFIRM),
                         MessageTemplate.MatchConversationId("preparationBaking-request-reply"));
-					ACLMessage reply = baseAgent.receive(mt);
+                    ACLMessage reply = baseAgent.receive(mt);
 
 
-					if (reply != null) {
+                    if (reply != null) {
                         System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
                         option = 2;
+                        messageProcessing.getAndDecrement();
                     }
                     else {
+                        messageProcessing.getAndDecrement();
                         block();
                     }
                     break;
 
-				default:
-					break;
-			}
-		}
-		public boolean done(){
-			if (option == 2){
-				// baseAgent.finished();
-				return true;
-			}
-			return false;
-		}
-	}
+                default:
+                    messageProcessing.getAndDecrement();
+                    break;
+            }
+        }
+        public boolean done(){
+            if (option == 2){
+                // baseAgent.finished();
+                return true;
+            }
+            return false;
+        }
+    }
 
 
-	//This is the behaviour used for sending a CoolingRequest
-	private class RequestCooling extends Behaviour{
-		private String coolingRequest;
-		private int coolingRequestcounter;
-		private MessageTemplate mt;
-		private int option = 0;
+    //This is the behaviour used for sending a CoolingRequest
+    private class RequestCooling extends Behaviour{
+        private String coolingRequest;
+        private int coolingRequestcounter;
+        private MessageTemplate mt;
+        private int option = 0;
 
-		public RequestCooling(String coolingRequest, int coolingRequestCounter){
-			this.coolingRequest = coolingRequest;
-			this.coolingRequestcounter = coolingRequestCounter;
-		}
-		public void action(){
-			//blocking action
-			// if (!baseAgent.getAllowAction()) {
-			// 	return;
-			// }
-			switch(option){
-				case 0:
+        public RequestCooling(String coolingRequest, int coolingRequestCounter){
+            this.coolingRequest = coolingRequest;
+            this.coolingRequestcounter = coolingRequestCounter;
+        }
+        public void action(){
 
-					ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-					msg.setContent(coolingRequest);
-					msg.setConversationId("cooling-request");
+            messageProcessing.getAndIncrement();
+            switch(option){
+                case 0:
 
-					// Send kneadingRequest msg to all kneadingMachineAgents
-					for (int i=0; i<coolingRackAgents.length; i++){
-						msg.addReceiver(coolingRackAgents[i]);
-					}
-					// msg.setReplyWith("msg"+System.currentTimeMillis());
-					baseAgent.sendMessage(msg);  // calling sendMessage instead of send
+                    ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+                    msg.setContent(coolingRequest);
+                    msg.setConversationId("cooling-request");
 
-					option = 1;
-					System.out.println(getLocalName()+" Sent coolingRequest" + coolingRequest);
-					break;
+                    // Send kneadingRequest msg to all kneadingMachineAgents
+                    for (int i=0; i<coolingRackAgents.length; i++){
+                        msg.addReceiver(coolingRackAgents[i]);
+                    }
+                    // msg.setReplyWith("msg"+System.currentTimeMillis());
+                    baseAgent.sendMessage(msg);  // calling sendMessage instead of send
 
-				case 1:
-					mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.CONFIRM),
+                    option = 1;
+                    System.out.println(getLocalName()+" Sent coolingRequest" + coolingRequest);
+                    messageProcessing.getAndDecrement();
+                    break;
+
+                case 1:
+                    mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.CONFIRM),
                         MessageTemplate.MatchConversationId("cooling-request-reply"));
 
                     ACLMessage reply = baseAgent.receive(mt);
@@ -698,26 +698,27 @@ public class BakingManager extends BaseAgent {
                     if (reply != null) {
                         System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
                         option = 2;
+                        messageProcessing.getAndDecrement();
                     }
                     else {
+                        messageProcessing.getAndDecrement();
                         block();
                     }
                     break;
 
-			default:
-				break;
-			}
-		}
-		public boolean done(){
-			if (option == 2){
-				// baseAgent.finished();
-				return true;
+            default:
+                messageProcessing.getAndDecrement();
+                break;
+            }
+        }
+        public boolean done(){
+            if (option == 2){
+                // baseAgent.finished();
+                return true;
 
-			}
-			return false;
-		}
-	}
-
-
+            }
+            return false;
+        }
+    }
 
 }

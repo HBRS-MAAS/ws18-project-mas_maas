@@ -1,19 +1,19 @@
 package org.mas_maas.agents;
 
-import java.util.Vector;
-import java.util.Scanner;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.Scanner;
+import java.util.Vector;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.mas_maas.JSONConverter;
 import org.mas_maas.messages.PreparationNotification;
 import org.mas_maas.messages.PreparationRequest;
-
-import org.mas_maas.objects.Step;
 import org.mas_maas.objects.Bakery;
 import org.mas_maas.objects.DoughPrepTable;
 import org.mas_maas.objects.Equipment;
+import org.mas_maas.objects.Step;
 
 import com.google.gson.Gson;
 
@@ -30,8 +30,10 @@ import jade.lang.acl.MessageTemplate;
 public class PreparationTableAgent extends BaseAgent {
     private AID [] doughManagerAgents;
 
+    private AtomicBoolean processingMessage = new AtomicBoolean(false);
     private AtomicBoolean preparationInProcess = new AtomicBoolean(false);
     private AtomicBoolean fullPrepDone = new AtomicBoolean(false);
+    private AtomicInteger stepCounter = new AtomicInteger(0);
 
     private Bakery bakery;
     private Vector<DoughPrepTable> preparationTables = new Vector<DoughPrepTable> ();
@@ -41,7 +43,6 @@ public class PreparationTableAgent extends BaseAgent {
     private Vector<Integer> productQuantities;
     private String productType;
     private Vector<Step> steps;
-    private int stepCounter;
 
     protected void setup() {
         super.setup();
@@ -58,9 +59,10 @@ public class PreparationTableAgent extends BaseAgent {
         // Get KneadingMachines
         this.getPreparationTables();
 
-        stepCounter = 0;
         // Time tracker behavior
+        stepCounter.set(0);
         addBehaviour(new timeTracker());
+
         // Creating receive kneading requests behaviour
         addBehaviour(new ReceivePreparationRequests());
     }
@@ -128,30 +130,34 @@ public class PreparationTableAgent extends BaseAgent {
 
     private class timeTracker extends CyclicBehaviour {
         public void action() {
+            // first we make sure we are even allowed to do anything
             if (!baseAgent.getAllowAction()) {
                 return;
-            }else{
-                if (preparationInProcess.get() && !fullPrepDone.get()){
-                    stepCounter++;
-                    System.out.println("-------> Dough Prep Clock-> " + baseAgent.getCurrentHour());
-                    System.out.println("-------> step Counter -> " + stepCounter);
-                }
             }
-            baseAgent.finished();
+
+            // once we know our agent is able to do an action check if we need to actually do anything
+            if (!processingMessage.get())
+            {
+                if (preparationInProcess.get() && !fullPrepDone.get()){
+                    int curCount = stepCounter.incrementAndGet();
+                    //System.out.println("-------> Dough Prep Clock-> " + baseAgent.getCurrentHour());
+                    //System.out.println("-------> step Counter -> " + curCount);
+                }
+                baseAgent.finished();
+            }
         }
     }
 
     // Receiving Preparation requests behaviour
     private class ReceivePreparationRequests extends CyclicBehaviour {
         public void action() {
+            processingMessage.set(true);
 
             MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
                 MessageTemplate.MatchConversationId("preparation-request"));
-
             ACLMessage msg = myAgent.receive(mt);
 
             if (msg != null) {
-
                 System.out.println(getAID().getLocalName() + " Received preparation request from " + msg.getSender());
                 String content = msg.getContent();
                 System.out.println("Preparation request contains -> " + content);
@@ -170,8 +176,10 @@ public class PreparationTableAgent extends BaseAgent {
                 productQuantities = preparationRequest.getProductQuantities();
 
                 addBehaviour(new Preparation());
+                processingMessage.set(false);
             }
             else {
+                processingMessage.set(false);
                 block();
             }
         }
@@ -180,11 +188,12 @@ public class PreparationTableAgent extends BaseAgent {
     // performs Preparation process
     private class Preparation extends Behaviour {
         private Float stepDuration;
-        private int stepIdx = 0;
+        private int curStepIndex = 0;
         private String guidTableAvailable;
         private String stepAction;
-        private int guidIdx = 0;
+        private int productIndex = 0;
 
+        /*
         public String findAvailableTables(){
             for (DoughPrepTable prepTable : preparationTables) {
                 if (prepTable.isAvailable()){
@@ -203,39 +212,48 @@ public class PreparationTableAgent extends BaseAgent {
                 }
             }
         }
+        */
 
         public void action(){
             // TODO: Iterate over different guids
             if (!preparationInProcess.get() && !fullPrepDone.get()){
-                guidTableAvailable = findAvailableTables();
+                //guidTableAvailable = findAvailableTables();
+                //DoughPrepTable prepTable = preparationTables.get(0); // TODO each agent will only have on table
+                preparationInProcess.set(true);
+                /* TODO if our one table is busy rejection should happen in the message processing area
                 if (guidTableAvailable != "NOT_AVAILABLE"){
                     System.out.println("----> Using dough prepTable " + guidTableAvailable);
                 }else{
                     System.out.println("----> No dough prepTable currently available");
                     //TODO: What do we do?
                 }
-                if (stepIdx < steps.size()){
-                    stepAction = steps.get(stepIdx).getAction();
+                */
+
+                if (curStepIndex < steps.size()){
+                    stepAction = steps.get(curStepIndex).getAction();
+
                     if (stepAction.equals(Step.ITEM_PREPARATION_STEP)){
-                        stepDuration = steps.get(stepIdx).getDuration() * productQuantities.get(guidIdx);
+                        stepDuration = steps.get(curStepIndex).getDuration() * productQuantities.get(productIndex);
                     }else{
-                        stepDuration = steps.get(stepIdx).getDuration();
+                        stepDuration = steps.get(curStepIndex).getDuration();
                     }
-                    System.out.println("-----> " + guidTableAvailable + " Performing " + stepAction);
+
+                    System.out.println("-----> Performing " + stepAction);
                     System.out.println("-----> Preparation for " + stepDuration);
+
                 }else{
-                    fullPrepDone.set(true);
-                    stepIdx = 0;
+                    curStepIndex = 0;
                     addBehaviour(new SendPreparationNotification(doughManagerAgents));
-                    // this.done();
+                    fullPrepDone.set(true);
+                    preparationInProcess.set(false);
                 }
             }
 
-            if (stepCounter >= stepDuration && !fullPrepDone.get()){
+            if (stepCounter.get() >= stepDuration && !fullPrepDone.get()){
+                //releaseUsedTable(guidTableAvailable);
+                curStepIndex++;
+                stepCounter.set(0);
                 preparationInProcess.set(false);
-                releaseUsedTable(guidTableAvailable);
-                stepIdx++;
-                stepCounter = 0;
             }
 
         }
@@ -307,7 +325,7 @@ public class PreparationTableAgent extends BaseAgent {
        public boolean done() {
            if (option == 2) {
                baseAgent.finished(); // calling finished method
-               myAgent.doDelete();
+               //myAgent.doDelete();
                return true;
            }
 

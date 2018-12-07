@@ -2,6 +2,7 @@ package org.mas_maas.agents;
 
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.mas_maas.JSONConverter;
 import org.mas_maas.messages.DoughNotification;
@@ -23,12 +24,12 @@ public class Proofer extends BaseAgent {
     private AID [] bakingManagerAgents;
 
     private AtomicBoolean proofingInProcess = new AtomicBoolean(false);
+    private AtomicInteger messageProcessing = new AtomicInteger(0);
+    private AtomicInteger proofingCounter = new AtomicInteger(0);
 
     private Vector<String> guids;
     private String productType;
     private Vector<Integer> productQuantities;
-
-    private int proofingCounter;
 
     protected void setup() {
         super.setup();
@@ -41,7 +42,7 @@ public class Proofer extends BaseAgent {
         this.getDoughManagerAIDs();
         this.getBakingManagerAIDs();
 
-        proofingCounter = 0;
+        proofingCounter.set(0);
         // Time tracker behavior
         addBehaviour(new timeTracker());
         addBehaviour(new ReceiveProofingRequests());
@@ -100,16 +101,21 @@ public class Proofer extends BaseAgent {
 
     private class timeTracker extends CyclicBehaviour {
         public void action() {
+            // first we make sure we are even allowed to do anything
             if (!baseAgent.getAllowAction()) {
                 return;
-            }else{
-                if (proofingInProcess.get()){
-                    proofingCounter++;
-                    System.out.println("-------> Proofer Clock-> " + baseAgent.getCurrentHour());
-                    System.out.println("-------> Proofer Counter -> " + proofingCounter);
-                }
             }
-            baseAgent.finished();
+
+            // once we know our agent is able to do an action check if we need to actually do anything
+            if (messageProcessing.get() <= 0)
+            {
+                if (proofingInProcess.get()){
+                    int curCount = proofingCounter.incrementAndGet();
+                    //System.out.println("-------> Proofer Clock-> " + baseAgent.getCurrentHour());
+                    //System.out.println("-------> Proofer Counter -> " + curCount);
+                }
+                baseAgent.finished();
+            }
         }
     }
 
@@ -117,11 +123,10 @@ public class Proofer extends BaseAgent {
     private class ReceiveProofingRequests extends CyclicBehaviour {
         public void action() {
 
+            messageProcessing.getAndIncrement();
             MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
                 MessageTemplate.MatchConversationId("proofing-request"));
-
             ACLMessage msg = baseAgent.receive(mt);
-
 
             if (msg != null) {
                 System.out.println(getAID().getLocalName() + " Received proofing request from " + msg.getSender());
@@ -140,10 +145,12 @@ public class Proofer extends BaseAgent {
                 productType = proofingRequest.getProductType();
                 productQuantities = proofingRequest.getProductQuantities();
 
+                proofingInProcess.set(true);
                 addBehaviour(new Proofing(proofingTime));
-
+                messageProcessing.getAndDecrement();
             }
             else {
+                messageProcessing.getAndDecrement();
                 block();
             }
         }
@@ -158,16 +165,17 @@ public class Proofer extends BaseAgent {
         public Proofing(float proofingTime){
             this.proofingTime = proofingTime;
             System.out.println(getAID().getLocalName() + " proofing for " + proofingTime);
-            proofingInProcess.set(true);
         }
+
         public void action(){
-            if (proofingCounter >= proofingTime){
-                proofingInProcess.set(false);
-                proofingCounter = 0;
+            if (proofingCounter.get() >= proofingTime){
+                proofingCounter.set(0);
+                // TODO do we need another bool to make sure this gets sent?
                 addBehaviour(new SendDoughNotification());
-                // this.done();
+                proofingInProcess.set(false);
             }
         }
+
         public boolean done(){
             if (proofingInProcess.get()){
                 return false;
@@ -188,12 +196,13 @@ public class Proofer extends BaseAgent {
         private DoughNotification doughNotification = new DoughNotification(guids, productType, productQuantities);
         private String doughNotificationString = gson.toJson(doughNotification);
 
-        // public SendDoughNotification(AID [] bakingManagerAgents){
-        //     this.bakingManagerAgents = bakingManagerAgents;
-        // }
+
+        //TODO remove me when debugging is done
+        private boolean killMessageSent = false;
 
         public void action() {
 
+            messageProcessing.getAndIncrement();
             switch (option) {
                 case 0:
                     ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
@@ -209,6 +218,7 @@ public class Proofer extends BaseAgent {
 
                     option = 1;
                     System.out.println(getAID().getLocalName() + " Sent doughNotification");
+                    messageProcessing.getAndDecrement();
                     break;
 
                 case 1:
@@ -221,8 +231,15 @@ public class Proofer extends BaseAgent {
                     if (reply != null) {
                         System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
                         option = 2;
+                        messageProcessing.getAndDecrement();
                     }
                     else {
+                        if (!killMessageSent)
+                        {
+                            System.out.println("Waiting for reply. Kill me!");
+                            killMessageSent = true;
+                        }
+                        messageProcessing.getAndDecrement();
                         block();
                     }
                     break;
@@ -235,7 +252,7 @@ public class Proofer extends BaseAgent {
         public boolean done() {
             if (option == 2) {
                 baseAgent.finished();
-                myAgent.doDelete();
+                //myAgent.doDelete();
                 return true;
             }
             return false;

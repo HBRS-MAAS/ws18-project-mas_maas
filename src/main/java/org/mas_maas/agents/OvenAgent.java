@@ -1,22 +1,21 @@
 package org.mas_maas.agents;
 
-import java.util.Vector;
-import java.util.Scanner;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.Scanner;
+import java.util.Vector;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.lang.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.mas_maas.JSONConverter;
 import org.mas_maas.messages.BakingNotification;
 import org.mas_maas.messages.BakingRequest;
-
 import org.mas_maas.objects.Bakery;
+import org.mas_maas.objects.Batch;
+import org.mas_maas.objects.Equipment;
 import org.mas_maas.objects.Oven;
 import org.mas_maas.objects.OvenSlot;
-import org.mas_maas.objects.Equipment;
 import org.mas_maas.objects.Product;
-import org.mas_maas.objects.Batch;
 
 import com.google.gson.Gson;
 
@@ -39,6 +38,7 @@ public class OvenAgent extends BaseAgent {
     private AtomicBoolean bakedFullOrder = new AtomicBoolean(false);
     private AtomicBoolean needHeating = new AtomicBoolean(false);
     private AtomicBoolean needCooling = new AtomicBoolean(false);
+    private AtomicInteger bakingCounter = new AtomicInteger(0);
 
     private Bakery bakery;
     private Vector<Oven> ovens = new Vector<Oven> ();
@@ -51,7 +51,6 @@ public class OvenAgent extends BaseAgent {
 
     private Vector<Product> products;
 
-    private int bakingCounter;
 
     protected void setup() {
         super.setup();
@@ -70,7 +69,6 @@ public class OvenAgent extends BaseAgent {
         // Get ovens from bakery
         this.getOvens();
 
-        bakingCounter = 0;
         // Time tracker behavior
         addBehaviour(new timeTracker());
 
@@ -147,26 +145,29 @@ public class OvenAgent extends BaseAgent {
         public void action() {
             if (!baseAgent.getAllowAction()) {
                 return;
-            }else{
-                if (bakingInProcess.get()){
-                    bakingCounter++;
-                    System.out.println("=========================================" );
-                    System.out.println("-------> Oven Clock-> " + baseAgent.getCurrentHour());
-                    System.out.println("-------> baking Counter -> " + bakingCounter);
-                    System.out.println("=========================================" );
-                }else{
-                    if (needHeating.get()){
-                        // System.out.println("------->  Allowing heat");
-                        heatingUp.set(true);
-                    }
-                    if (needCooling.get()){
-                        // System.out.println("-------> Winter is coming");
-                        coolingDown.set(true);
-                    }
-
-                }
             }
-            baseAgent.finished();
+
+            if (bakingInProcess.get()){
+                int curBakingCount = bakingCounter.incrementAndGet();
+                System.out.println("=========================================" );
+                System.out.println("-------> Oven Clock-> " + baseAgent.getCurrentHour());
+                System.out.println("-------> baking Counter -> " + curBakingCount);
+                System.out.println("=========================================" );
+            }
+
+            else{
+                if (needHeating.get()){
+                    // System.out.println("------->  Allowing heat");
+                    heatingUp.set(true);
+                }
+                if (needCooling.get()){
+                    // System.out.println("-------> Winter is coming");
+                    coolingDown.set(true);
+                }
+
+            }
+
+        baseAgent.finished();
         }
     }
 
@@ -252,11 +253,11 @@ public class OvenAgent extends BaseAgent {
         public int findProductPerSlot(){
             // Get the Number of products the slot can fit based on product type
             for (Product product : products) {
-				if (product.getGuid().equals(productType)){
+                if (product.getGuid().equals(productType)){
                     Batch batch = product.getBatch();
                     return batch.getBreadsPerOven();
                 }
-			}
+            }
             return (int) 0;
         }
 
@@ -374,10 +375,10 @@ public class OvenAgent extends BaseAgent {
                         slotIdx = 0;
                     }
                     else{
-                        if (bakingCounter >= bakingTime){
+                        if (bakingCounter.get() >= bakingTime){
                             // We have finished baking this order
                             bakingInProcess.set(false);
-                            bakingCounter = 0;
+                            bakingCounter.set(0);
                             productIdx++;
                         }
                     }

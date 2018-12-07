@@ -1,6 +1,7 @@
 package org.mas_maas.agents;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.mas_maas.JSONConverter;
 import org.mas_maas.messages.CoolingRequest;
@@ -23,12 +24,13 @@ public class CoolingAgent extends BaseAgent {
     private AID [] packagingInterfaceAgents;
 
     private AtomicBoolean coolingInProcess = new AtomicBoolean(false);
+    private AtomicInteger messageProcessing = new AtomicInteger(0);
+    private AtomicInteger coolingCounter = new AtomicInteger(0);
 
     private String productName;
     private int quantity;
     private int boxingTemp;
 
-    private int coolingCounter;
 
     protected void setup() {
         super.setup();
@@ -40,10 +42,8 @@ public class CoolingAgent extends BaseAgent {
 
         // Get Agents AIDS
         this.getBakingManagerAIDs();
-
         this.getPackagingInterfaceManagerAIDs();
 
-        coolingCounter = 0;
         // Time tracker behavior
         addBehaviour(new timeTracker());
 
@@ -51,12 +51,12 @@ public class CoolingAgent extends BaseAgent {
         addBehaviour(new ReceiveCoolingRequests());
 
     }
-    
+
     public LoadingBayMessage createLoadingBayMessage(String productName, int quantity) {
-    	LoadingBayMessage loadingBayMessage = new LoadingBayMessage();
-    	loadingBayMessage.addProduct(productName, quantity);
-    	
-    	return loadingBayMessage;
+        LoadingBayMessage loadingBayMessage = new LoadingBayMessage();
+        loadingBayMessage.addProduct(productName, quantity);
+
+        return loadingBayMessage;
     }
 
     protected void takeDown() {
@@ -69,10 +69,10 @@ public class CoolingAgent extends BaseAgent {
             if (!baseAgent.getAllowAction()) {
                 return;
             }else{
-                if (coolingInProcess.get()){
-                    coolingCounter++;
+                if (coolingInProcess.get() && messageProcessing.get()<= 0){
+                    int curCoolingCount = coolingCounter.incrementAndGet();
                     System.out.println("-------> Cooler Clock-> " + baseAgent.getCurrentHour());
-                    System.out.println("-------> Cooler Counter -> " + coolingCounter);
+                    System.out.println("-------> Cooler Counter -> " + curCoolingCount);
                 }
             }
             baseAgent.finished();
@@ -134,6 +134,7 @@ public class CoolingAgent extends BaseAgent {
     private class ReceiveCoolingRequests extends CyclicBehaviour {
         public void action() {
 
+            messageProcessing.getAndIncrement();
             MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
                 MessageTemplate.MatchConversationId("cooling-request"));
 
@@ -157,10 +158,11 @@ public class CoolingAgent extends BaseAgent {
                 // boxingTemp = coolingRequest.getBoxingTemp();
 
                 addBehaviour(new Cooling(coolingTime, productName, quantity));
-
+                messageProcessing.getAndDecrement();
             }
 
             else {
+                messageProcessing.getAndDecrement();
                 block();
             }
         }
@@ -182,16 +184,15 @@ public class CoolingAgent extends BaseAgent {
         }
 
         public void action(){
-            if (coolingCounter >= coolingTime){
+            if (coolingCounter.get() >= coolingTime){
                 coolingInProcess.set(false);
-                coolingCounter = 0;
+                coolingCounter.set(0);
                 LoadingBayMessage loadingBayMessage = createLoadingBayMessage(productName, quantity);
-				
+
                 Gson gson = new Gson();
                 String loadingBayMessageString = gson.toJson(loadingBayMessage);
-                
+
                 addBehaviour(new SendLoadingBayMessage(packagingInterfaceAgents, loadingBayMessageString));
-                // this.done();
             }
 
         }
@@ -222,16 +223,13 @@ public class CoolingAgent extends BaseAgent {
          }
 
          public void action() {
+
              switch (option) {
                  case 0:
-
                      ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
                      System.out.println("---->  Sending a loadingBay Message");
-
                      System.out.println("-----> LoadingBayMessage " + loadingBayMessageString);
-
                      msg.setContent(loadingBayMessageString);
-
                      msg.setConversationId("loadingBay-message");
 
                      // Send loadingBayMessage msg to packagingInterfaceAgents
@@ -240,22 +238,16 @@ public class CoolingAgent extends BaseAgent {
                      }
 
                      // msg.setReplyWith("msg" + System.currentTimeMillis());
-
                      baseAgent.sendMessage(msg);
-
                      mt = MessageTemplate.MatchConversationId("loadingBay-message");
-
                      option = 1;
-
                      System.out.println(getAID().getLocalName() + " Sent loadingBayMessage");
-
                      break;
 
                  case 1:
                      ACLMessage reply = baseAgent.receive(mt);
 
                      if (reply != null) {
-
                          if (reply.getPerformative() == ACLMessage.CONFIRM) {
                              System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
                              option = 2;
@@ -273,8 +265,8 @@ public class CoolingAgent extends BaseAgent {
 
          public boolean done() {
              if (option == 2) {
-                 baseAgent.finished();
-                 myAgent.doDelete();
+                 //baseAgent.finished();
+                 //myAgent.doDelete();
                  return true;
              }
 

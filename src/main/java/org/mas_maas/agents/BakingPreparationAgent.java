@@ -2,6 +2,7 @@ package org.mas_maas.agents;
 
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.mas_maas.JSONConverter;
 import org.mas_maas.messages.PreparationNotification;
@@ -25,12 +26,12 @@ public class BakingPreparationAgent extends BaseAgent {
 
     private AtomicBoolean preparationInProcess = new AtomicBoolean(false);
     private AtomicBoolean fullPrepDone = new AtomicBoolean(false);
+    private AtomicInteger stepCounter = new AtomicInteger(0);
 
     private Vector<String> guids;
     private Vector<Integer> productQuantities;
     private String productType;
     private Vector<Step> steps;
-    private int stepCounter;
 
     protected void setup() {
         super.setup();
@@ -38,7 +39,6 @@ public class BakingPreparationAgent extends BaseAgent {
         this.register("BakingPreparation", "JADE-bakery");
         this.getBakingManagerAIDs();
 
-        stepCounter = 0;
         // Time tracker behavior
         addBehaviour(new timeTracker());
 
@@ -82,9 +82,9 @@ public class BakingPreparationAgent extends BaseAgent {
                 return;
             }else{
                 if (preparationInProcess.get() && !fullPrepDone.get()){
-                    stepCounter++;
+                    int curStepCount = stepCounter.incrementAndGet();
                     System.out.println("-------> Baking Prep Clock-> " + baseAgent.getCurrentHour());
-                    System.out.println("-------> step Counter -> " + stepCounter);
+                    System.out.println("-------> step Counter -> " + curStepCount);
                 }
             }
             baseAgent.finished();
@@ -155,10 +155,10 @@ public class BakingPreparationAgent extends BaseAgent {
                 }
             }
 
-            if (stepCounter >= stepDuration && !fullPrepDone.get()){
+            if (stepCounter.get() >= stepDuration && !fullPrepDone.get()){
                 preparationInProcess.set(false);
                 stepIdx++;
-                stepCounter = 0;
+                stepCounter.set(0);
             }
 
         }
