@@ -636,23 +636,15 @@ public class JSONConverter
         for (JsonElement product : jsonProducts)
         {
             JsonObject jsonProduct = product.getAsJsonObject();
-            String productName = jsonProduct.get("guid").getAsString();
+            String  = jsonProduct.get("guid").getAsString();
             int quantity = jsonProduct.get("quantity").getAsInt();
             float coolingDuration = jsonProduct.get("coolingDuration").getAsFloat();
 
-            coolingRequest.addProduct(productName, quantity, coolingDuration);
+            coolingRequest.addCoolingRequest(guid, coolingDuration, quantity);
         }
 
         return coolingRequest;
         
-
-        String guid = jsonCoolingRequest.get("guid").getAsString();
-        int coolingDuration = jsonCoolingRequest.get("coolingDuration").getAsInt();
-        int quantity = jsonCoolingRequest.get("quantity").getAsInt();
-
-
-        CoolingRequest proofingRequest = new CoolingRequest(guid, coolingDuration, quantity);
-        return proofingRequest;
     }
 
     public static LoadingBayMessage parseLoadingBayMessage(String jsonString)

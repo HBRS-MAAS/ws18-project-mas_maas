@@ -1,6 +1,7 @@
-{
-    "productName": "Berliner",
-    "coolingTime": 1.0,
+[
+  {
     "quantity": 5,
-    "boxingTemp": 40
-}
+    "guid": "Berliner",
+    "coolingDuration": 1
+  }
+]

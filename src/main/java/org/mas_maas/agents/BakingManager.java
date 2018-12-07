@@ -367,12 +367,13 @@ public class BakingManager extends BaseAgent {
             Vector<Integer> productQuantities = new Vector<Integer>();
 
             for (ProductStatus productStatus : products) {
-                String productName = productStatus.getProduct().getGuid();
-                float coolingTime = productStatus.getProduct().getRecipe().getActionTime(Step.COOLING_STEP);
+                String guid = productStatus.getProduct().getGuid();
+                float coolingDuration = productStatus.getProduct().getRecipe().getActionTime(Step.COOLING_STEP);
                 int boxingTemp = productStatus.getProduct().getPackaging().getBoxingTemp();
                 int quantity = productStatus.getAmount();
 
-                CoolingRequest coolingRequest = new CoolingRequest(productName, coolingTime, quantity, boxingTemp);
+                CoolingRequest coolingRequest = new CoolingRequest();
+                coolingRequest.addCoolingRequest(guid, coolingDuration, quantity);
                 // System.out.println("-------> HERE");
                 coolingRequests.add(coolingRequest);
             }

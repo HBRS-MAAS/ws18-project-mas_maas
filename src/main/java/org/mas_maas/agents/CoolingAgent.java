@@ -6,6 +6,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.mas_maas.JSONConverter;
 import org.mas_maas.messages.CoolingRequest;
 import org.mas_maas.messages.LoadingBayMessage;
+import org.mas_maas.objects.CoolingRequestTuple;
 
 import com.google.gson.Gson;
 
@@ -151,13 +152,20 @@ public class CoolingAgent extends BaseAgent {
                 reply.setContent("Cooling request was received");
                 reply.setConversationId("cooling-request-reply");
                 baseAgent.sendMessage(reply);
+                
+                for (CoolingRequestTuple coolingRequestTuple: coolingRequest.coolingRequests) {
+                	 Float coolingTime = coolingRequestTuple.getCoolingDuration();
+                     productName = coolingRequestTuple.getGuid();
+                     quantity = coolingRequestTuple.getQuantity();
+                     addBehaviour(new Cooling(coolingTime, productName, quantity));
+                }
+                
+                //for (ProductStatus productStatus : products) {
 
-                Float coolingTime = coolingRequest.getCoolingTime();
-                productName = coolingRequest.getProductName();
-                quantity = coolingRequest.getQuantity();
+               
                 // boxingTemp = coolingRequest.getBoxingTemp();
 
-                addBehaviour(new Cooling(coolingTime, productName, quantity));
+               
                 messageProcessing.getAndDecrement();
             }
 

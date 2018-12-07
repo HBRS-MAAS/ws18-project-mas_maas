@@ -2,6 +2,7 @@ package org.mas_maas.agents;
 
 import org.maas.utils.JsonConverter;
 import org.mas_maas.messages.CoolingRequest;
+import org.mas_maas.messages.LoadingBayMessage;
 
 import com.google.gson.Gson;
 
@@ -79,8 +80,9 @@ public class Intermediater extends BaseAgent {
 		int quantity = 7;
 		float coolingDuration = 1;
 
-		CoolingRequest coolingRequest = new CoolingRequest(guid, coolingDuration, quantity);
-
+		CoolingRequest coolingRequest = new CoolingRequest();
+		coolingRequest.addCoolingRequest(guid, coolingDuration, quantity);
+		
 		return coolingRequest;
 
 	}

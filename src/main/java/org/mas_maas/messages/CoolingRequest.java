@@ -1,6 +1,7 @@
 package org.mas_maas.messages;
 
 import java.util.Vector;
+import org.mas_maas.objects.CoolingRequestTuple;
 
 public class CoolingRequest {
     public Vector<CoolingRequestTuple> coolingRequests;
@@ -20,20 +21,5 @@ public class CoolingRequest {
         return "CoolingRequest [coolingRequests=" + coolingRequests + "]";
     }
 
-    private class CoolingRequestTuple {
-        private String guid;
-        private int quantity;
-        private float coolingDuration;
-
-        public CoolingRequestTuple(String guid, float coolingDuration, int quantity) {
-            this.guid = guid;
-            this.coolingDuration = coolingDuration;
-            this.quantity = quantity;
-        }
-
-        @Override
-        public String toString() {
-            return "CoolingRequest [guid=" + guid + ", coolingDuration=" + coolingDuration + ", quantity=" + quantity + "]";
-        }
-    }
+   
 }
