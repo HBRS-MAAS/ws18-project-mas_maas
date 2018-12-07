@@ -2,6 +2,7 @@ package org.mas_maas;
 
 import java.util.List;
 import java.util.Vector;
+import org.maas.*;
 
 public class Start {
     public static void main(String[] args) {
@@ -9,7 +10,8 @@ public class Start {
 
         List<String> agents = new Vector<>();
         agents.add("TimeKeeper:org.mas_maas.agents.TimeKeeper");
-        agents.add("CoolingRackAgent:org.mas_maas.agents.CoolingRackAgent");
+        agents.add("CoolingRackAgent:org.maas.agents.CoolingRackAgent");
+        agents.add("Intermediater:org.mas_maas.agents.Intermediater");
 
         // agents.add("DoughManager:org.mas_maas.agents.DoughManager");
         // agents.add("BakingManager:org.mas_maas.agents.BakingManager");
