@@ -1,54 +1,39 @@
 package org.mas_maas.messages;
 
-public class CoolingRequest {
-    private String productName;
-    private float coolingTime;
-    private int quantity;
-    private int boxingTemp;
+import java.util.Vector;
 
-    public CoolingRequest(String productName, float coolingTime, int quantity, int boxingTemp) {
-        super();
-        this.productName = productName;
-        this.coolingTime = coolingTime;
-        this.quantity = quantity;
-        this.boxingTemp = boxingTemp;
+class CoolingRequest {
+    public Vector<CoolingRequestTuple> coolingRequests;
+
+    public CoolingRequest()
+    {
+        this.coolingRequests = new Vector<CoolingRequestTuple>();
     }
 
-    public String getProductName() {
-        return productName;
-    }
-
-    public void setProductName(String productName) {
-        this.productName = productName;
-    }
-
-    public float getCoolingTime() {
-        return coolingTime;
-    }
-
-    public void setCoolinTime(int coolingTime) {
-        this.coolingTime = coolingTime;
-    }
-
-    public int getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(int quantity) {
-        this.quantity = quantity;
-    }
-
-    public int getBoxingTemp() {
-        return boxingTemp;
-    }
-
-    public void setBoxingTemp(int boxingTemp) {
-        this.boxingTemp = boxingTemp;
+    public void addCoolingRequest(String guid, float coolingDuration, int quantity, int boxingTemp)
+    {
+        this.coolingRequests.add(new CoolingRequestTuple(guid, coolingDuration, quantity));
     }
 
     @Override
     public String toString() {
-        return "CoolingRequest [productName=" + productName + ", coolingTime=" + coolingTime + ", quantity=" + quantity
-                + ", boxingTemp=" + boxingTemp + "]";
+        return "CoolingRequest [coolingRequests=" + coolingRequests + "]";
+    }
+
+    private class CoolingRequestTuple {
+        private String guid;
+        private int quantity;
+        private float coolingDuration;
+
+        public CoolingRequestTuple(String guid, float coolingDuration, int quantity) {
+            this.guid = guid;
+            this.coolingDuration = coolingDuration;
+            this.quantity = quantity;
+        }
+
+        @Override
+        public String toString() {
+            return "CoolingRequest [guid=" + guid + ", coolingDuration=" + coolingDuration + ", quantity=" + quantity + "]";
+        }
     }
 }
