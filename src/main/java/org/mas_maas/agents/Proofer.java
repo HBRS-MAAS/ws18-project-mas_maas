@@ -2,6 +2,7 @@ package org.mas_maas.agents;
 
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.mas_maas.JSONConverter;
 import org.mas_maas.messages.DoughNotification;
@@ -23,12 +24,13 @@ public class Proofer extends BaseAgent {
     private AID [] bakingManagerAgents;
 
     private AtomicBoolean proofingInProcess = new AtomicBoolean(false);
+    private AtomicBoolean processingMessage = new AtomicBoolean(false);
 
     private Vector<String> guids;
     private String productType;
     private Vector<Integer> productQuantities;
 
-    private int proofingCounter;
+    private AtomicInteger proofingCounter = new AtomicInteger(0);
 
     protected void setup() {
         super.setup();
@@ -41,7 +43,7 @@ public class Proofer extends BaseAgent {
         this.getDoughManagerAIDs();
         this.getBakingManagerAIDs();
 
-        proofingCounter = 0;
+        proofingCounter.set(0);
         // Time tracker behavior
         addBehaviour(new timeTracker());
         addBehaviour(new ReceiveProofingRequests());
@@ -100,28 +102,32 @@ public class Proofer extends BaseAgent {
 
     private class timeTracker extends CyclicBehaviour {
         public void action() {
+            // first we make sure we are even allowed to do anything
             if (!baseAgent.getAllowAction()) {
                 return;
-            }else{
-                if (proofingInProcess.get()){
-                    proofingCounter++;
-                    System.out.println("-------> Proofer Clock-> " + baseAgent.getCurrentHour());
-                    System.out.println("-------> Proofer Counter -> " + proofingCounter);
-                }
             }
-            baseAgent.finished();
+
+            // once we know our agent is able to do an action check if we need to actually do anything
+            if (!processingMessage.get())
+            {
+                if (proofingInProcess.get()){
+                    int curCount = proofingCounter.incrementAndGet();
+                    //System.out.println("-------> Proofer Clock-> " + baseAgent.getCurrentHour());
+                    //System.out.println("-------> Proofer Counter -> " + curCount);
+                }
+                baseAgent.finished();
+            }
         }
     }
 
       /* This is the behaviour used for receiving proofing requests */
     private class ReceiveProofingRequests extends CyclicBehaviour {
         public void action() {
+            processingMessage.set(true);
 
             MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
                 MessageTemplate.MatchConversationId("proofing-request"));
-
             ACLMessage msg = baseAgent.receive(mt);
-
 
             if (msg != null) {
                 System.out.println(getAID().getLocalName() + " Received proofing request from " + msg.getSender());
@@ -140,10 +146,12 @@ public class Proofer extends BaseAgent {
                 productType = proofingRequest.getProductType();
                 productQuantities = proofingRequest.getProductQuantities();
 
+                proofingInProcess.set(true);
                 addBehaviour(new Proofing(proofingTime));
-
+                processingMessage.set(false);
             }
             else {
+                processingMessage.set(false);
                 block();
             }
         }
@@ -158,16 +166,17 @@ public class Proofer extends BaseAgent {
         public Proofing(float proofingTime){
             this.proofingTime = proofingTime;
             System.out.println(getAID().getLocalName() + " proofing for " + proofingTime);
-            proofingInProcess.set(true);
         }
+
         public void action(){
-            if (proofingCounter >= proofingTime){
-                proofingInProcess.set(false);
-                proofingCounter = 0;
+            if (proofingCounter.get() >= proofingTime){
+                proofingCounter.set(0);
+                // TODO do we need another bool to make sure this gets sent?
                 addBehaviour(new SendDoughNotification());
-                // this.done();
+                proofingInProcess.set(false);
             }
         }
+
         public boolean done(){
             if (proofingInProcess.get()){
                 return false;
@@ -223,6 +232,7 @@ public class Proofer extends BaseAgent {
                         option = 2;
                     }
                     else {
+                        System.out.println("Waiting for reply. Kill me!");
                         block();
                     }
                     break;
@@ -235,7 +245,7 @@ public class Proofer extends BaseAgent {
         public boolean done() {
             if (option == 2) {
                 baseAgent.finished();
-                myAgent.doDelete();
+                //myAgent.doDelete();
                 return true;
             }
             return false;

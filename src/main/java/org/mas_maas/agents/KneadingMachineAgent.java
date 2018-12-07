@@ -1,18 +1,17 @@
 package org.mas_maas.agents;
 
-import java.util.Vector;
-import java.util.Scanner;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.Scanner;
+import java.util.Vector;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.mas_maas.JSONConverter;
 import org.mas_maas.messages.KneadingNotification;
 import org.mas_maas.messages.KneadingRequest;
-
 import org.mas_maas.objects.Bakery;
-import org.mas_maas.objects.KneadingMachine;
 import org.mas_maas.objects.Equipment;
+import org.mas_maas.objects.KneadingMachine;
 
 import com.google.gson.Gson;
 
@@ -25,7 +24,6 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-import java.util.concurrent.atomic.AtomicBoolean;
 public class KneadingMachineAgent extends BaseAgent {
     private AID [] doughManagerAgents;
 
@@ -292,7 +290,7 @@ public class KneadingMachineAgent extends BaseAgent {
             if (option == 2) {
                 System.out.println(getAID().getLocalName() + " My life is over ");
                 baseAgent.finished();
-                myAgent.doDelete();
+                //myAgent.doDelete();
                 return true;
             }
 

@@ -4,7 +4,7 @@ import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Scanner;
 import java.util.Vector;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.mas_maas.JSONConverter;
 import org.mas_maas.messages.KneadingNotification;
@@ -39,7 +39,7 @@ public class DoughManager extends BaseAgent {
     private AID [] preparationTableAgents;
     private AID [] prooferAgents;
 
-    private AtomicBoolean proofingRequested = new AtomicBoolean(false);
+    private AtomicInteger messageProcessing = new AtomicInteger(0);
 
     private Bakery bakery;
     private WorkQueue needsKneading;
@@ -111,9 +111,7 @@ public class DoughManager extends BaseAgent {
 
         // Add behavior to send the kneadingRequest to the Kneading Agents
         addBehaviour(new RequestKneading( kneadingRequestString, kneadingMachineAgents));
-
         addBehaviour(new ReceiveKneadingNotification());
-
         addBehaviour(new ReceivePreparationNotification());
 
         // Time tracker behavior
@@ -125,10 +123,12 @@ public class DoughManager extends BaseAgent {
             if (!baseAgent.getAllowAction()) {
                 return;
             }
-            // else{
-            //     System.out.println("-------> Dough Manager -> " + baseAgent.getCurrentHour());
-            // }
-            baseAgent.finished();
+
+            // only advance if we aren't currently processing any messages
+            if (messageProcessing.get() == 0)
+            {
+                baseAgent.finished();
+            }
         }
     }
 
@@ -382,7 +382,9 @@ public class DoughManager extends BaseAgent {
     /* This is the behavior used for receiving orders */
     private class ReceiveOrders extends CyclicBehaviour {
         public void action() {
-            // baseAgent.finished(); //call it if there are no generic behaviours
+
+            // insure we don't allow a time step until we are done processing this message
+            messageProcessing.incrementAndGet();
             MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
             ACLMessage msg = myAgent.receive(mt);
             if (msg != null) {
@@ -392,9 +394,10 @@ public class DoughManager extends BaseAgent {
                 baseAgent.sendMessage(reply);
                 // TODO convert String to order object
                 // Add the order to the HashMap of orders. Trigger the doughPreparation (send Kneading request, etc)
-
+                messageProcessing.decrementAndGet();
             }
             else {
+                messageProcessing.decrementAndGet();
                 block();
             }
         }
@@ -404,9 +407,10 @@ public class DoughManager extends BaseAgent {
     private class ReceiveKneadingNotification extends CyclicBehaviour {
         public void action() {
 
+            // insure we don't allow a time step until we are done processing this message
+            messageProcessing.incrementAndGet();
             MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
                 MessageTemplate.MatchConversationId("kneading-notification"));
-
             ACLMessage msg = baseAgent.receive(mt);
 
             if (msg != null) {
@@ -442,9 +446,10 @@ public class DoughManager extends BaseAgent {
 
                 // Send preparationRequestMessage
                 addBehaviour(new RequestPreparation(preparationRequestString, preparationTableAgents));
-
+                messageProcessing.decrementAndGet();
             }
             else {
+                messageProcessing.decrementAndGet();
                 block();
             }
         }
@@ -453,11 +458,11 @@ public class DoughManager extends BaseAgent {
     /* This is the behaviour used for receiving preparation notification */
     private class ReceivePreparationNotification extends CyclicBehaviour {
         public void action() {
-            // baseAgent.finished(); //call it if there are no generic behaviours
 
+            // insure we don't allow a time step until we are done processing this message
+            messageProcessing.incrementAndGet();
             MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
                 MessageTemplate.MatchConversationId("preparation-notification"));
-
             ACLMessage msg = baseAgent.receive(mt);
 
             if (msg != null) {
@@ -488,9 +493,11 @@ public class DoughManager extends BaseAgent {
 
                 // Send preparationRequestMessage
                 addBehaviour(new RequestProofing(proofingRequestString, prooferAgents));
+                messageProcessing.decrementAndGet();
             }
             else {
                 block();
+                messageProcessing.decrementAndGet();
             }
         }
 
@@ -509,11 +516,10 @@ public class DoughManager extends BaseAgent {
             this.kneadingRequest = kneadingRequest;
             this.kneadingMachineAgents = kneadingMachineAgents;
         }
+
         public void action(){
-            //blocking action
-            if (!baseAgent.getAllowAction()) {
-                return;
-            }
+            // insure we don't allow a time step until we are done processing this message
+            messageProcessing.incrementAndGet();
             switch(option){
                 case 0:
                     ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
@@ -529,6 +535,7 @@ public class DoughManager extends BaseAgent {
 
                     option = 1;
                     System.out.println(getLocalName()+" Sent kneadingRequest" + kneadingRequest);
+                    messageProcessing.decrementAndGet();
                     break;
 
                 case 1:
@@ -541,19 +548,21 @@ public class DoughManager extends BaseAgent {
                     if (reply != null) {
                         System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
                         option = 2;
+                        messageProcessing.decrementAndGet();
                     }
                     else {
+                        messageProcessing.decrementAndGet();
                         block();
                     }
                     break;
 
                 default:
+                    messageProcessing.decrementAndGet();
                     break;
             }
         }
         public boolean done(){
             if (option == 2){
-                // baseAgent.finished();
                 return true;
 
             }
@@ -574,10 +583,9 @@ public class DoughManager extends BaseAgent {
             this.preparationTableAgents = preparationTableAgents;
         }
         public void action(){
-            //blocking action
-            // if (!baseAgent.getAllowAction()) {
-            //     return;
-            // }
+            // insure we don't allow a time step until we are done processing this message
+            messageProcessing.incrementAndGet();
+
             switch(option){
                 case 0:
                     ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
@@ -594,6 +602,7 @@ public class DoughManager extends BaseAgent {
 
                     option = 1;
                     System.out.println(getLocalName()+" Sent preparationRequest");
+                    messageProcessing.decrementAndGet();
                     break;
 
                 case 1:
@@ -605,19 +614,21 @@ public class DoughManager extends BaseAgent {
 
                         System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
                         option = 2;
+                        messageProcessing.decrementAndGet();
                     }
                     else {
+                        messageProcessing.decrementAndGet();
                         block();
                     }
                     break;
 
             default:
+                messageProcessing.decrementAndGet();
                 break;
             }
         }
         public boolean done(){
             if (option == 2){
-                // baseAgent.finished();
                 return true;
 
             }
@@ -630,6 +641,7 @@ public class DoughManager extends BaseAgent {
         private String proofingRequest;
         private AID [] prooferAgents;
         private MessageTemplate mt;
+        private boolean proofingRequested = false;
         private int option = 0;
 
         public RequestProofing(String proofingRequest, AID [] prooferAgents){
@@ -637,11 +649,9 @@ public class DoughManager extends BaseAgent {
             this.prooferAgents = prooferAgents;
         }
         public void action(){
-            //blocking actio
-            // System.out.println("HERE");
-            if (!baseAgent.getAllowAction() && !proofingRequested.get()) {
-                return;
-            }
+            // insure we don't allow a time step until we are done processing this message
+            messageProcessing.incrementAndGet();
+
             switch(option){
                 case 0:
                     ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
@@ -656,8 +666,9 @@ public class DoughManager extends BaseAgent {
                     baseAgent.sendMessage(msg);  // calling sendMessage instead of send
 
                     option = 1;
-                    proofingRequested.set(true);
+                    proofingRequested = true;
                     System.out.println("-----> " + getLocalName()+" Sent proofingRequest" + proofingRequest);
+                    messageProcessing.decrementAndGet();
                     break;
 
                 case 1:
@@ -669,23 +680,26 @@ public class DoughManager extends BaseAgent {
                     if (reply != null) {
                         System.out.println("-----> " +getAID().getLocalName() + " Received confirmation from " + reply.getSender());
                         option = 2;
+                        messageProcessing.decrementAndGet();
                     }
                     else {
+                        messageProcessing.decrementAndGet();
                         block();
                     }
                     break;
 
                 default:
+                    messageProcessing.decrementAndGet();
                     break;
             }
         }
         public boolean done(){
             if (option == 2){
-                baseAgent.finished();
                 System.out.println(getAID().getLocalName() + " My life is over ");
-                proofingRequested.set(false);
+                proofingRequested = false;
                 // For now the DoughManager terminates after processing one order
-                baseAgent.doDelete();
+                baseAgent.finished();
+                //baseAgent.doDelete();
                 return true;
 
             }
