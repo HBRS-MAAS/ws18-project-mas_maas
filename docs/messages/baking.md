@@ -66,14 +66,15 @@ Step
 ## Cooling Request
 
 #### Content
-```
-{
-    "productName": String,
-    "coolingTime": float,
-    "quantity": int,
-    "boxingTemp": int
-}
 
+```
+[
+    {
+        guid: String("product_name"),
+        quantity: int(quantity),
+        coolingDuration: int(cooling_duration)
+    }
+]
 ```
 
 ## Loading Bay Message
