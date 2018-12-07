@@ -629,14 +629,29 @@ public class JSONConverter
     {
         JsonElement root = new JsonParser().parse(jsonString);
         JsonObject jsonCoolingRequest = root.getAsJsonObject();
+        
+        CoolingRequest coolingRequest = new CoolingRequest();
+        
+        JsonArray jsonProducts = jsonCoolingRequest.get("products").getAsJsonArray();
+        for (JsonElement product : jsonProducts)
+        {
+            JsonObject jsonProduct = product.getAsJsonObject();
+            String productName = jsonProduct.get("guid").getAsString();
+            int quantity = jsonProduct.get("quantity").getAsInt();
+            float coolingDuration = jsonProduct.get("coolingDuration").getAsFloat();
 
-        String productName = jsonCoolingRequest.get("productName").getAsString();
-        int coolingTime = jsonCoolingRequest.get("coolingTime").getAsInt();
+            coolingRequest.addProduct(productName, quantity, coolingDuration);
+        }
+
+        return coolingRequest;
+        
+
+        String guid = jsonCoolingRequest.get("guid").getAsString();
+        int coolingDuration = jsonCoolingRequest.get("coolingDuration").getAsInt();
         int quantity = jsonCoolingRequest.get("quantity").getAsInt();
-        int boxingTemp = jsonCoolingRequest.get("boxingTemp").getAsInt();
 
 
-        CoolingRequest proofingRequest = new CoolingRequest(productName, coolingTime, quantity, boxingTemp);
+        CoolingRequest proofingRequest = new CoolingRequest(guid, coolingDuration, quantity);
         return proofingRequest;
     }
 
