@@ -1,4 +1,4 @@
-package org.maas.agents;
+package org.mas_maas.agents;
 
 import jade.core.AID;
 import jade.core.behaviours.*;
