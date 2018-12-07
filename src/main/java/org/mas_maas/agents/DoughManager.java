@@ -125,7 +125,7 @@ public class DoughManager extends BaseAgent {
             }
 
             // only advance if we aren't currently processing any messages
-            if (messageProcessing.get() == 0)
+            if (messageProcessing.get() <= 0)
             {
                 baseAgent.finished();
             }
@@ -695,10 +695,10 @@ public class DoughManager extends BaseAgent {
         }
         public boolean done(){
             if (option == 2){
-                System.out.println(getAID().getLocalName() + " My life is over ");
                 proofingRequested = false;
                 // For now the DoughManager terminates after processing one order
-                baseAgent.finished();
+                //System.out.println(getAID().getLocalName() + " My life is over ");
+                //baseAgent.finished();
                 //baseAgent.doDelete();
                 return true;
 

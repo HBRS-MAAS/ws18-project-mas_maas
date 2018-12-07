@@ -24,13 +24,12 @@ public class Proofer extends BaseAgent {
     private AID [] bakingManagerAgents;
 
     private AtomicBoolean proofingInProcess = new AtomicBoolean(false);
-    private AtomicBoolean processingMessage = new AtomicBoolean(false);
+    private AtomicInteger messageProcessing = new AtomicInteger(0);
+    private AtomicInteger proofingCounter = new AtomicInteger(0);
 
     private Vector<String> guids;
     private String productType;
     private Vector<Integer> productQuantities;
-
-    private AtomicInteger proofingCounter = new AtomicInteger(0);
 
     protected void setup() {
         super.setup();
@@ -108,7 +107,7 @@ public class Proofer extends BaseAgent {
             }
 
             // once we know our agent is able to do an action check if we need to actually do anything
-            if (!processingMessage.get())
+            if (messageProcessing.get() <= 0)
             {
                 if (proofingInProcess.get()){
                     int curCount = proofingCounter.incrementAndGet();
@@ -123,8 +122,8 @@ public class Proofer extends BaseAgent {
       /* This is the behaviour used for receiving proofing requests */
     private class ReceiveProofingRequests extends CyclicBehaviour {
         public void action() {
-            processingMessage.set(true);
 
+            messageProcessing.getAndIncrement();
             MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
                 MessageTemplate.MatchConversationId("proofing-request"));
             ACLMessage msg = baseAgent.receive(mt);
@@ -148,10 +147,10 @@ public class Proofer extends BaseAgent {
 
                 proofingInProcess.set(true);
                 addBehaviour(new Proofing(proofingTime));
-                processingMessage.set(false);
+                messageProcessing.getAndDecrement();
             }
             else {
-                processingMessage.set(false);
+                messageProcessing.getAndDecrement();
                 block();
             }
         }
@@ -197,12 +196,13 @@ public class Proofer extends BaseAgent {
         private DoughNotification doughNotification = new DoughNotification(guids, productType, productQuantities);
         private String doughNotificationString = gson.toJson(doughNotification);
 
-        // public SendDoughNotification(AID [] bakingManagerAgents){
-        //     this.bakingManagerAgents = bakingManagerAgents;
-        // }
+
+        //TODO remove me when debugging is done
+        private boolean killMessageSent = false;
 
         public void action() {
 
+            messageProcessing.getAndIncrement();
             switch (option) {
                 case 0:
                     ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
@@ -218,6 +218,7 @@ public class Proofer extends BaseAgent {
 
                     option = 1;
                     System.out.println(getAID().getLocalName() + " Sent doughNotification");
+                    messageProcessing.getAndDecrement();
                     break;
 
                 case 1:
@@ -230,9 +231,15 @@ public class Proofer extends BaseAgent {
                     if (reply != null) {
                         System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
                         option = 2;
+                        messageProcessing.getAndDecrement();
                     }
                     else {
-                        System.out.println("Waiting for reply. Kill me!");
+                        if (!killMessageSent)
+                        {
+                            System.out.println("Waiting for reply. Kill me!");
+                            killMessageSent = true;
+                        }
+                        messageProcessing.getAndDecrement();
                         block();
                     }
                     break;

@@ -4,7 +4,7 @@ import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Scanner;
 import java.util.Vector;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.mas_maas.JSONConverter;
 import org.mas_maas.messages.BakingNotification;
@@ -42,7 +42,7 @@ public class BakingManager extends BaseAgent {
     private AID [] bakingPreparationAgents; // similar to the preparationTableAgents in the Dough Stage
     private AID [] coolingRackAgents;
 
-    private AtomicBoolean coolingRequested = new AtomicBoolean(false);
+    private AtomicInteger messageProcessing = new AtomicInteger(0);
 
     private WorkQueue needsBaking;
     private WorkQueue needsPreparation;
@@ -74,7 +74,6 @@ public class BakingManager extends BaseAgent {
         this.getOvenAIDs();
         this.getBakingPreparationAIDs();
         this.getCoolingRackAIDs();
-
 
         // Activate behavior that receives orders
         // addBehaviour(new ReceiveOrders());
@@ -204,13 +203,16 @@ public class BakingManager extends BaseAgent {
 
     private class timeTracker extends CyclicBehaviour {
         public void action() {
+            // first we make sure we are even allowed to do anything
             if (!baseAgent.getAllowAction()) {
                 return;
             }
-            // else{
-            //     System.out.println("-------> Baking Manager -> " + baseAgent.getCurrentHour());
-            // }
-            baseAgent.finished();
+
+            // once we know our agent is able to do an action check to make sure we aren't in the middle of processing a message
+            if (messageProcessing.get() == 0)
+            {
+                baseAgent.finished();
+            }
         }
     }
 
@@ -359,22 +361,15 @@ public class BakingManager extends BaseAgent {
         Vector<ProductStatus> products = needsCooling.getProductBatch();
         Vector<CoolingRequest> coolingRequests = new Vector<CoolingRequest>();
 
-
         if (products != null) {
 
             Vector<String> guids = new Vector<String>();
             Vector<Integer> productQuantities = new Vector<Integer>();
 
-
-
             for (ProductStatus productStatus : products) {
-
                 String productName = productStatus.getProduct().getGuid();
-
                 float coolingTime = productStatus.getProduct().getRecipe().getActionTime(Step.COOLING_STEP);
-
                 int boxingTemp = productStatus.getProduct().getPackaging().getBoxingTemp();
-
                 int quantity = productStatus.getAmount();
 
                 CoolingRequest coolingRequest = new CoolingRequest(productName, coolingTime, quantity, boxingTemp);
@@ -386,14 +381,14 @@ public class BakingManager extends BaseAgent {
         }
 
         return coolingRequests;
-
     }
 
 
     /* This is the behavior used for receiving doughNotifications */
     private class ReceiveDoughNotification extends CyclicBehaviour {
         public void action() {
-            // baseAgent.finished(); //call it if there are no generic behaviours
+            messageProcessing.getAndIncrement();
+
             MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
                     MessageTemplate.MatchConversationId("dough-notification"));
 
@@ -428,9 +423,10 @@ public class BakingManager extends BaseAgent {
                 // Send bakingRequestMessage
                 // System.out.println("Requesting baking");
                 addBehaviour(new RequestBaking(bakingRequestString));
-
+                messageProcessing.getAndDecrement();
             }
             else {
+                messageProcessing.getAndDecrement();
                 block();
             }
         }
@@ -439,11 +435,10 @@ public class BakingManager extends BaseAgent {
     /* This is the behaviour used for receiving baking notification */
     private class ReceiveBakingNotification extends CyclicBehaviour {
         public void action() {
-            // baseAgent.finished(); //call it if there are no generic behaviours
+            messageProcessing.getAndIncrement();
 
             MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
                     MessageTemplate.MatchConversationId("baking-notification"));
-
             ACLMessage msg = baseAgent.receive(mt);
 
             if (msg != null) {
@@ -471,15 +466,15 @@ public class BakingManager extends BaseAgent {
 
                 // Convert preparationRequestMessage to String
                 Gson gson = new Gson();
-
                 String preparationRequestString = gson.toJson(preparationRequestMessage);
 
                 // Send preparationRequestMessage
                 addBehaviour(new RequestPreparation(preparationRequestString));
-
+                messageProcessing.getAndDecrement();
             }
 
             else {
+                messageProcessing.getAndDecrement();
                 block();
             }
         }
@@ -488,8 +483,8 @@ public class BakingManager extends BaseAgent {
     /* This is the behavior used for receiving preparation notifications */
     private class ReceivePreparationNotification extends CyclicBehaviour {
         public void action() {
-            // baseAgent.finished(); //call it if there are no generic behaviours
 
+            messageProcessing.getAndIncrement();
             MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
                     MessageTemplate.MatchConversationId("preparationBaking-notification"));
 
@@ -526,10 +521,11 @@ public class BakingManager extends BaseAgent {
                     // Adds one behaviour per coolingRequest
                     addBehaviour(new RequestCooling(coolingRequestString, coolingRequestCounter));
                     coolingRequestCounter ++;
-
                 }
+                messageProcessing.getAndDecrement();
             }
             else {
+                messageProcessing.getAndDecrement();
                 block();
             }
         }
@@ -545,10 +541,11 @@ public class BakingManager extends BaseAgent {
             this.bakingRequest = bakingRequest;
         }
         public void action(){
-            //blocking action
+            messageProcessing.getAndIncrement();
             if (!baseAgent.getAllowAction()) {
                 return;
             }
+
             switch(option){
                 case 0:
 
@@ -565,6 +562,7 @@ public class BakingManager extends BaseAgent {
 
                     option = 1;
                     System.out.println(getLocalName()+" Sent bakingRequest" + bakingRequest);
+                    messageProcessing.getAndDecrement();
                     break;
 
                 case 1:
@@ -575,12 +573,15 @@ public class BakingManager extends BaseAgent {
                         if (reply != null) {
                             System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
                             option = 2;
+                            messageProcessing.getAndDecrement();
                         }
                         else {
+                            messageProcessing.getAndDecrement();
                             block();
                         }
                         break;
             default:
+                messageProcessing.getAndDecrement();
                 break;
             }
         }
@@ -603,10 +604,8 @@ public class BakingManager extends BaseAgent {
             this.preparationRequest = preparationRequest;
         }
         public void action(){
-            //blocking action
-            // if (!baseAgent.getAllowAction()) {
-            //     return;
-            // }
+            messageProcessing.getAndIncrement();
+
             switch(option){
                 case 0:
                     ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
@@ -622,6 +621,7 @@ public class BakingManager extends BaseAgent {
 
                     option = 1;
                     System.out.println(getLocalName()+" Sent baking preparationRequest" + preparationRequest);
+                    messageProcessing.getAndDecrement();
                     break;
 
                 case 1:
@@ -633,13 +633,16 @@ public class BakingManager extends BaseAgent {
                     if (reply != null) {
                         System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
                         option = 2;
+                        messageProcessing.getAndDecrement();
                     }
                     else {
+                        messageProcessing.getAndDecrement();
                         block();
                     }
                     break;
 
                 default:
+                    messageProcessing.getAndDecrement();
                     break;
             }
         }
@@ -665,10 +668,8 @@ public class BakingManager extends BaseAgent {
             this.coolingRequestcounter = coolingRequestCounter;
         }
         public void action(){
-            //blocking action
-            // if (!baseAgent.getAllowAction()) {
-            //     return;
-            // }
+
+            messageProcessing.getAndIncrement();
             switch(option){
                 case 0:
 
@@ -685,6 +686,7 @@ public class BakingManager extends BaseAgent {
 
                     option = 1;
                     System.out.println(getLocalName()+" Sent coolingRequest" + coolingRequest);
+                    messageProcessing.getAndDecrement();
                     break;
 
                 case 1:
@@ -696,13 +698,16 @@ public class BakingManager extends BaseAgent {
                     if (reply != null) {
                         System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
                         option = 2;
+                        messageProcessing.getAndDecrement();
                     }
                     else {
+                        messageProcessing.getAndDecrement();
                         block();
                     }
                     break;
 
             default:
+                messageProcessing.getAndDecrement();
                 break;
             }
         }
@@ -715,7 +720,5 @@ public class BakingManager extends BaseAgent {
             return false;
         }
     }
-
-
 
 }
