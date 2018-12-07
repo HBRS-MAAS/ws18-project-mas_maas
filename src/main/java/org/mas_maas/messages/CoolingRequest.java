@@ -2,7 +2,7 @@ package org.mas_maas.messages;
 
 import java.util.Vector;
 
-class CoolingRequest {
+public class CoolingRequest {
     public Vector<CoolingRequestTuple> coolingRequests;
 
     public CoolingRequest()
@@ -10,7 +10,7 @@ class CoolingRequest {
         this.coolingRequests = new Vector<CoolingRequestTuple>();
     }
 
-    public void addCoolingRequest(String guid, float coolingDuration, int quantity, int boxingTemp)
+    public void addCoolingRequest(String guid, float coolingDuration, int quantity)
     {
         this.coolingRequests.add(new CoolingRequestTuple(guid, coolingDuration, quantity));
     }
