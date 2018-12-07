@@ -379,7 +379,7 @@ public class BakingManager extends BaseAgent {
 
 				int quantity = productStatus.getAmount();
 
-				CoolingRequest coolingRequest = new CoolingRequest(productName, coolingTime, quantity, boxingTemp);
+				CoolingRequest coolingRequest = new CoolingRequest(productName, coolingTime, quantity);
 				// System.out.println("-------> HERE");
 				coolingRequests.add(coolingRequest);
 			}

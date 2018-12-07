@@ -154,7 +154,7 @@ public class CoolingAgent extends BaseAgent {
                 Float coolingTime = coolingRequest.getCoolingTime();
                 productName = coolingRequest.getProductName();
                 quantity = coolingRequest.getQuantity();
-                boxingTemp = coolingRequest.getBoxingTemp();
+                // boxingTemp = coolingRequest.getBoxingTemp();
 
                 addBehaviour(new Cooling(coolingTime, productName, quantity));
 

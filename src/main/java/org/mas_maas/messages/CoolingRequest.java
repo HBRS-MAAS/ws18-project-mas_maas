@@ -4,14 +4,12 @@ public class CoolingRequest {
     private String productName;
     private float coolingTime;
     private int quantity;
-    private int boxingTemp;
 
-    public CoolingRequest(String productName, float coolingTime, int quantity, int boxingTemp) {
+    public CoolingRequest(String productName, float coolingTime, int quantity) {
         super();
         this.productName = productName;
         this.coolingTime = coolingTime;
         this.quantity = quantity;
-        this.boxingTemp = boxingTemp;
     }
 
     public String getProductName() {
@@ -38,17 +36,11 @@ public class CoolingRequest {
         this.quantity = quantity;
     }
 
-    public int getBoxingTemp() {
-        return boxingTemp;
-    }
-
-    public void setBoxingTemp(int boxingTemp) {
-        this.boxingTemp = boxingTemp;
-    }
 
     @Override
     public String toString() {
-        return "CoolingRequest [productName=" + productName + ", coolingTime=" + coolingTime + ", quantity=" + quantity
-                + ", boxingTemp=" + boxingTemp + "]";
+        return "CoolingRequest [productName=" + productName + ", coolingTime=" + coolingTime + ", "
+        		+ "quantity=" + quantity + "]";
+        		      		
     }
 }
