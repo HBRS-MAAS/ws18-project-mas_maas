@@ -1,18 +1,21 @@
-package org.mas_maas.agents;
+package org.maas.agents;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.List;
+
+import org.maas.data.messages.ProductMessage;
+import org.maas.objects.ProcessedProduct;
+import org.maas.utils.JsonConverter;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jade.core.AID;
-import jade.core.behaviours.*;
+import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-
-import java.util.*;
-import java.io.IOException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.core.type.TypeReference;
-import org.maas.agents.BaseAgent;
-import org.maas.objects.ProcessedProduct;
-import org.maas.data.messages.ProductMessage;
-import org.maas.utils.JsonConverter;
 
 @SuppressWarnings("serial")
 public class CoolingRackAgent extends BaseAgent{
