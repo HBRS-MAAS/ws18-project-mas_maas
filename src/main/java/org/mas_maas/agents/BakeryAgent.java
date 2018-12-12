@@ -60,9 +60,11 @@ public class BakeryAgent extends BaseAgent {
 		
 		//Create one DoughManager for this Bakery
 		doughManagerAgentName = "DoughManagerAgent_" + bakery.getGuid();
+		System.out.println(doughManagerAgentName);
 		try {
-			 Object[] args = new Object[1];
-		   	 args[1] = doughManagerAgentName;
+			 Object[] args = new Object[2];
+		   	 args[0] = doughManagerAgentName;
+		   	 args[1] = bakery;
 
 			AgentController doughManagerAgent = container.createNewAgent(doughManagerAgentName, "org.mas_maas.agents.DoughManager", args);
 			doughManagerAgent.start();

@@ -31,6 +31,7 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import jade.wrapper.AgentContainer;
 
 
 public class DoughManager extends BaseAgent {
@@ -42,6 +43,8 @@ public class DoughManager extends BaseAgent {
     private AtomicInteger messageProcessing = new AtomicInteger(0);
 
     private Bakery bakery;
+    
+    private String doughManagerAgentName; // Name used to register in the yellowpages
     private WorkQueue needsKneading;
     private WorkQueue needsPreparation;
     private WorkQueue needsProofing;
@@ -53,10 +56,16 @@ public class DoughManager extends BaseAgent {
 
     protected void setup() {
         super.setup();
+        
+        Object[] args = getArguments();
+		if (args != null && args.length > 0) {
+			System.out.println("Seting args in the DoughManager");
+			this.doughManagerAgentName = (String) args[0];
+			this.bakery = (Bakery) args[1];
+	
+		}
+		
         System.out.println(getAID().getLocalName() + " is ready.");
-
-        // Load bakery information (includes recipes for each product)
-        getbakery();
 
         // Queue of productStatus which require kneading
         needsKneading = new WorkQueue();
@@ -66,7 +75,7 @@ public class DoughManager extends BaseAgent {
         needsProofing = new WorkQueue();
 
         // Register the Dough-manager in the yellow pages
-        this.register("Dough-manager", "JADE-bakery");
+        this.register(doughManagerAgentName, "JADE-bakery");
 
         this.getOrderProcessingAIDs();
         this.getKneadingMachineAIDs();
@@ -272,23 +281,6 @@ public class DoughManager extends BaseAgent {
 
         return proofingRequest;
 
-    }
-
-    public void getbakery(){
-
-        String jsonDir = "src/main/resources/config/shared_stage_communication/";
-        try {
-            System.out.println("Working Directory = " + System.getProperty("user.dir"));
-            String bakeryFile = new Scanner(new File(jsonDir + "bakery.json")).useDelimiter("\\Z").next();
-            Vector<Bakery> bakeries = JSONConverter.parseBakeries(bakeryFile);
-            for (Bakery bakery : bakeries)
-            {
-                this.bakery = bakery;
-            }
-        } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
     }
 
     public void getOrderProcessingAIDs() {
