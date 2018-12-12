@@ -5,7 +5,7 @@ import org.mas_maas.messages.CoolingRequest;
 import com.google.gson.Gson;
 
 import jade.core.AID;
-import jade.core.behaviours.Behaviour;
+import jade.core.behaviours.*;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -13,7 +13,7 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
-// This is a dummy agent for testing communication with the CoolingRackAgent. 
+// This is a dummy agent for testing communication with the CoolingRackAgent.
 // TODO: Time tracking should be integrated to this agent
 
 public class Intermediater extends BaseAgent {
@@ -52,6 +52,17 @@ public class Intermediater extends BaseAgent {
         this.deRegister();
     }
 
+    private class timeTracker extends CyclicBehaviour {
+        public void action() {
+            // first we make sure we are even allowed to do anything
+            if (!baseAgent.getAllowAction()) {
+                return;
+            }
+
+            // baseAgent.finished();
+        }
+    }
+
     public void getCoolingRackAIDs() {
         DFAgentDescription template = new DFAgentDescription();
         ServiceDescription sd = new ServiceDescription();
@@ -84,7 +95,7 @@ public class Intermediater extends BaseAgent {
 
         CoolingRequest coolingRequest = new CoolingRequest();
         coolingRequest.addCoolingRequest(guid, coolingDuration, quantity);
-        
+
         return coolingRequest;
 
     }
@@ -120,7 +131,7 @@ public class Intermediater extends BaseAgent {
                     baseAgent.sendMessage(msg);  // calling sendMessage instead of send
 
                     option = 1;
-                    System.out.println(getLocalName()+" Sent coolingRequest" + coolingRequest);
+                    System.out.println("-----> " + getLocalName()+" Sent coolingRequest" + coolingRequest);
                     break;
 
                 case 1:
