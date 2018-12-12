@@ -1,13 +1,20 @@
 package org.mas_maas.agents;
+
+import jade.core.Agent;
 import jade.core.AID;
-import jade.core.behaviours.CyclicBehaviour;
+import jade.domain.FIPAAgentManagement.*;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
-import jade.domain.FIPAAgentManagement.DFAgentDescription;
-import jade.domain.FIPAAgentManagement.ServiceDescription;
+import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
+import jade.core.Runtime;
+import jade.core.Profile;
+import jade.core.ProfileImpl;
+import jade.wrapper.*;
+
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
 import java.util.Vector;
@@ -20,46 +27,49 @@ import org.mas_maas.objects.Oven;
 
 public class AgentCreator extends BaseAgent {
 	private Vector<Bakery> bakeries;
-	public static final String SMALL_SCENARIO = "src/main/resources/config/small/";
-	
+	public static final String SMALL_SCENARIO = "src/main/resources/config/small/";	
+	private AgentContainer container = null;
 	
     protected void setup() {
         super.setup();
         System.out.println(getAID().getLocalName() + " is ready.");
         this.register("Agent-creator", "JADE-bakery");
-
+        
+        //get the container controller for creating new agents. All agents will belong to the same container. 
+        container = getContainer();
         createAgents();
     }
+    
+ public AgentContainer getContainer() {
+	AgentContainer container = (AgentContainer)getContainerController(); // get a container controller for creating new agents
+	return container;
+ }
     
  public void createAgents() {
 	 
 	 getBakery(SMALL_SCENARIO);
-	 // Create the equipment for each bakery
+	 // Create a BakeryAgent for each bakery
 	 for (Bakery bakery : bakeries) {
 		 
-		 // Create a DoughManger per bakery
-		 
-		 // Create a Baking manager per bakery
-		 Vector<Equipment> equipment = bakery.getEquipment();
-		 
-        System.out.println("Bakery name " + bakery.getName());
+		 System.out.println("Creating BakeryAgent" + bakery.getGuid());
+        
+		 // The names of the bakeries are the IDs
+         String bakeryAgentName = bakery.getGuid();
 
-        for (int i = 0; i < equipment.size(); i++){
-        	
-        	if (equipment.get(i) instanceof DoughPrepTable){
-        		// Create a DoughPrepTable agent for each DoughPrepTable in the bakery
-        	}
-        	
-            if (equipment.get(i) instanceof Oven){
-            	// Create an Oven agent for each Oven in the bakery
-            	
-                // ovens.add((Oven) equipment.get(i));
-            }
-        }
-        System.out.println("=========================================" );
-        System.out.println("Ovens found " + ovens.size());
-        System.out.println("=========================================" );
- }
+         try {
+        	 Object[] args = new Object[2];
+        	 args[0] = bakery;
+        	 args[1] = container;
+       
+			AgentController bakeryAgent = container.createNewAgent(bakeryAgentName, "org.mas_maas.agents.BakeryAgent", args);
+			
+			bakeryAgent.start();
+
+			System.out.println(getLocalName()+" created and started:"+ bakeryAgent + " on container "+((ContainerController) container).getContainerName());
+         	} catch (Exception any) {
+			any.printStackTrace();
+         	}
+	 }
 	 
  }
  
