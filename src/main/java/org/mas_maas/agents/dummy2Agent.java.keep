@@ -1,0 +1,197 @@
+package org.mas_maas.agents;
+
+import java.util.Vector;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import org.mas_maas.JSONConverter;
+import org.mas_maas.messages.LoadingBayMessage;
+import org.mas_maas.messages.CoolingRequest;
+
+import org.mas_maas.objects.Bakery;
+
+import com.google.gson.Gson;
+
+import jade.core.AID;
+import jade.core.behaviours.Behaviour;
+import jade.core.behaviours.CyclicBehaviour;
+import jade.domain.DFService;
+import jade.domain.FIPAException;
+import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.ServiceDescription;
+import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
+
+public class dummy2Agent extends BaseAgent {
+    private AID [] dummyAgents;
+
+    private int functionCalls;
+    private int functionDones;
+    private AtomicBoolean processingMessage = new AtomicBoolean(false);
+
+    protected void setup() {
+
+        super.setup();
+
+        System.out.println(getAID().getLocalName() + " is ready.");
+
+        // Register CoolingMachine Agent to the yellow Pages
+        this.register("dummy2", "JADE-bakery");
+
+        // Get Agents AIDS
+        this.getDummyAIDS();
+
+        // Creating receive cooling requests behaviour
+        addBehaviour(new printCurrentHour());
+        addBehaviour(new ReceiveDummyRequest());
+
+    }
+
+    protected void takeDown() {
+        System.out.println(getAID().getLocalName() + ": Terminating.");
+        this.deRegister();
+    }
+
+    public void getDummyAIDS() {
+        /*
+        Object the AID of all the dough-manager agents found
+        */
+        DFAgentDescription template = new DFAgentDescription();
+        ServiceDescription sd = new ServiceDescription();
+
+        sd.setType("dummy");
+        template.addServices(sd);
+        try {
+            DFAgentDescription [] result = DFService.search(this, template);
+            System.out.println(getAID().getLocalName() + "Found the following dummy agents:");
+            dummyAgents = new AID [result.length];
+
+            for (int i = 0; i < result.length; ++i) {
+                dummyAgents[i] = result[i].getName();
+                System.out.println(dummyAgents[i].getName());
+            }
+
+        }
+        catch (FIPAException fe) {
+            fe.printStackTrace();
+        }
+    }
+
+    // Receiving Kneading requests behavior
+    private class ReceiveDummyRequest extends CyclicBehaviour {
+        public void action() {
+
+            MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
+                MessageTemplate.MatchConversationId("dummy-message"));
+
+            ACLMessage msg = myAgent.receive(mt);
+
+            if (msg != null) {
+
+                processingMessage.set(true);
+                System.out.println(getAID().getLocalName() + " received dummy requests from " + msg.getSender());
+                String content = msg.getContent();
+
+                ACLMessage reply = msg.createReply();
+                reply.setPerformative(ACLMessage.CONFIRM);
+                reply.setContent("Dummy request was received");
+                reply.setConversationId("dummy-reply");
+                baseAgent.sendMessage(reply);
+
+                processingMessage.set(false);
+
+            }
+
+            else {
+                block(); //Unblocks every time that receives a message
+            }
+        }
+    }
+    // Receiving Cooling requests behavior
+    private class printCurrentHour extends CyclicBehaviour {
+        private int counter = 0;
+        public void action() {
+
+            if (!baseAgent.getAllowAction()) {
+                return;
+            }else{
+                System.out.println("=========================================" );
+                System.out.println("-------> Dummy2 -> " + baseAgent.getCurrentHour());
+                System.out.println("=========================================" );
+                counter++;
+                if (counter > 5){
+                    addBehaviour(new SendDummyRequest());
+                    functionCalls++;
+                    System.out.println("----> Function calls " + functionCalls);
+                    counter = 0;
+                }
+            }
+            if (!processingMessage.get()){
+                baseAgent.finished();
+            }
+        }
+    }
+
+    // Send a kneadingNotification msg to the doughManager agents
+    private class SendDummyRequest extends Behaviour {
+        private MessageTemplate mt;
+        private int option = 0;
+
+        public void action() {
+            switch (option) {
+                case 0:
+
+                    ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+
+                    msg.setContent("I am a dummy 2 agent");
+
+                    msg.setConversationId("dummy2-message");
+
+                    // Send kneadingNotification msg to dummyAgents
+                    for (int i = 0; i < dummyAgents.length; i++){
+                        msg.addReceiver(dummyAgents[i]);
+                    }
+
+                    baseAgent.sendMessage(msg);
+
+                    option = 1;
+
+                    System.out.println(getAID().getLocalName() + " Sent dummy2-request");
+
+                    break;
+
+                case 1:
+                    MessageTemplate rt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.CONFIRM),
+                        MessageTemplate.MatchConversationId("dummy2-reply"));
+                    ACLMessage reply = baseAgent.receive(rt);
+
+                    if (reply != null) {
+                        System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
+                        option = 2;
+                    }
+                    else {
+                        block();
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        public boolean done() {
+            if (option == 2) {
+                // baseAgent.finished();
+                option = 0;
+                // myAgent.doDelete();
+                functionDones++;
+                System.out.println("----> Function dones " + functionDones);
+                return true;
+            }
+
+           return false;
+       }
+    }
+
+
+
+}

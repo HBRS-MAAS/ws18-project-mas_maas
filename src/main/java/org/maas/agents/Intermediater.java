@@ -1,10 +1,10 @@
-package org.mas_maas.agents;
+package org.maas.agents;
 
 import org.mas_maas.messages.CoolingRequest;
 
 import com.google.gson.Gson;
 
-import org.maas.agents.BaseAgent;
+// import org.maas.agents.BaseAgent;
 import jade.core.AID;
 import jade.core.behaviours.*;
 import jade.domain.DFService;

@@ -1,4 +1,4 @@
-package org.maas.agents;
+package org.mas_maas.agents;
 
 import jade.core.Agent;
 import jade.core.AID;
@@ -27,7 +27,7 @@ public abstract class BaseAgent extends Agent {
      */
     protected void setup() {
 		System.out.println("=====================================");
-        System.out.println("----> Project MAAS " + clockAgent.getName());
+        System.out.println("----> Project MAS_MAAS " + clockAgent.getName());
         this.addBehaviour(new PermitAction());
     }
 

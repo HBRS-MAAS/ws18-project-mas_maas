@@ -1,5 +1,5 @@
 package org.maas.agents;
-
+// import org.mas_maas.agents.BaseAgent;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -30,6 +30,8 @@ public class CoolingRackAgent extends BaseAgent{
         this.register("cooling-rack-agent", "JADE-bakery");
         this.processedProducts = new ArrayList<ProcessedProduct> ();
 
+        System.out.println("----> Intermediater found " + intermediater.getName());
+
         addBehaviour(new ProcessedProductsServer(this.intermediater));
         addBehaviour(new CoolProducts());
     }
@@ -40,9 +42,11 @@ public class CoolingRackAgent extends BaseAgent{
 
     private class CoolProducts extends CyclicBehaviour{
         public void action(){
+            // System.out.println(baseAgent.getCurrentHour());
             if (!baseAgent.getAllowAction()) {
                 return;
             }
+            // System.out.println("----> Cooling rack here");
             if (baseAgent.getCurrentHour() <= 12) {
                 ArrayList<ProcessedProduct> message = this.getCooledProducts();
                 if (message.size() > 0) {
@@ -107,16 +111,25 @@ public class CoolingRackAgent extends BaseAgent{
             this.sender = sender;
         }
         public void action() {
+            // System.out.println("HEREE!!");
+            // MessageTemplate rt = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
+            // ACLMessage msg2 = myAgent.receive(rt);
+            // if (msg2 != null){
+            //     System.out.println("***************************************************************");
+            //     System.out.println("----> random message catched by cooling Rack Agent" + msg2 .getContent() + " " + msg2.getSender().getName() );
+            //     System.out.println("***************************************************************");
+            // }
             this.mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
                     MessageTemplate.MatchSender(this.sender));
             ACLMessage msg = myAgent.receive(mt);
             if (msg != null) {
-                System.out.println(String.format("\tcooling-rack::Received message from oven-manager %s",
+                System.out.println(String.format("----> cooling-rack::Received message from oven-manager %s",
                         msg.getSender().getName()));
                 String messageContent = msg.getContent();
-                System.out.println(String.format("\tmessage:: %s", messageContent));
+                System.out.println(String.format("message:: %s", messageContent));
                 ArrayList<ProcessedProduct> receivedProcessedProducts = this.parseProcessedProducts(messageContent);
                 processedProducts.addAll(receivedProcessedProducts);
+                // System.out.println("---> " + receivedProcessedProducts);
             }
             else {
                 block();

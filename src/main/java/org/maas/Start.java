@@ -1,8 +1,8 @@
-package org.mas_maas;
+package org.maas;
 
 import java.util.List;
 import java.util.Vector;
-import org.maas.*;
+// import org.maas.*;
 
 public class Start {
     public static void main(String[] args) throws InterruptedException {
@@ -12,7 +12,7 @@ public class Start {
         // agents.add("TimeKeeper:org.maas.agents.TimeKeeper");
         agents.add("CoolingRackAgent:org.maas.agents.CoolingRackAgent");
 
-        agents.add("Intermediater:org.maas.agents.Intermediater");
+        agents.add("Intermediater:org.mas_maas.agents.Intermediater");
         // Thread.sleep(2000);
         agents.add("TimeKeeper:org.maas.agents.TimeKeeper");
         // agents.add("DoughManager:org.mas_maas.agents.DoughManager");
