@@ -2,7 +2,6 @@ package org.mas_maas;
 
 import java.util.List;
 import java.util.Vector;
-import org.maas.*;
 
 public class Start {
     public static void main(String[] args) {
