@@ -205,6 +205,14 @@ public class JSONConverter
                 products.add(aProduct);
             }
 
+            // available_products
+            Vector<String> availableProducts = new Vector<String>();
+            JsonArray jsonAvailableProducts = jsonBakery.get("available_products").getAsJsonArray();
+            for (JsonElement product : jsonAvailableProducts)
+            {
+                availableProducts.add(product.getAsString());
+            }
+
 
             // equipment
             Vector<Equipment> equipment = new Vector<Equipment>();
@@ -262,7 +270,7 @@ public class JSONConverter
                 equipment.add(aMachine);
             }
 
-            Bakery bakery = new Bakery(guid, name, location, products, equipment);
+            Bakery bakery = new Bakery(guid, name, location, products, availableProducts, equipment);
             bakeries.add(bakery);
         }
 
