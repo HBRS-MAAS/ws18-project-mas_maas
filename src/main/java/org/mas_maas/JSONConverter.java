@@ -312,14 +312,14 @@ public class JSONConverter
         JsonElement root = new JsonParser().parse(jsonFile);
         JsonObject jsonOrder = root.getAsJsonObject();
 
-        String customerId = jsonOrder.get("customer_id").getAsString();
         String orderGuid = jsonOrder.get("guid").getAsString();
         JsonObject jsonOrderDate = jsonOrder.get("order_date").getAsJsonObject();
+        String customerId = jsonOrder.get("customer_id").getAsString();
         int orderDay = jsonOrderDate.get("day").getAsInt();
-        int orderHour = jsonOrderDate.get("day").getAsInt();
+        int orderHour = jsonOrderDate.get("hour").getAsInt();
         JsonObject jsonDeliveryDate = jsonOrder.get("delivery_date").getAsJsonObject();
         int deliveryDay = jsonDeliveryDate.get("day").getAsInt();
-        int deliveryHour = jsonDeliveryDate.get("day").getAsInt();
+        int deliveryHour = jsonDeliveryDate.get("hour").getAsInt();
 
         // products (BakedGood objects)
         // TODO shouldn't products be an array not an object?
