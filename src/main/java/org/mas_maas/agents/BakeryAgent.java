@@ -19,6 +19,8 @@ import jade.wrapper.AgentContainer;
 import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 
+import org.maas.agents.BaseAgent;
+
 public class BakeryAgent extends BaseAgent {
 	// bakery object for this bakery will all the information about the bakery
 	private Bakery bakery = null;
@@ -34,7 +36,7 @@ public class BakeryAgent extends BaseAgent {
 
 	protected void setup() {
 		super.setup();
-		
+
 		Object[] args = getArguments();
 		if (args != null && args.length > 0) {
 			System.out.println("IN the arguments");
@@ -47,24 +49,22 @@ public class BakeryAgent extends BaseAgent {
 		System.out.println("Bakery name " + bakery.getName());
 		this.register("Bakery", "JADE-bakery");
 
-		// Get equipment for this bakery
-		equipment = bakery.getEquipment();
 
-		createEquipmentAgents();
-		
+		// createEquipmentAgents();
+
 		createManagerAgents();
 
-		
-		
+
+
 		//createInterfaceAgents(); // Proofer and CoolingRack
-		
+
 		//
 
 	}
-	
-	
+
+
 	private void createManagerAgents() {
-		
+
 		//Create one DoughManager for this Bakery
 		doughManagerAgentName = "DoughManagerAgent_" + bakery.getGuid();
 		System.out.println(doughManagerAgentName);
@@ -72,8 +72,8 @@ public class BakeryAgent extends BaseAgent {
 			 Object[] args = new Object[3];
 		   	 args[0] = doughManagerAgentName;
 		   	 args[1] = bakery;
-		   	 args[2] = kneadingMachineAgentNames;
-		   	 
+		   	 args[2] = container;
+
 			AgentController doughManagerAgent = container.createNewAgent(doughManagerAgentName, "org.mas_maas.agents.DoughManager", args);
 			doughManagerAgent.start();
 
@@ -81,7 +81,7 @@ public class BakeryAgent extends BaseAgent {
 		} catch (Exception any) {
 			any.printStackTrace();
 		}
-		
+
 		/*bakingManagerAgentName = "BakingManagerAgent_" + bakery.getGuid();
 		try {
 			 Object[] args = new Object[1];
@@ -94,9 +94,9 @@ public class BakeryAgent extends BaseAgent {
 		} catch (Exception any) {
 			any.printStackTrace();
 		}*/
-		
+
 	}
-	
+
 	private void createInterfaceAgents() {
 		//Create one Proofer agent for this Bakery
 		/*String prooferAgentName = "ProoferAgent_" + bakery.getGuid();
@@ -111,30 +111,30 @@ public class BakeryAgent extends BaseAgent {
 		} catch (Exception any) {
 			any.printStackTrace();
 		}*/
-		
+
 		// TODO: Add coolingRackAgent
 	}
-	
+
 
 	private void createEquipmentAgents() {
 
 		for (int i = 0; i < equipment.size(); i++){
-			
+
 			// Create KneadingMachineAgents agents fot this bakery
 			if (equipment.get(i) instanceof KneadingMachine){
-				
+
 				String kneadingMachineAgentName = "KneadingMachineAgent_" + equipment.get(i).getGuid() + "_" +  bakery.getGuid();
-				
-				
+
+
 				// Object of type KneadingMachine
 				KneadingMachine kneadingMachine = (KneadingMachine) equipment.get(i);
 
 				try {
 					 Object[] args = new Object[3];
-		        	 args[0] = kneadingMachine;  
+		        	 args[0] = kneadingMachine;
 		        	 args[1] = kneadingMachineAgentName;
 		        	 args[2] = "DoughManagerAgent_" + bakery.getGuid();
-		        	 
+
 		        	 kneadingMachineAgentNames.add(kneadingMachineAgentName);
 
 					AgentController kneadingMachineAgent = container.createNewAgent(kneadingMachineAgentName, "org.mas_maas.agents.KneadingMachineAgent", args);
@@ -145,13 +145,13 @@ public class BakeryAgent extends BaseAgent {
 					any.printStackTrace();
 				}
 			}
-			
-			
+
+
 			// Create DougPrepTable agents for this bakery
 			/*if (equipment.get(i) instanceof DoughPrepTable){
-				
+
 				String preparationTableAgentName = equipment.get(i).getGuid();
-				
+
 				//Object of type DoughPrepTable
 				DoughPrepTable doughPrepTable = (DoughPrepTable) equipment.get(i);
 
@@ -169,12 +169,12 @@ public class BakeryAgent extends BaseAgent {
 					any.printStackTrace();
 				}
 			}*/
-			
+
 			// Create DougPrepTable agents for this bakery
 			/*if (equipment.get(i) instanceof Oven){
-				
+
 				String OvenAgentName = equipment.get(i).getGuid();
-				
+
 				//Object of type Oven
 				Oven oven = (Oven) equipment.get(i);
 
