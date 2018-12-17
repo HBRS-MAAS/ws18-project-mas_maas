@@ -13,7 +13,9 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
-// This is a dummy agent for testing communication with the CoolingRackAgent. 
+import org.maas.agents.BaseAgent;
+
+// This is a dummy agent for testing communication with the CoolingRackAgent.
 // TODO: Time tracking should be integrated to this agent
 
 public class Intermediater extends BaseAgent {
@@ -84,7 +86,7 @@ public class Intermediater extends BaseAgent {
 
         CoolingRequest coolingRequest = new CoolingRequest();
         coolingRequest.addCoolingRequest(guid, coolingDuration, quantity);
-        
+
         return coolingRequest;
 
     }

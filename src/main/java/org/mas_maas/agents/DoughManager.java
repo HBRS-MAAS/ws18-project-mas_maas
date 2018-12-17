@@ -14,6 +14,9 @@ import org.mas_maas.messages.PreparationRequest;
 import org.mas_maas.messages.ProofingRequest;
 import org.mas_maas.objects.BakedGood;
 import org.mas_maas.objects.Bakery;
+import org.mas_maas.objects.Client;
+import org.mas_maas.objects.Equipment;
+import org.mas_maas.objects.KneadingMachine;
 import org.mas_maas.objects.Order;
 import org.mas_maas.objects.Product;
 import org.mas_maas.objects.ProductStatus;
@@ -32,20 +35,26 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.wrapper.AgentContainer;
+import jade.wrapper.AgentController;
+import jade.wrapper.ContainerController;
 
+
+import org.maas.agents.BaseAgent;
 
 public class DoughManager extends BaseAgent {
     private AID [] orderProcessingAgents;
     private AID [] kneadingMachineAgents;
     private AID [] preparationTableAgents;
     private AID [] prooferAgents;
-    
-    private Vector<String> kneadingMachineNames;
 
-    private AtomicInteger messageProcessing = new AtomicInteger(0);
+    private AID dummyOrderProcesser = new AID("dummyOrderProcesser", AID.ISLOCALNAME);
+
+    public static final String SMALL_SCENARIO = "src/main/resources/config/small/";
+
 
     private Bakery bakery;
-    
+    private Client client;
+
     private String doughManagerAgentName; // Name used to register in the yellowpages
     private WorkQueue needsKneading;
     private WorkQueue needsPreparation;
@@ -54,21 +63,29 @@ public class DoughManager extends BaseAgent {
     private static final String NEEDS_KNEADING = "needsKneading";
     private static final String NEEDS_PREPARATION = "needsPreparation";
     private static final String NEEDS_PROOFING = "needsProofing";
-
+	private Vector<Equipment> equipment;
+	private AgentContainer container = null;
+    private Vector<String> kneadingMachineNames = new Vector<String>();
+    private AtomicInteger messageProcessing = new AtomicInteger(0);
 
     protected void setup() {
         super.setup();
-        
+
         Object[] args = getArguments();
 		if (args != null && args.length > 0) {
 			System.out.println("Seting args in the DoughManager");
 			this.doughManagerAgentName = (String) args[0];
 			this.bakery = (Bakery) args[1];
-			Vector<String> kneadingMachineNames =  (Vector<String>) args[2];
-	
+			this.container = (AgentContainer) args[2];
+
 		}
-		
+
         System.out.println(getAID().getLocalName() + " is ready.");
+
+        // Get equipment for this bakery
+		equipment = bakery.getEquipment();
+
+        createEquipmentAgents();
 
         // Queue of productStatus which require kneading
         needsKneading = new WorkQueue();
@@ -79,13 +96,6 @@ public class DoughManager extends BaseAgent {
 
         // Register the Dough-manager in the yellow pages
         this.register(doughManagerAgentName, "JADE-bakery");
-        
-        // Wait until the other agents are created. 
-        try {
-            Thread.sleep(10000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
 
         //this.getOrderProcessingAIDs();
         this.getKneadingMachineAIDs();
@@ -93,48 +103,61 @@ public class DoughManager extends BaseAgent {
         //this.getProoferAIDs();
 
         // Activate behavior that receives orders
-        // addBehaviour(new ReceiveOrders());
+        addBehaviour(new ReceiveOrders());
 
         // For now, the orderProcessingAgents do not exist. The manager has an order object.
 
         // Create order object
 
-        String productName = "Bagel";
-        int amount = 5;
-        BakedGood bakedGood = new BakedGood(productName, amount);
+        // String productName = "Bagel";
+        // int amount = 5;
+        // BakedGood bakedGood = new BakedGood(productName, amount);
+        //
+        // String customerId = "001";
+        // String guid = "order-001";
+        // int orderDay = 12;
+        // int orderHour = 4;
+        // int deliveryDate = 13;
+        // int deliveryHour = 4;
+        // Vector<BakedGood> bakedGoods = new Vector<BakedGood>();
+        // bakedGoods.add(bakedGood);
+        // Order order = new Order(customerId, guid, orderDay, orderHour, deliveryDate, deliveryHour, bakedGoods);
+        //
+        // System.out.println(getAID().getName() + " received the order " + order);
+        //
+        // orders.put(order.getGuid(), order);
 
-        String customerId = "001";
-        String guid = "order-001";
-        int orderDay = 12;
-        int orderHour = 4;
-        int deliveryDate = 13;
-        int deliveryHour = 4;
-        Vector<BakedGood> bakedGoods = new Vector<BakedGood>();
-        bakedGoods.add(bakedGood);
-        Order order = new Order(customerId, guid, orderDay, orderHour, deliveryDate, deliveryHour, bakedGoods);
+        // Get order info from the scenario files
+//        getOrderInfo();
 
-        System.out.println(getAID().getName() + " received the order " + order);
 
-        orders.put(order.getGuid(), order);
-
-        // Add order to the needKneading WorkQueue
-        queueOrder(order);
 
         // System.out.println("Needs kneading queue " + needsKneading.getFirstProduct().getGuid());
 
-        KneadingRequest kneadingRequestMessage = createKneadingRequestMessage();
+        //KneadingRequest kneadingRequestMessage = createKneadingRequestMessage();
 
         // Convert the kneadingRequest object to a String.
         Gson gson = new Gson();
-        String kneadingRequestString = gson.toJson(kneadingRequestMessage);
+        //String kneadingRequestString = gson.toJson(kneadingRequestMessage);
 
         // Add behavior to send the kneadingRequest to the Kneading Agents
         //addBehaviour(new RequestKneading( kneadingRequestString, kneadingMachineAgents));
-        addBehaviour(new ReceiveKneadingNotification());
-        addBehaviour(new ReceivePreparationNotification());
+        //addBehaviour(new ReceiveKneadingNotification());
+        //addBehaviour(new ReceivePreparationNotification());
 
         // Time tracker behavior
         addBehaviour(new timeTracker());
+    }
+
+    private void getOrderInfo() throws FileNotFoundException{
+        String clientFile = new Scanner(new File(SMALL_SCENARIO + "clients.json")).useDelimiter("\\Z").next();
+        Vector<Client> clients = JSONConverter.parseClients(clientFile);
+        for (Client client : clients)
+        {
+            for (Order order : client.getOrders()){
+                orders.put(order.getGuid(), order);
+            }
+        }
     }
 
     private class timeTracker extends CyclicBehaviour {
@@ -150,6 +173,63 @@ public class DoughManager extends BaseAgent {
             }
         }
     }
+
+    private void createEquipmentAgents() {
+
+        for (int i = 0; i < equipment.size(); i++){
+
+            // Create KneadingMachineAgents agents fot this bakery
+            if (equipment.get(i) instanceof KneadingMachine){
+
+                String kneadingMachineAgentName = "KneadingMachineAgent_" + equipment.get(i).getGuid() + "_" +  bakery.getGuid();
+                System.out.println("----> Created " + kneadingMachineAgentName);
+                kneadingMachineNames.add(kneadingMachineAgentName);
+
+                // Object of type KneadingMachine
+                KneadingMachine kneadingMachine = (KneadingMachine) equipment.get(i);
+
+                try {
+                    Object[] args = new Object[3];
+                    args[0] = kneadingMachine;
+                    args[1] = kneadingMachineAgentName;
+                    args[2] = "DoughManagerAgent_" + bakery.getGuid();
+
+                    AgentController kneadingMachineAgent = container.createNewAgent(kneadingMachineAgentName, "org.mas_maas.agents.KneadingMachineAgent", args);
+                    kneadingMachineAgent.start();
+
+                    System.out.println(getLocalName()+" created and started:"+ kneadingMachineAgent + " on container "+((ContainerController) container).getContainerName());
+                } catch (Exception any) {
+                    any.printStackTrace();
+                }
+            }
+
+
+			// // Create DougPrepTable agents for this bakery
+			// if (equipment.get(i) instanceof DoughPrepTable){
+            //
+			// 	String preparationTableAgentName = equipment.get(i).getGuid();
+            //
+			// 	//Object of type DoughPrepTable
+			// 	DoughPrepTable doughPrepTable = (DoughPrepTable) equipment.get(i);
+            //
+			// 	try {
+			// 		 Object[] args = new Object[3];
+		    //     	 args[0] = doughPrepTable;
+		    //     	 args[1] = "DoughPrepTableAgent_" + bakery.getGuid();
+		    //     	 args[2] = doughManagerAgentName;
+            //
+			// 		AgentController preparationTableAgent = container.createNewAgent(preparationTableAgentName, "org.mas_maas.agents.PreparationTableAgent", args);
+			// 		preparationTableAgent.start();
+            //
+			// 		System.out.println(getLocalName()+" created and started:"+ preparationTableAgent + " on container "+((ContainerController) container).getContainerName());
+			// 	} catch (Exception any) {
+			// 		any.printStackTrace();
+			// 	}
+			// }
+
+		}
+
+	}
 
     protected void takeDown() {
         System.out.println(getAID().getLocalName() + ": Terminating.");
@@ -359,16 +439,18 @@ public class DoughManager extends BaseAgent {
         }
     }
 
+
     public void getKneadingMachineAIDs() {
         DFAgentDescription template = new DFAgentDescription();
         ServiceDescription sd = new ServiceDescription();
-        
+
         kneadingMachineAgents = new AID [kneadingMachineNames.size()];
-        int j = 0; 
-        
+        int j = 0;
+
         for(String kneadingMachineName : kneadingMachineNames) {
-        	sd.setType("Kneading-machine");
+        	sd.setType(kneadingMachineName);
             template.addServices(sd);
+
             try {
                 DFAgentDescription [] result = DFService.search(this, template);
                 System.out.println("---------------->"+ getAID().getLocalName() + " Found the following Kneading-machine agents:");
@@ -376,17 +458,19 @@ public class DoughManager extends BaseAgent {
 
                 for (int i = 0; i < result.length; ++i) {
                     kneadingMachineAgents[j] = result[i].getName();
-                    System.out.println(kneadingMachineAgents[i].getName());
+                    System.out.println(kneadingMachineAgents[j].getName());
                 }
 
             }
             catch (FIPAException fe) {
+                System.out.println("----> NOT FOUND " + kneadingMachineName);
                 fe.printStackTrace();
             }
             j ++;
         }
-        
+
     }
+
 
     /* This is the behavior used for receiving orders */
     private class ReceiveOrders extends CyclicBehaviour {
@@ -394,13 +478,22 @@ public class DoughManager extends BaseAgent {
 
             // insure we don't allow a time step until we are done processing this message
             messageProcessing.incrementAndGet();
-            MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
+            MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
+                    MessageTemplate.MatchSender(dummyOrderProcesser));
             ACLMessage msg = myAgent.receive(mt);
             if (msg != null) {
+                String content = msg.getContent();
+                System.out.println("----> I have received " + content + " from " + msg.getSender().getName());
+                Order order = JSONConverter.parseOrder(content);
+
                 ACLMessage reply = msg.createReply();
                 reply.setPerformative(ACLMessage.CONFIRM);
                 reply.setContent("Order was received");
+                reply.setConversationId("reply-Order");
                 baseAgent.sendMessage(reply);
+
+                orders.put(order.getGuid(), order);
+                queueOrder(order);
                 // TODO convert String to order object
                 // Add the order to the HashMap of orders. Trigger the doughPreparation (send Kneading request, etc)
                 messageProcessing.decrementAndGet();

@@ -20,6 +20,7 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
+import org.maas.agents.BaseAgent;
 public class CoolingAgent extends BaseAgent {
     private AID [] bakingManagerAgents;
     private AID [] packagingInterfaceAgents;
@@ -152,20 +153,20 @@ public class CoolingAgent extends BaseAgent {
                 reply.setContent("Cooling request was received");
                 reply.setConversationId("cooling-request-reply");
                 baseAgent.sendMessage(reply);
-                
+
                 for (CoolingRequestTuple coolingRequestTuple: coolingRequest.coolingRequests) {
                 	 Float coolingTime = coolingRequestTuple.getCoolingDuration();
                      productName = coolingRequestTuple.getGuid();
                      quantity = coolingRequestTuple.getQuantity();
                      addBehaviour(new Cooling(coolingTime, productName, quantity));
                 }
-                
+
                 //for (ProductStatus productStatus : products) {
 
-               
+
                 // boxingTemp = coolingRequest.getBoxingTemp();
 
-               
+
                 messageProcessing.getAndDecrement();
             }
 

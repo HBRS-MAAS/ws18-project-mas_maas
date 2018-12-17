@@ -27,6 +27,8 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
+import org.maas.agents.BaseAgent;
+
 public class PreparationTableAgent extends BaseAgent {
     private AID [] doughManagerAgents;
 
