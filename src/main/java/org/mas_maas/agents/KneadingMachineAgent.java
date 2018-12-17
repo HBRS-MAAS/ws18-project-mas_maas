@@ -25,8 +25,7 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 public class KneadingMachineAgent extends BaseAgent {
-    // private AID [] doughManagerAgents;
-    private AID doughManagerAgent;
+    private AID [] doughManagerAgents;
 
     private AtomicBoolean kneadingInProcess = new AtomicBoolean(false);
     private AtomicBoolean messageInProcress = new AtomicBoolean(false);
@@ -35,7 +34,7 @@ public class KneadingMachineAgent extends BaseAgent {
     // private Bakery bakery;
     // private Vector<KneadingMachine> kneadingMachines = new Vector<KneadingMachine> ();
     // private Vector<Equipment> equipment;
-    private KneadingMachine kneadingMachine = new KneadingMachine ();
+    private KneadingMachine kneadingMachine;
 
     private Vector<String> guids;
     private String productType;
@@ -53,11 +52,11 @@ public class KneadingMachineAgent extends BaseAgent {
         if(args != null && args.length > 0){
             System.out.println("Inside arguments");
             this.kneadingMachine = (KneadingMachine) args[0];
-            this.kneadingMachineName = args[1];
-            this.doughManagerName = args[2];
+            this.kneadingMachineName = (String) args[1];
+            this.doughManagerName = (String) args[2];
         }
 
-        System.out.println(getAID().getLocalName() + " is ready.");
+        System.out.println(getAID().getLocalName() + " is ready." + "ITS DougManagerName: " + doughManagerName);
 
         // Register KneadingMachine Agent to the yellow Pages
         // this.register("Kneading-machine", "JADE-bakery");
@@ -72,7 +71,7 @@ public class KneadingMachineAgent extends BaseAgent {
         // Get KneadingMachines
         // this.getKneadingMachines();
 
-        kneadingCounter = 0;
+        kneadingCounter.set(0);;
         // Time tracker behavior
         addBehaviour(new timeTracker());
         addBehaviour(new ReceiveProposalRequests());
@@ -94,21 +93,20 @@ public class KneadingMachineAgent extends BaseAgent {
         DFAgentDescription template = new DFAgentDescription();
         ServiceDescription sd = new ServiceDescription();
 
-        // sd.setType("Dough-manager");
         sd.setType(doughManagerName);
         template.addServices(sd);
         try {
-            DFAgentDescription result = DFService.search(this, template);
-            System.out.println(getAID().getLocalName() + "Found the following Dough-manager agent:");
-            // doughManagerAgents = new AID [result.length];
-            doughManagerAgent = new AID ();
+        	
 
-            doughManagerAgent = result.getName();
-            System.out.println("Found the dough manager " + doughManagerAgents"".getName());
-            // for (int i = 0; i < result.length; ++i) {
-            //     doughManagerAgents[i] = result[i].getName();
-            //     System.out.println(doughManagerAgents[i].getName());
-            // }
+            DFAgentDescription[] result = DFService.search(this, template);
+            System.out.println(getAID().getLocalName() + "Found the following Dough-manager agent:");
+            doughManagerAgents = new AID [result.length];
+            //doughManagerAgents = new AID ();
+
+             for (int i = 0; i < result.length; ++i) {
+                 doughManagerAgents[i] = result[i].getName();
+                 System.out.println(doughManagerAgents[i].getName());
+             }
 
         }
         catch (FIPAException fe) {
@@ -138,10 +136,12 @@ public class KneadingMachineAgent extends BaseAgent {
             MessageTemplate mt = MessageTemplate.and(
                 MessageTemplate.MatchPerformative(ACLMessage.CFP),
                 MessageTemplate.MatchConversationId("kneading-request"));
+            
+            ACLMessage msg = myAgent.receive(mt);
 
             if (msg != null){
                 String content = msg.getContent();
-                System.out.println("I have received a proposal request from " + msg.getSender().getName
+                System.out.println("I have received a proposal request from " + msg.getSender().getName());
 
                 ACLMessage reply = msg.createReply();
                 if (kneadingMachine.isAvailable()){
@@ -208,7 +208,8 @@ public class KneadingMachineAgent extends BaseAgent {
                 kneadingInProcess.set(false);
                 kneadingMachine.setAvailable(true);
                 kneadingCounter.set(0);
-                System.out.println("----> " + guidAvailable + " finished Kneading");
+                System.out.println("Finishing kneading");
+                // System.out.println("----> " + guidAvailable + " finished Kneading");
                 addBehaviour(new SendKneadingNotification());
             }
         }
@@ -232,8 +233,10 @@ public class KneadingMachineAgent extends BaseAgent {
                     msg.setConversationId("kneading-notification");
 
                     // Send kneadingNotification msg to doughManagerAgents
-                    msg.addReceiver(doughManagerAgent);
-
+                    for (int i = 0; i < doughManagerAgents.length; i++){
+                        msg.addReceiver(doughManagerAgents[i]);
+                    }
+                    
                     baseAgent.sendMessage(msg);
 
                     option = 1;

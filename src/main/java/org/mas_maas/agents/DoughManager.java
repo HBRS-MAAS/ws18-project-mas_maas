@@ -39,6 +39,8 @@ public class DoughManager extends BaseAgent {
     private AID [] kneadingMachineAgents;
     private AID [] preparationTableAgents;
     private AID [] prooferAgents;
+    
+    private Vector<String> kneadingMachineNames;
 
     private AtomicInteger messageProcessing = new AtomicInteger(0);
 
@@ -62,6 +64,7 @@ public class DoughManager extends BaseAgent {
 			System.out.println("Seting args in the DoughManager");
 			this.doughManagerAgentName = (String) args[0];
 			this.bakery = (Bakery) args[1];
+			Vector<String> kneadingMachineNames =  (Vector<String>) args[2];
 	
 		}
 		
@@ -76,11 +79,18 @@ public class DoughManager extends BaseAgent {
 
         // Register the Dough-manager in the yellow pages
         this.register(doughManagerAgentName, "JADE-bakery");
+        
+        // Wait until the other agents are created. 
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
-        this.getOrderProcessingAIDs();
+        //this.getOrderProcessingAIDs();
         this.getKneadingMachineAIDs();
-        this.getPreparationTableAIDS();
-        this.getProoferAIDs();
+        //this.getPreparationTableAIDS();
+        //this.getProoferAIDs();
 
         // Activate behavior that receives orders
         // addBehaviour(new ReceiveOrders());
@@ -119,7 +129,7 @@ public class DoughManager extends BaseAgent {
         String kneadingRequestString = gson.toJson(kneadingRequestMessage);
 
         // Add behavior to send the kneadingRequest to the Kneading Agents
-        addBehaviour(new RequestKneading( kneadingRequestString, kneadingMachineAgents));
+        //addBehaviour(new RequestKneading( kneadingRequestString, kneadingMachineAgents));
         addBehaviour(new ReceiveKneadingNotification());
         addBehaviour(new ReceivePreparationNotification());
 
@@ -352,23 +362,30 @@ public class DoughManager extends BaseAgent {
     public void getKneadingMachineAIDs() {
         DFAgentDescription template = new DFAgentDescription();
         ServiceDescription sd = new ServiceDescription();
+        
+        kneadingMachineAgents = new AID [kneadingMachineNames.size()];
+        int j = 0; 
+        
+        for(String kneadingMachineName : kneadingMachineNames) {
+        	sd.setType("Kneading-machine");
+            template.addServices(sd);
+            try {
+                DFAgentDescription [] result = DFService.search(this, template);
+                System.out.println("---------------->"+ getAID().getLocalName() + " Found the following Kneading-machine agents:");
+                // kneadingMachineAgents = new AID [result.length];
 
-        sd.setType("Kneading-machine");
-        template.addServices(sd);
-        try {
-            DFAgentDescription [] result = DFService.search(this, template);
-            System.out.println(getAID().getLocalName() + " Found the following Kneading-machine agents:");
-            kneadingMachineAgents = new AID [result.length];
+                for (int i = 0; i < result.length; ++i) {
+                    kneadingMachineAgents[j] = result[i].getName();
+                    System.out.println(kneadingMachineAgents[i].getName());
+                }
 
-            for (int i = 0; i < result.length; ++i) {
-                kneadingMachineAgents[i] = result[i].getName();
-                System.out.println(kneadingMachineAgents[i].getName());
             }
-
+            catch (FIPAException fe) {
+                fe.printStackTrace();
+            }
+            j ++;
         }
-        catch (FIPAException fe) {
-            fe.printStackTrace();
-        }
+        
     }
 
     /* This is the behavior used for receiving orders */
