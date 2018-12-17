@@ -24,35 +24,37 @@ import org.mas_maas.objects.Bakery;
 import org.mas_maas.objects.DoughPrepTable;
 import org.mas_maas.objects.Equipment;
 import org.mas_maas.objects.Oven;
+import org.maas.agents.BaseAgent;
 
 public class AgentCreator extends BaseAgent {
 	private Vector<Bakery> bakeries;
-	public static final String SMALL_SCENARIO = "src/main/resources/config/small/";	
+	public static final String SMALL_SCENARIO = "src/main/resources/config/small/";
 	private AgentContainer container = null;
-	
+
     protected void setup() {
         super.setup();
         System.out.println(getAID().getLocalName() + " is ready.");
         this.register("Agent-creator", "JADE-bakery");
-        
-        //get the container controller for creating new agents. All agents will belong to the same container. 
+
+        //get the container controller for creating new agents. All agents will belong to the same container.
         container = getContainer();
         createAgents();
     }
-    
+
  public AgentContainer getContainer() {
 	AgentContainer container = (AgentContainer)getContainerController(); // get a container controller for creating new agents
 	return container;
  }
-    
+
  public void createAgents() {
-	 
+//	 bakeries = bakeries.get(0);
 	 getBakery(SMALL_SCENARIO);
 	 // Create a BakeryAgent for each bakery
-	 for (Bakery bakery : bakeries) {
-		 
+	 //for (Bakery bakery : bakeries) {
+	 Bakery bakery = bakeries.get(0);
+
 		 System.out.println("Creating BakeryAgent" + bakery.getGuid());
-        
+
 		 // The names of the bakeries are the IDs
          String bakeryAgentName = bakery.getGuid();
 
@@ -60,19 +62,19 @@ public class AgentCreator extends BaseAgent {
         	 Object[] args = new Object[2];
         	 args[0] = bakery;
         	 args[1] = container;
-       
+
 			AgentController bakeryAgent = container.createNewAgent(bakeryAgentName, "org.mas_maas.agents.BakeryAgent", args);
-			
+
 			bakeryAgent.start();
 
 			System.out.println(getLocalName()+" created and started:"+ bakeryAgent + " on container "+((ContainerController) container).getContainerName());
          	} catch (Exception any) {
 			any.printStackTrace();
          	}
-	 }
-	 
+//	 }
+
  }
- 
+
  public void getBakery(String scenarioName){
 	 // Select the scenario file to use
 	 // guid is the name of the bakery
@@ -86,7 +88,7 @@ public class AgentCreator extends BaseAgent {
          e.printStackTrace();
      }
  }
- 
- 
- 
+
+
+
 }
