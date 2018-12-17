@@ -8,9 +8,9 @@ public class Start {
         JSONConverter.test_parsing();
 
         List<String> agents = new Vector<>();
-        
+
         agents.add("AgentCreator:org.mas_maas.agents.AgentCreator");
-        
+
         //agents.add("TimeKeeper:org.mas_maas.agents.TimeKeeper");
         //agents.add("CoolingRackAgent:org.maas.agents.CoolingRackAgent");
         //agents.add("Intermediater:org.mas_maas.agents.Intermediater");
