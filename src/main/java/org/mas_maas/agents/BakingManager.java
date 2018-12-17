@@ -33,6 +33,8 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
+import org.maas.agents.BaseAgent;
+
 public class BakingManager extends BaseAgent {
     private Bakery bakery;
     private HashMap<String, Order> orders = new HashMap<String, Order>();
