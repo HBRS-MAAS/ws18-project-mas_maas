@@ -87,8 +87,8 @@ public class Order {
 
     @Override
     public String toString() {
-        return "Order [customerId=" + customerId + ", guid=" + guid + ", orderDay=" + orderDay + ", orderHour="
-                + orderHour + ", deliveryDate=" + deliveryDate + ", deliveryHour=" + deliveryHour + ", bakedGoods="
+        return "Order [customer_id=" + customerId + ", guid=" + guid + ", orderDay=" + orderDay + ", orderHour="
+                + orderHour + ", deliveryDay=" + deliveryDate + ", deliveryHour=" + deliveryHour + ", bakedGoods="
                 + bakedGoods + "]";
     }
 }
