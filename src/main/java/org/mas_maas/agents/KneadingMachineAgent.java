@@ -24,6 +24,8 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+
+import org.maas.agents.BaseAgent;
 public class KneadingMachineAgent extends BaseAgent {
     private AID [] doughManagerAgents;
 
@@ -96,7 +98,7 @@ public class KneadingMachineAgent extends BaseAgent {
         sd.setType(doughManagerName);
         template.addServices(sd);
         try {
-        	
+
 
             DFAgentDescription[] result = DFService.search(this, template);
             System.out.println(getAID().getLocalName() + "Found the following Dough-manager agent:");
@@ -136,7 +138,7 @@ public class KneadingMachineAgent extends BaseAgent {
             MessageTemplate mt = MessageTemplate.and(
                 MessageTemplate.MatchPerformative(ACLMessage.CFP),
                 MessageTemplate.MatchConversationId("kneading-request"));
-            
+
             ACLMessage msg = myAgent.receive(mt);
 
             if (msg != null){
@@ -236,7 +238,7 @@ public class KneadingMachineAgent extends BaseAgent {
                     for (int i = 0; i < doughManagerAgents.length; i++){
                         msg.addReceiver(doughManagerAgents[i]);
                     }
-                    
+
                     baseAgent.sendMessage(msg);
 
                     option = 1;
