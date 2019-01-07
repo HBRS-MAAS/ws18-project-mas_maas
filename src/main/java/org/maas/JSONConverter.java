@@ -15,6 +15,7 @@ import org.maas.messages.KneadingRequest;
 import org.maas.messages.PreparationNotification;
 import org.maas.messages.PreparationRequest;
 import org.maas.messages.ProofingRequest;
+<<<<<<< HEAD
 import org.maas.objects.BakedGood;
 import org.maas.objects.Bakery;
 import org.maas.objects.Batch;
@@ -34,6 +35,27 @@ import org.maas.objects.StreetLink;
 import org.maas.objects.StreetNetwork;
 import org.maas.objects.StreetNode;
 import org.maas.objects.Truck;
+=======
+import org.maas.Objects.BakedGood;
+import org.maas.Objects.Bakery;
+import org.maas.Objects.Batch;
+import org.maas.Objects.Client;
+import org.maas.Objects.DeliveryCompany;
+import org.maas.Objects.DoughPrepTable;
+import org.maas.Objects.Equipment;
+import org.maas.Objects.KneadingMachine;
+import org.maas.Objects.MetaInfo;
+import org.maas.Objects.OrderMas;
+import org.maas.Objects.Oven;
+import org.maas.Objects.Packaging;
+import org.maas.Objects.ProductMas;
+import org.maas.Objects.Recipe;
+import org.maas.Objects.Step;
+import org.maas.Objects.StreetLink;
+import org.maas.Objects.StreetNetwork;
+import org.maas.Objects.StreetNode;
+import org.maas.Objects.Truck;
+>>>>>>> 298926414bfbfeb7024e795c3e59e1eeaeaaa5f9
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;

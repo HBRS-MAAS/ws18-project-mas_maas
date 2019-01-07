@@ -27,7 +27,11 @@ import jade.domain.JADEAgentManagement.JADEManagementOntology;
 import jade.domain.JADEAgentManagement.ShutdownPlatform;
 import jade.domain.FIPANames;
 
+<<<<<<< HEAD
 import org.maas.objects.Meta;
+=======
+import org.maas.Objects.Meta;
+>>>>>>> 298926414bfbfeb7024e795c3e59e1eeaeaaa5f9
 import org.maas.utils.Time;
 import org.maas.utils.JsonConverter;
 
@@ -105,7 +109,11 @@ public class TimeKeeper extends Agent{
 	private List<DFAgentDescription> getAllAgents(){
 		DFAgentDescription template = new DFAgentDescription();
 		ServiceDescription sd = new ServiceDescription();
+<<<<<<< HEAD
         sd.setName("JADE-bakery");
+=======
+//         sd.setName("JADE-bakery");
+>>>>>>> 298926414bfbfeb7024e795c3e59e1eeaeaaa5f9
 		template.addServices(sd);
 		try {
 			DFAgentDescription[] result = DFService.search(this, template);
