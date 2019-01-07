@@ -1,6 +1,6 @@
 package org.mas_maas.agents;
 
-import org.mas_maas.messages.CoolingRequest;
+import org.maas.messages.CoolingRequest;
 
 import com.google.gson.Gson;
 

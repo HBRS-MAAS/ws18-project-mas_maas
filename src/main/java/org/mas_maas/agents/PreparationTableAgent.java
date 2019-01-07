@@ -7,13 +7,13 @@ import java.util.Vector;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.mas_maas.JSONConverter;
-import org.mas_maas.messages.PreparationNotification;
-import org.mas_maas.messages.PreparationRequest;
-import org.mas_maas.objects.Bakery;
-import org.mas_maas.objects.DoughPrepTable;
-import org.mas_maas.objects.Equipment;
-import org.mas_maas.objects.Step;
+import org.maas.JSONConverter;
+import org.maas.messages.PreparationNotification;
+import org.maas.messages.PreparationRequest;
+import org.maas.Objects.Bakery;
+import org.maas.Objects.DoughPrepTable;
+import org.maas.Objects.Equipment;
+import org.maas.Objects.Step;
 
 import com.google.gson.Gson;
 

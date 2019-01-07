@@ -6,22 +6,22 @@ import java.util.Scanner;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.mas_maas.JSONConverter;
-import org.mas_maas.messages.KneadingNotification;
-import org.mas_maas.messages.KneadingRequest;
-import org.mas_maas.messages.PreparationNotification;
-import org.mas_maas.messages.PreparationRequest;
-import org.mas_maas.messages.ProofingRequest;
-import org.mas_maas.objects.BakedGood;
-import org.mas_maas.objects.Bakery;
-import org.mas_maas.objects.Client;
-import org.mas_maas.objects.Equipment;
-import org.mas_maas.objects.KneadingMachine;
-import org.mas_maas.objects.Order;
-import org.mas_maas.objects.Product;
-import org.mas_maas.objects.ProductStatus;
-import org.mas_maas.objects.Step;
-import org.mas_maas.objects.WorkQueue;
+import org.maas.JSONConverter;
+import org.maas.messages.KneadingNotification;
+import org.maas.messages.KneadingRequest;
+import org.maas.messages.PreparationNotification;
+import org.maas.messages.PreparationRequest;
+import org.maas.messages.ProofingRequest;
+import org.maas.Objects.BakedGood;
+import org.maas.Objects.Bakery;
+import org.maas.Objects.Client;
+import org.maas.Objects.Equipment;
+import org.maas.Objects.KneadingMachine;
+import org.maas.Objects.OrderMas;
+import org.maas.Objects.ProductMas;
+import org.maas.Objects.ProductStatus;
+import org.maas.Objects.Step;
+import org.maas.Objects.WorkQueue;
 
 import com.google.gson.Gson;
 
@@ -59,7 +59,7 @@ public class DoughManager extends BaseAgent {
     private WorkQueue needsKneading;
     private WorkQueue needsPreparation;
     private WorkQueue needsProofing;
-    private HashMap<String, Order> orders = new HashMap<String, Order>();
+    private HashMap<String, OrderMas> orders = new HashMap<String, OrderMas>();
     private static final String NEEDS_KNEADING = "needsKneading";
     private static final String NEEDS_PREPARATION = "needsPreparation";
     private static final String NEEDS_PROOFING = "needsProofing";
@@ -154,7 +154,7 @@ public class DoughManager extends BaseAgent {
         Vector<Client> clients = JSONConverter.parseClients(clientFile);
         for (Client client : clients)
         {
-            for (Order order : client.getOrders()){
+            for (OrderMas order : client.getOrders()){
                 orders.put(order.getGuid(), order);
             }
         }
@@ -236,7 +236,7 @@ public class DoughManager extends BaseAgent {
         this.deRegister();
     }
 
-    public void queueOrder(Order order) {
+    public void queueOrder(OrderMas order) {
         // Add productStatus to the needsKneading WorkQueue
 
         for(BakedGood bakedGood : order.getBakedGoods()) {
@@ -244,7 +244,7 @@ public class DoughManager extends BaseAgent {
             String guid = order.getGuid();
             String status = NEEDS_KNEADING;
             int amount = bakedGood.getAmount();
-            Product product = bakery.findProduct(bakedGood.getName());
+            ProductMas product = bakery.findProduct(bakedGood.getName());
             ProductStatus productStatus = new ProductStatus(guid, status, amount, product);
 
             needsKneading.addProduct(productStatus);
@@ -282,8 +282,8 @@ public class DoughManager extends BaseAgent {
 
             int amount = -1;
             String status = NEEDS_PREPARATION;
-            Product product = bakery.findProduct(productType);
-            Order order = orders.get(guid);
+            ProductMas product = bakery.findProduct(productType);
+            OrderMas order = orders.get(guid);
 
             for(BakedGood bakedGood : order.getBakedGoods()) {
                 if (bakedGood.getName().equals(productType)) {
@@ -332,8 +332,8 @@ public class DoughManager extends BaseAgent {
 
             int amount = -1;
             String status = NEEDS_PROOFING;
-            Product product = bakery.findProduct(productType);
-            Order order = orders.get(guid);
+            ProductMas product = bakery.findProduct(productType);
+            OrderMas order = orders.get(guid);
 
             for(BakedGood bakedGood : order.getBakedGoods()) {
                 if (bakedGood.getName().equals(productType)) {
@@ -484,7 +484,7 @@ public class DoughManager extends BaseAgent {
             if (msg != null) {
                 String content = msg.getContent();
                 System.out.println("----> I have received " + content + " from " + msg.getSender().getName());
-                Order order = JSONConverter.parseOrder(content);
+                OrderMas order = JSONConverter.parseOrder(content);
 
                 ACLMessage reply = msg.createReply();
                 reply.setPerformative(ACLMessage.CONFIRM);

@@ -1,4 +1,4 @@
-package org.mas_maas.objects;
+package org.maas.Objects;
 
 abstract public class Equipment {
     private String guid;

@@ -1,10 +1,10 @@
 package org.mas_maas.agents;
 import java.util.Vector;
 
-import org.mas_maas.JSONConverter;
-import org.mas_maas.objects.Bakery;
-import org.mas_maas.objects.Order;
-import org.mas_maas.objects.Client;
+import org.maas.JSONConverter;
+import org.maas.Objects.Bakery;
+import org.maas.Objects.OrderMas;
+import org.maas.Objects.Client;
 
 import com.google.gson.Gson;
 
@@ -27,20 +27,23 @@ import org.maas.agents.BaseAgent;
 
 public class DummyOrderProcesser extends BaseAgent {
     private AID [] doughManagerAgents;
-
     private Vector<Bakery> bakeries;
+    private String scenarioPath;
     private Vector<String> doughManagerAgentNames = new Vector<String>();
-    private Vector<Order> orders = new Vector<Order>();
-
-
-    public static final String SMALL_SCENARIO = "src/main/resources/config/small/";
+    private Vector<OrderMas> orders = new Vector<OrderMas>();
 
     protected void setup(){
         super.setup();
-        System.out.println("-----> " + getAID().getLocalName() + " is ready.");
+        Object[] args = getArguments();
+		if (args != null && args.length > 0) {
+			String scenarioDirectory = (String) args[0];
+			this.scenarioPath = "src/main/resources/config/" + scenarioDirectory + "/";
+		}
 
+        System.out.println(getAID().getLocalName() + " is ready.");
         this.register("dummyOrderProcesser", "JADE-bakery");
-        getBakery(SMALL_SCENARIO);
+
+        getBakery(this.scenarioPath);
         try {
             Thread.sleep(3000);
         } catch (InterruptedException e) {
@@ -55,14 +58,14 @@ public class DummyOrderProcesser extends BaseAgent {
 			e.printStackTrace();
 		}
 
-        processOrders();
+        //processOrders();
 
 	}
 
-    public void getBakery(String scenarioName){
+    public void getBakery(String scenarioPath){
         // Select the scenario file to use
         // guid is the name of the bakery
-        String jsonDir = scenarioName; //"src/main/resources/config/small/";
+        String jsonDir = scenarioPath;
         try {
             // System.out.println("Working Directory = " + System.getProperty("user.dir"));
             String bakeryFile = new Scanner(new File(jsonDir + "bakeries.json")).useDelimiter("\\Z").next();
@@ -114,10 +117,10 @@ public class DummyOrderProcesser extends BaseAgent {
     }
 
     private void getOrderInfo() throws FileNotFoundException{
-        String clientFile = new Scanner(new File(SMALL_SCENARIO + "clients.json")).useDelimiter("\\Z").next();
+        String clientFile = new Scanner(new File(this.scenarioPath+ "clients.json")).useDelimiter("\\Z").next();
         Vector<Client> clients = JSONConverter.parseClients(clientFile);
         for (Client client : clients){
-            for (Order order : client.getOrders()){
+            for (OrderMas order : client.getOrders()){
                 // System.out.println(order);
                 orders.add(order);
             }
@@ -126,7 +129,7 @@ public class DummyOrderProcesser extends BaseAgent {
 
     public void processOrders(){
         Gson gson = new Gson();
-        Order order = orders.get(0);
+        OrderMas order = orders.get(0);
         // for (Order order : orders){
             String doughManagerName = doughManagerAgents[0].getName();
             System.out.println("---> My object " + order);

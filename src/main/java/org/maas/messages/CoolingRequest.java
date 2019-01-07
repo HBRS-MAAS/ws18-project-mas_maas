@@ -1,7 +1,7 @@
-package org.mas_maas.messages;
+package org.maas.messages;
 
 import java.util.Vector;
-import org.mas_maas.objects.CoolingRequestTuple;
+import org.maas.Objects.CoolingRequestTuple;
 
 public class CoolingRequest {
     public Vector<CoolingRequestTuple> coolingRequests;
@@ -21,5 +21,5 @@ public class CoolingRequest {
         return "CoolingRequest [coolingRequests=" + coolingRequests + "]";
     }
 
-   
+
 }

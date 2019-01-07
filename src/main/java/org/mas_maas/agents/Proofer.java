@@ -4,9 +4,9 @@ import java.util.Vector;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.mas_maas.JSONConverter;
-import org.mas_maas.messages.DoughNotification;
-import org.mas_maas.messages.ProofingRequest;
+import org.maas.JSONConverter;
+import org.maas.messages.DoughNotification;
+import org.maas.messages.ProofingRequest;
 
 import com.google.gson.Gson;
 

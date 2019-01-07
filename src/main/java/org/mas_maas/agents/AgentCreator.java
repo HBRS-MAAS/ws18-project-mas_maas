@@ -19,20 +19,27 @@ import java.io.FileNotFoundException;
 import java.util.Scanner;
 import java.util.Vector;
 
-import org.mas_maas.JSONConverter;
-import org.mas_maas.objects.Bakery;
-import org.mas_maas.objects.DoughPrepTable;
-import org.mas_maas.objects.Equipment;
-import org.mas_maas.objects.Oven;
+import org.maas.JSONConverter;
+import org.maas.Objects.Bakery;
+import org.maas.Objects.DoughPrepTable;
+import org.maas.Objects.Equipment;
+import org.maas.Objects.Oven;
 import org.maas.agents.BaseAgent;
 
 public class AgentCreator extends BaseAgent {
 	private Vector<Bakery> bakeries;
-	public static final String SMALL_SCENARIO = "src/main/resources/config/small/";
+	// public static final String SMALL_SCENARIO = "src/main/resources/config/small/";
+	private String scenarioPath;
 	private AgentContainer container = null;
 
     protected void setup() {
         super.setup();
+		Object[] args = getArguments();
+		if (args != null && args.length > 0) {
+			String scenarioDirectory = (String) args[0];
+			this.scenarioPath = "src/main/resources/config/" + scenarioDirectory;
+		}
+
         System.out.println(getAID().getLocalName() + " is ready.");
         this.register("Agent-creator", "JADE-bakery");
 
@@ -48,7 +55,7 @@ public class AgentCreator extends BaseAgent {
 
  public void createAgents() {
 //	 bakeries = bakeries.get(0);
-	 getBakery(SMALL_SCENARIO);
+	 getBakery(this.scenarioPath);
 	 // Create a BakeryAgent for each bakery
 	 //for (Bakery bakery : bakeries) {
 	 Bakery bakery = bakeries.get(0);

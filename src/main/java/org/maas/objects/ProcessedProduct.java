@@ -12,7 +12,7 @@ public class ProcessedProduct implements java.io.Serializable {
     public ProcessedProduct(){
         this.remainingDurationTime = -1;
     }
-
+    
     public void setGuid(String id) {
         this.guid = id;
     }

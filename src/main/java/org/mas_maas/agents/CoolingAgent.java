@@ -3,10 +3,10 @@ package org.mas_maas.agents;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.mas_maas.JSONConverter;
-import org.mas_maas.messages.CoolingRequest;
-import org.mas_maas.messages.LoadingBayMessage;
-import org.mas_maas.objects.CoolingRequestTuple;
+import org.maas.JSONConverter;
+import org.maas.messages.CoolingRequest;
+import org.maas.messages.LoadingBayMessage;
+import org.maas.Objects.CoolingRequestTuple;
 
 import com.google.gson.Gson;
 

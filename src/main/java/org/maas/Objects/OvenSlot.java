@@ -1,4 +1,4 @@
-package org.mas_maas.objects;
+package org.maas.Objects;
 
 public class OvenSlot {
     public final static float STARTING_TEMP = 0;

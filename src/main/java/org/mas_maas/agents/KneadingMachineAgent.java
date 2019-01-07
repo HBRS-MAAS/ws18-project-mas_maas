@@ -7,12 +7,12 @@ import java.util.Vector;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.mas_maas.JSONConverter;
-import org.mas_maas.messages.KneadingNotification;
-import org.mas_maas.messages.KneadingRequest;
+import org.maas.JSONConverter;
+import org.maas.messages.KneadingNotification;
+import org.maas.messages.KneadingRequest;
 // import org.mas_maas.objects.Bakery;
-import org.mas_maas.objects.Equipment;
-import org.mas_maas.objects.KneadingMachine;
+import org.maas.Objects.Equipment;
+import org.maas.Objects.KneadingMachine;
 
 import com.google.gson.Gson;
 

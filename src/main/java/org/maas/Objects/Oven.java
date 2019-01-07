@@ -1,4 +1,4 @@
-package org.mas_maas.objects;
+package org.maas.Objects;
 
 import java.util.Vector;
 
@@ -48,4 +48,3 @@ public class Oven extends Equipment {
         return "Oven [coolingRate=" + coolingRate + ", heatingRate=" + heatingRate + ", ovenSlots=" + ovenSlots + "]";
     }
 }
-

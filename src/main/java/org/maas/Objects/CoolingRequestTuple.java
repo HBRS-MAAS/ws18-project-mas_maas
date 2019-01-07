@@ -1,4 +1,4 @@
-package org.mas_maas.objects;
+package org.maas.Objects;
 
 public class CoolingRequestTuple {
     private String guid;

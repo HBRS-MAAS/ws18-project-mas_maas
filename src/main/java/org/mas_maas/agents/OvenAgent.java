@@ -7,15 +7,15 @@ import java.util.Vector;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.mas_maas.JSONConverter;
-import org.mas_maas.messages.BakingNotification;
-import org.mas_maas.messages.BakingRequest;
-import org.mas_maas.objects.Bakery;
-import org.mas_maas.objects.Batch;
-import org.mas_maas.objects.Equipment;
-import org.mas_maas.objects.Oven;
-import org.mas_maas.objects.OvenSlot;
-import org.mas_maas.objects.Product;
+import org.maas.JSONConverter;
+import org.maas.messages.BakingNotification;
+import org.maas.messages.BakingRequest;
+import org.maas.Objects.Bakery;
+import org.maas.Objects.Batch;
+import org.maas.Objects.Equipment;
+import org.maas.Objects.Oven;
+import org.maas.Objects.OvenSlot;
+import org.maas.Objects.ProductMas;
 
 import com.google.gson.Gson;
 
@@ -51,7 +51,7 @@ public class OvenAgent extends BaseAgent {
     private Vector<String> guids;
     private Vector<Integer> productQuantities;
 
-    private Vector<Product> products;
+    private Vector<ProductMas> products;
 
 
     protected void setup() {
@@ -254,7 +254,7 @@ public class OvenAgent extends BaseAgent {
 
         public int findProductPerSlot(){
             // Get the Number of products the slot can fit based on product type
-            for (Product product : products) {
+            for (ProductMas product : products) {
                 if (product.getGuid().equals(productType)){
                     Batch batch = product.getBatch();
                     return batch.getBreadsPerOven();

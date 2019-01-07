@@ -1,11 +1,11 @@
 package org.mas_maas.agents;
 import java.util.Vector;
 
-import org.mas_maas.objects.Bakery;
-import org.mas_maas.objects.DoughPrepTable;
-import org.mas_maas.objects.Equipment;
-import org.mas_maas.objects.KneadingMachine;
-import org.mas_maas.objects.Oven;
+import org.maas.Objects.Bakery;
+import org.maas.Objects.DoughPrepTable;
+import org.maas.Objects.Equipment;
+import org.maas.Objects.KneadingMachine;
+import org.maas.Objects.Oven;
 
 import jade.core.AID;
 import jade.core.behaviours.CyclicBehaviour;

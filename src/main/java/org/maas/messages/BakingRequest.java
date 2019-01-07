@@ -1,4 +1,4 @@
-package org.mas_maas.messages;
+package org.maas.messages;
 import java.util.Vector;
 
 public class BakingRequest extends GenericGuidMessage {
