@@ -2,11 +2,7 @@ package org.maas.messages;
 
 import java.util.Vector;
 
-<<<<<<< HEAD
 import org.maas.objects.Step;
-=======
-import org.maas.Objects.Step;
->>>>>>> 298926414bfbfeb7024e795c3e59e1eeaeaaa5f9
 
 public class PreparationRequest extends GenericGuidMessage {
     private Vector<Integer> productQuantities;

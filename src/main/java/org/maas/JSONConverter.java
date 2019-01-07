@@ -15,7 +15,6 @@ import org.maas.messages.KneadingRequest;
 import org.maas.messages.PreparationNotification;
 import org.maas.messages.PreparationRequest;
 import org.maas.messages.ProofingRequest;
-<<<<<<< HEAD
 import org.maas.objects.BakedGood;
 import org.maas.objects.Bakery;
 import org.maas.objects.Batch;
@@ -35,7 +34,7 @@ import org.maas.objects.StreetLink;
 import org.maas.objects.StreetNetwork;
 import org.maas.objects.StreetNode;
 import org.maas.objects.Truck;
-=======
+
 import org.maas.Objects.BakedGood;
 import org.maas.Objects.Bakery;
 import org.maas.Objects.Batch;
@@ -55,7 +54,6 @@ import org.maas.Objects.StreetLink;
 import org.maas.Objects.StreetNetwork;
 import org.maas.Objects.StreetNode;
 import org.maas.Objects.Truck;
->>>>>>> 298926414bfbfeb7024e795c3e59e1eeaeaaa5f9
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -73,7 +71,7 @@ public class JSONConverter
         try {
             //System.out.println("Working Directory = " + System.getProperty("user.dir"));
 
- 
+
             String clientFile = new Scanner(new File(sampleDir + "clients.json")).useDelimiter("\\Z").next();
             Vector<Client> clients = parseClients(clientFile);
             for (Client client : clients)
@@ -126,7 +124,7 @@ public class JSONConverter
         }
     }
 
-    
+
 
     public static Vector<Client> parseClients(String jsonFile)
     {
