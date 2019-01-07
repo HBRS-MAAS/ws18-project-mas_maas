@@ -1,13 +1,4 @@
 package org.maas;
-<<<<<<< HEAD
-
-public class OrderProcessingInitializer extends Initializer {
-    @Override
-    public String initialize() {
-        String agentInitString;
-        return null;
-    }
-=======
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -107,5 +98,4 @@ public class OrderProcessingInitializer extends Initializer {
         sb.append("#");
     }
 
->>>>>>> 298926414bfbfeb7024e795c3e59e1eeaeaaa5f9
 }

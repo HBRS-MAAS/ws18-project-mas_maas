@@ -6,7 +6,7 @@ import org.maas.Initializer;
 
 public class DoughPrepStageInitializer extends Initializer {
     @Override
-    public String initialize() {
+    public String initialize(String scenarioDirectory) {
         Vector<String> agents = new Vector<>();
         agents.add("AgentCreator:org.mas_maas.agents.AgentCreator");
         agents.add("DummyOrderProcesser:org.mas_maas.agents.DummyOrderProcesser");

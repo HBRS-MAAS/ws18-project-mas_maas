@@ -1,19 +1,6 @@
 package org.maas;
 
 import java.util.Vector;
-<<<<<<< HEAD
-import org.maas.Initializer;
-
-public class BakingStageInitializer extends Initializer {
-    @Override
-    public String initialize() {
-        Vector<String> agents = new Vector<>();
-
-        agents.add("dummy:org.right_brothers.agents.BakingStageTester");
-        agents.add("ovenManager:org.right_brothers.agents.OvenManager");
-        agents.add("postBakingProcessor:org.right_brothers.agents.PostBakingProcessor");
-        agents.add("cooling-rack:org.maas.agents.CoolingRackAgent");
-=======
 import java.io.IOException;
 import java.io.File;
 import java.util.Scanner;
@@ -35,14 +22,11 @@ public class BakingStageInitializer extends Initializer {
             agents.add(bakeryName + "-postBakingProcessor:org.right_brothers.agents.PostBakingProcessor(" + bakeryName + ")");
             agents.add(bakeryName + "-cooling-rack:org.maas.agents.CoolingRackAgent(" + bakeryName + ")");
         }
->>>>>>> 298926414bfbfeb7024e795c3e59e1eeaeaaa5f9
 
         String agentInitString = String.join(";", agents);
         agentInitString += ";";
         return agentInitString;
     }
-<<<<<<< HEAD
-=======
     private Vector<String> getBakeryNames (String scenarioDirectory) {
         String filePath = "config/" + scenarioDirectory + "/bakeries.json";
         String fileString = this.readConfigFile(filePath);
@@ -59,7 +43,7 @@ public class BakingStageInitializer extends Initializer {
         File file = new File(classLoader.getResource(filePath).getFile());
         String fileString = "";
         try (Scanner sc = new Scanner(file)) {
-            sc.useDelimiter("\\Z"); 
+            sc.useDelimiter("\\Z");
             fileString = sc.next();
             sc.close();
         } catch (IOException e) {
@@ -67,5 +51,4 @@ public class BakingStageInitializer extends Initializer {
         }
         return fileString;
     }
->>>>>>> 298926414bfbfeb7024e795c3e59e1eeaeaaa5f9
 }

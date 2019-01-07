@@ -4,10 +4,7 @@ import java.util.List;
 import java.util.Vector;
 import org.maas.OrderProcessingInitializer;
 import org.maas.BakingStageInitializer;
-<<<<<<< HEAD
 import org.maas.DoughPrepStageInitializer;
-=======
->>>>>>> 298926414bfbfeb7024e795c3e59e1eeaeaaa5f9
 
 public class Start {
     private static boolean isHost = true;
@@ -54,45 +51,27 @@ public class Start {
         cmd.add("-agents");
 
         if(customerStage) {
-<<<<<<< HEAD
+            Initializer init = new CustomerInitializer();
+            sb.append(init.initialize(scenarioDirectory));
 
         }
         if(orderProcessingStage) {
-			Initializer init = new OrderProcessingInitializer();
-            sb.append(init.initialize());
+            Initializer init = new OrderProcessingInitializer();
+            sb.append(init.initialize(scenarioDirectory));
         }
         if(doughPrepStage) {
             Initializer init = new DoughPrepStageInitializer();
-            sb.append(init.initialize());
+            sb.append(init.initialize(scenarioDirectory));
             // endTime = "000.06.00";
         }
         if(bakingStage) {
 			Initializer init = new BakingStageInitializer();
-            sb.append(init.initialize());
-=======
-			Initializer init = new CustomerInitializer();
             sb.append(init.initialize(scenarioDirectory));
-        }
-        if(orderProcessingStage) {
-			Initializer init = new OrderProcessingInitializer();
-            sb.append(init.initialize(scenarioDirectory));
-        }
-        if(doughPrepStage) {
-
-        }
-        if(bakingStage) {
-			Initializer init = new BakingStageInitializer();
-            sb.append(init.initialize(scenarioDirectory));
->>>>>>> 298926414bfbfeb7024e795c3e59e1eeaeaaa5f9
             endTime = "000.06.00";
         }
         if(packagingStage) {
 			Initializer init = new PackagingStageInitializer();
-<<<<<<< HEAD
-            sb.append(init.initialize());
-=======
             sb.append(init.initialize(scenarioDirectory));
->>>>>>> 298926414bfbfeb7024e795c3e59e1eeaeaaa5f9
             endTime = "000.11.00";
         }
         if(deliveryStage) {
