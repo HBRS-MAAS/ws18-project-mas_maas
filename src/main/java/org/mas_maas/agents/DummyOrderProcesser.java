@@ -36,8 +36,7 @@ public class DummyOrderProcesser extends BaseAgent {
         super.setup();
         Object[] args = getArguments();
 		if (args != null && args.length > 0) {
-			String scenarioDirectory = (String) args[0];
-			this.scenarioPath = "src/main/resources/config/" + scenarioDirectory + "/";
+			this.scenarioPath = (String) args[0];
 		}
 
         System.out.println(getAID().getLocalName() + " is ready.");
