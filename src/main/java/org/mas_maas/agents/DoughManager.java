@@ -76,10 +76,11 @@ public class DoughManager extends BaseAgent {
 		}
 
         //Get the container of this agent
-        this.container = (AgentContainer)getContainerController();
+        container = (AgentContainer)getContainerController();
+        doughManagerAgentName = "DoughManagerAgent_" + bakeryId;
 
         // Register the Dough-manager in the yellow pages
-        this.register("DoughManagerAgent_" + bakeryId, "JADE-bakery");
+        this.register(doughManagerAgentName, "JADE-bakery");
         System.out.println(getAID().getLocalName() + " is ready.");
 
         //Read the scenario file and get the bakery with this.bakeryId
@@ -216,30 +217,30 @@ public class DoughManager extends BaseAgent {
 
 
             // Create DougPrepTable agents for this bakery
-            // if (equipment.get(i) instanceof DoughPrepTable){
-            //
-            //     //Object of type DoughPrepTable
-            //     DoughPrepTable doughPrepTable = (DoughPrepTable) equipment.get(i);
-            //     //Name of preparationTableAgent
-            //
-			// 	String doughPrepTableAgentName = "DoughPrepTableAgent_" +  bakeryId + doughPrepTable.getGuid();
-            //
-            //     doughPrepTableNames.add(doughPrepTableAgentName);
-            //
-			// 	try {
-			// 		 Object[] args = new Object[3];
-		    //     	 args[0] = doughPrepTable;
-		    //     	 args[1] = doughPrepTableAgentName;
-		    //     	 args[2] = doughManagerAgentName;
-            //
-			// 		AgentController preparationTableAgent = container.createNewAgent(doughPrepTableAgentName, "org.mas_maas.agents.PreparationTableAgent", args);
-			// 		preparationTableAgent.start();
-            //
-			// 		System.out.println(getLocalName()+" created and started:"+ preparationTableAgent + " on container "+((ContainerController) container).getContainerName());
-			// 	} catch (Exception any) {
-			// 		any.printStackTrace();
-			// 	}
-			// }
+            if (equipment.get(i) instanceof DoughPrepTable){
+
+                //Object of type DoughPrepTable
+                DoughPrepTable doughPrepTable = (DoughPrepTable) equipment.get(i);
+                //Name of preparationTableAgent
+
+				String doughPrepTableAgentName = "DoughPrepTableAgent_" +  bakeryId + "_" + doughPrepTable.getGuid();
+
+                doughPrepTableNames.add(doughPrepTableAgentName);
+
+				try {
+					 Object[] args = new Object[3];
+		        	 args[0] = doughPrepTable;
+		        	 args[1] = doughPrepTableAgentName;
+		        	 args[2] = doughManagerAgentName;
+
+					AgentController preparationTableAgent = container.createNewAgent(doughPrepTableAgentName, "org.mas_maas.agents.PreparationTableAgent", args);
+					preparationTableAgent.start();
+
+					System.out.println(getLocalName()+" created and started:"+ preparationTableAgent + " on container "+((ContainerController) container).getContainerName());
+				} catch (Exception any) {
+					any.printStackTrace();
+				}
+			}
 
 		}
 

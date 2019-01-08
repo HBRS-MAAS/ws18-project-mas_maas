@@ -37,9 +37,12 @@ public class PreparationTableAgent extends BaseAgent {
     private AtomicBoolean fullPrepDone = new AtomicBoolean(false);
     private AtomicInteger stepCounter = new AtomicInteger(0);
 
-    private Bakery bakery;
-    private Vector<DoughPrepTable> preparationTables = new Vector<DoughPrepTable> ();
-    private Vector<Equipment> equipment;
+    // private Bakery bakery;
+    // private Vector<DoughPrepTable> preparationTables = new Vector<DoughPrepTable> ();
+    // private Vector<Equipment> equipment;
+    private DoughPrepTable doughPrepTable;
+    private String doughPrepTableName;
+    private String doughManagerName;
 
     private Vector<String> guids;
     private Vector<Integer> productQuantities;
@@ -49,17 +52,25 @@ public class PreparationTableAgent extends BaseAgent {
     protected void setup() {
         super.setup();
 
-        System.out.println(getAID().getLocalName() + " is ready.");
+        Object[] args = getArguments();
 
-        this.register("Preparation-table", "JADE-bakery");
+        if(args != null && args.length > 0){
+            this.doughPrepTable= (DoughPrepTable) args[0];
+            this.doughPrepTableName = (String) args[1];
+            this.doughManagerName = (String) args[2];
+        }
 
-        this.getDoughManagerAIDs();
+        System.out.println(getAID().getLocalName() + " is ready." + "ITS DougManager is: " + doughManagerName);
+
+        this.register(this.doughPrepTableName, "JADE-bakery");
+
+        //this.getDoughManagerAIDs();
 
         // Load bakery information (includes recipes for each product)
-        getbakery();
+        //getbakery();
 
         // Get KneadingMachines
-        this.getPreparationTables();
+        //this.getPreparationTables();
 
         // Time tracker behavior
         stepCounter.set(0);
@@ -99,36 +110,36 @@ public class PreparationTableAgent extends BaseAgent {
         }
     }
 
-    public void getbakery(){
+    // public void getbakery(){
+    //
+    //     String jsonDir = "src/main/resources/config/shared_stage_communication/";
+    //     try {
+    //         // System.out.println("Working Directory = " + System.getProperty("user.dir"));
+    //         String bakeryFile = new Scanner(new File(jsonDir + "bakery.json")).useDelimiter("\\Z").next();
+    //         Vector<Bakery> bakeries = JSONConverter.parseBakeries(bakeryFile);
+    //         for (Bakery bakery : bakeries)
+    //         {
+    //             this.bakery = bakery;
+    //         }
+    //     } catch (FileNotFoundException e) {
+    //         // TODO Auto-generated catch block
+    //         e.printStackTrace();
+    //     }
+    // }
 
-        String jsonDir = "src/main/resources/config/shared_stage_communication/";
-        try {
-            // System.out.println("Working Directory = " + System.getProperty("user.dir"));
-            String bakeryFile = new Scanner(new File(jsonDir + "bakery.json")).useDelimiter("\\Z").next();
-            Vector<Bakery> bakeries = JSONConverter.parseBakeries(bakeryFile);
-            for (Bakery bakery : bakeries)
-            {
-                this.bakery = bakery;
-            }
-        } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-    }
-
-    public void getPreparationTables(){
-        equipment = bakery.getEquipment();
-        System.out.println("Bakery name " + bakery.getName());
-
-        for (int i = 0; i < equipment.size(); i++){
-            if (equipment.get(i) instanceof DoughPrepTable){
-                preparationTables.add((DoughPrepTable) equipment.get(i));
-            }
-        }
-
-        System.out.println("Preparation tables found " + preparationTables.size());
-
-    }
+    // public void getPreparationTables(){
+    //     equipment = bakery.getEquipment();
+    //     System.out.println("Bakery name " + bakery.getName());
+    //
+    //     for (int i = 0; i < equipment.size(); i++){
+    //         if (equipment.get(i) instanceof DoughPrepTable){
+    //             preparationTables.add((DoughPrepTable) equipment.get(i));
+    //         }
+    //     }
+    //
+    //     System.out.println("Preparation tables found " + preparationTables.size());
+    //
+    // }
 
     private class timeTracker extends CyclicBehaviour {
         public void action() {
