@@ -52,13 +52,12 @@ public class KneadingMachineAgent extends BaseAgent {
         Object[] args = getArguments();
 
         if(args != null && args.length > 0){
-            System.out.println("Inside arguments");
             this.kneadingMachine = (KneadingMachine) args[0];
             this.kneadingMachineName = (String) args[1];
             this.doughManagerName = (String) args[2];
         }
 
-        System.out.println(getAID().getLocalName() + " is ready." + "ITS DougManagerName: " + doughManagerName);
+        System.out.println(getAID().getLocalName() + " is ready." + "ITS DougManager is: " + doughManagerName);
 
         // Register KneadingMachine Agent to the yellow Pages
         // this.register("Kneading-machine", "JADE-bakery");
