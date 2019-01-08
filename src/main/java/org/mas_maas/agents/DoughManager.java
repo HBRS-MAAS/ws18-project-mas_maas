@@ -89,7 +89,10 @@ public class DoughManager extends BaseAgent {
 
         // Get equipment for this bakery
 		equipment = bakery.getEquipment();
-		createEquipmentAgents();
+		//createEquipmentAgents();
+
+        // Create the prooferAgent for this bakery
+        createProoferAgent();
 
         // Queue of productStatus which require kneading
         //needsKneading = new WorkQueue();
@@ -203,7 +206,7 @@ public class DoughManager extends BaseAgent {
                     Object[] args = new Object[3];
                     args[0] = kneadingMachine;
                     args[1] = kneadingMachineAgentName;
-                    args[2] = "DoughManagerAgent_" + bakeryId;
+                    args[2] = doughManagerAgentName;
 
                     AgentController kneadingMachineAgent = container.createNewAgent(kneadingMachineAgentName, "org.mas_maas.agents.KneadingMachineAgent", args);
                     kneadingMachineAgent.start();
@@ -245,6 +248,22 @@ public class DoughManager extends BaseAgent {
 		}
 
 	}
+
+    private void createProoferAgent(){
+        String prooferAgentName = "Proofer_" + bakeryId;
+        try{
+            Object[] args = new Object[1];
+            args[0] = bakeryId;
+
+            AgentController prooferAgent = container.createNewAgent(prooferAgentName, "org.maas.agents.Proofer", args);
+            prooferAgent.start();
+
+            System.out.println(getLocalName()+" created and started:"+ prooferAgent + " on container "+((ContainerController) container).getContainerName());
+
+        } catch (Exception any) {
+            any.printStackTrace();
+        }
+    }
 
     protected void takeDown() {
         System.out.println(getAID().getLocalName() + ": Terminating.");
