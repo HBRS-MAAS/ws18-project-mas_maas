@@ -92,7 +92,7 @@ public class DoughManager extends BaseAgent {
 		//createEquipmentAgents();
 
         // Create the prooferAgent for this bakery
-        createProoferAgent();
+        //createProoferAgent();
 
         // Queue of productStatus which require kneading
         //needsKneading = new WorkQueue();
