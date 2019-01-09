@@ -9,55 +9,55 @@ public class OrderMas {
 
     public class OrderDate
     {
-        private int order_day;
-        private int order_hour;
-        public OrderDate(int order_day, int order_hour) {
+        private int day;
+        private int hour;
+        public OrderDate(int day, int hour) {
             super();
-            this.order_day = order_day;
-            this.order_hour = order_hour;
+            this.day = day;
+            this.hour = hour;
         }
         public int getOrder_day() {
-            return order_day;
+            return day;
         }
-        public void setOrder_day(int order_day) {
-            this.order_day = order_day;
+        public void setOrder_day(int day) {
+            this.day = day;
         }
         public int getOrder_hour() {
-            return order_hour;
+            return hour;
         }
-        public void setOrder_hour(int order_hour) {
-            this.order_hour = order_hour;
+        public void setOrder_hour(int hour) {
+            this.hour = hour;
         }
         @Override
         public String toString() {
-            return "OrderDate [order_day=" + order_day + ", order_hour=" + order_hour + "]";
+            return "OrderDate [day=" + day + ", hour=" + hour + "]";
         }
     }
 
     public class DeliveryDate
     {
-        private int delivery_day;
-        private int delivery_hour;
-        public DeliveryDate(int delivery_day, int delivery_hour) {
+        private int day;
+        private int hour;
+        public DeliveryDate(int day, int hour) {
             super();
-            this.delivery_day = delivery_day;
-            this.delivery_hour = delivery_hour;
+            this.day = day;
+            this.hour = hour;
         }
         public int getDelivery_day() {
-            return delivery_day;
+            return day;
         }
-        public void setDelivery_day(int delivery_day) {
-            this.delivery_day = delivery_day;
+        public void setDelivery_day(int day) {
+            this.day = day;
         }
         public int getDelivery_hour() {
-            return delivery_hour;
+            return hour;
         }
-        public void setDelivery_hour(int delivery_hour) {
-            this.delivery_hour = delivery_hour;
+        public void setDelivery_hour(int hour) {
+            this.hour = hour;
         }
         @Override
         public String toString() {
-            return "DeliveryDate [delivery_day=" + delivery_day + ", delivery_hour=" + delivery_hour + "]";
+            return "DeliveryDate [day=" + day + ", hour=" + hour + "]";
         }
     }
 
@@ -69,13 +69,13 @@ public class OrderMas {
 
     public OrderMas() {}
 
-    public OrderMas(String customer_id, String guid, int order_day, int order_hour, int delivery_day, int delivery_hour,
+    public OrderMas(String customer_id, String guid, int day, int hour, int day, int hour,
             Vector<BakedGood> bakedGoods) {
         super();
         this.customer_id = customer_id;
         this.guid = guid;
-        this.order_date = new OrderDate(order_day, order_hour);
-        this.delivery_date = new DeliveryDate(delivery_day, delivery_hour);
+        this.order_date = new OrderDate(day, hour);
+        this.delivery_date = new DeliveryDate(day, hour);
         this.bakedGoods = bakedGoods;
     }
 
