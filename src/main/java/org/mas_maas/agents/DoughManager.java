@@ -85,7 +85,7 @@ public class DoughManager extends BaseAgent {
 
         //Read the scenario file and get the bakery with this.bakeryId
         getBakery(scenarioPath);
-        System.out.println("Bakery" + bakeryId + "is " + bakery.getGuid());
+        System.out.println("Bakery " + bakeryId + " is " + bakery.getGuid());
 
         // Get equipment for this bakery
 		equipment = bakery.getEquipment();

@@ -10,6 +10,8 @@ import com.google.gson.Gson;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Random;
 import java.util.Scanner;
 
 import jade.core.AID;
@@ -26,10 +28,10 @@ import jade.lang.acl.MessageTemplate;
 import org.maas.agents.BaseAgent;
 
 public class DummyOrderProcesser extends BaseAgent {
-    private AID [] doughManagerAgents;
+    //private AID [] doughManagerAgents;
+    ArrayList<AID> doughManagerAgents = new ArrayList<AID>();
     private Vector<Bakery> bakeries;
     private String scenarioPath;
-    private Vector<String> doughManagerAgentNames = new Vector<String>();
     private Vector<OrderMas> orders = new Vector<OrderMas>();
 
     protected void setup(){
@@ -42,28 +44,26 @@ public class DummyOrderProcesser extends BaseAgent {
         System.out.println(getAID().getLocalName() + " is ready.");
         this.register("dummyOrderProcesser", "JADE-bakery");
 
-        getBakery(this.scenarioPath);
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        getDoughManagerNames();
+        getBakeries(this.scenarioPath);
+        // try {
+        //     Thread.sleep(3000);
+        // } catch (InterruptedException e) {
+        //     e.printStackTrace();
+        // }
         getDoughManagerAIDs();
         try {
+            //Read the orders from the scenarioPath
 			getOrderInfo();
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
-        //processOrders();
+        processOrders();
 
 	}
 
-    public void getBakery(String scenarioPath){
-        // Select the scenario file to use
-        // guid is the name of the bakery
+    public void getBakeries(String scenarioPath){
         String jsonDir = scenarioPath;
         try {
             // System.out.println("Working Directory = " + System.getProperty("user.dir"));
@@ -75,45 +75,47 @@ public class DummyOrderProcesser extends BaseAgent {
         }
     }
 
-    public void getDoughManagerNames(){
+    public void getDoughManagerAIDs(){
+        // For now get just the first one to test
+        //for (Bakery bakery : bakeries) {
         Bakery bakery = bakeries.get(0);
-        String doughManagerAgentName = "DoughManagerAgent_" + bakery.getGuid();
-        System.out.println("---> I wanna find "+ doughManagerAgentName);
-        doughManagerAgentNames.add(doughManagerAgentName);
+            String doughManagerAgentName = "DoughManagerAgent_" + bakery.getGuid();
+            doughManagerAgents.add(new AID (doughManagerAgentName, AID.ISLOCALNAME));
+        //}
     }
 
-    public void getDoughManagerAIDs() {
-        /*
-        Object the AID of all the dough-manager agents found
-        */
-        DFAgentDescription template = new DFAgentDescription();
-        ServiceDescription sd = new ServiceDescription();
-
-        doughManagerAgents = new AID [doughManagerAgentNames.size()];
-
-        int j = 0;
-
-        for(String doughManagerAgentName : doughManagerAgentNames) {
-
-            sd.setType(doughManagerAgentName);
-            template.addServices(sd);
-            try {
-                DFAgentDescription[] result = DFService.search(this, template);
-                System.out.println("-----> " + getAID().getLocalName() + "Found the following Dough-manager agent:");
-                // doughManagerAgents = new AID [result.length];
-                //doughManagerAgents = new AID ();
-                for (int i = 0; i < result.length; ++i) {
-                    doughManagerAgents[j] = result[i].getName();
-                    System.out.println(doughManagerAgents[j].getName());
-                }
-            }
-            catch (FIPAException fe) {
-                System.out.println("-----> Failed to find " + doughManagerAgentName);
-                fe.printStackTrace();
-            }
-            j++;
-        }
-    }
+    // public void getDoughManagerAIDs() {
+    //     /*
+    //     Object the AID of all the dough-manager agents found
+    //     */
+    //     DFAgentDescription template = new DFAgentDescription();
+    //     ServiceDescription sd = new ServiceDescription();
+    //
+    //     doughManagerAgents = new AID [doughManagerAgentNames.size()];
+    //
+    //     int j = 0;
+    //
+    //     for(String doughManagerAgentName : doughManagerAgentNames) {
+    //
+    //         sd.setType(doughManagerAgentName);
+    //         template.addServices(sd);
+    //         try {
+    //             DFAgentDescription[] result = DFService.search(this, template);
+    //             System.out.println("-----> " + getAID().getLocalName() + "Found the following Dough-manager agent:");
+    //             // doughManagerAgents = new AID [result.length];
+    //             //doughManagerAgents = new AID ();
+    //             for (int i = 0; i < result.length; ++i) {
+    //                 doughManagerAgents[j] = result[i].getName();
+    //                 System.out.println(doughManagerAgents[j].getName());
+    //             }
+    //         }
+    //         catch (FIPAException fe) {
+    //             System.out.println("-----> Failed to find " + doughManagerAgentName);
+    //             fe.printStackTrace();
+    //         }
+    //         j++;
+    //     }
+    // }
 
     private void getOrderInfo() throws FileNotFoundException{
         String clientFile = new Scanner(new File(this.scenarioPath+ "clients.json")).useDelimiter("\\Z").next();
@@ -128,14 +130,21 @@ public class DummyOrderProcesser extends BaseAgent {
 
     public void processOrders(){
         Gson gson = new Gson();
+        Random rand = new Random();
         OrderMas order = orders.get(0);
         // for (Order order : orders){
-            String doughManagerName = doughManagerAgents[0].getName();
+            //Randomly select a DoughManager to send the order to
+            int doughManagerIndex = rand.nextInt(doughManagerAgents.size());
+            AID doughManagerAgent = doughManagerAgents.get(doughManagerIndex);
+            System.out.println("Order will be sent to: " + doughManagerAgent);
             System.out.println("---> My object " + order);
             String orderString = gson.toJson(order);
             System.out.println("---> My converted object " + orderString);
-            System.out.println("---> My converted object " + order.toString());
-            addBehaviour(new sendOrder(orderString, doughManagerName));
+            System.out.println(JSONConverter.parseOrder(orderString));
+            //String orderString = order.toString();
+            //System.out.println("---> My converted object " + orderString );
+            //System.out.println(JSONConverter.parseOrder(orderString));
+            //addBehaviour(new sendOrder(orderString, doughManagerName));
             // }
     }
 
@@ -161,9 +170,9 @@ public class DummyOrderProcesser extends BaseAgent {
                 // msg.setConversationId("sending-Order"+doughManagerName);
 
                 // Send kneadingNotification msg to doughManagerAgents
-                for (int i = 0; i < doughManagerAgents.length; i++){
-                    if (doughManagerAgents[i].getName().equals(doughManagerName)){
-                        msg.addReceiver(doughManagerAgents[i]);
+                for (int i = 0; i < doughManagerAgents.size(); i++){
+                    if (doughManagerAgents.get(i).getName().equals(doughManagerName)){
+                        msg.addReceiver(doughManagerAgents.get(i));
                     }
                 }
                 baseAgent.sendMessage(msg);

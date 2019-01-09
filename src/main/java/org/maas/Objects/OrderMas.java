@@ -87,7 +87,11 @@ public class OrderMas {
 
     @Override
     public String toString() {
-        return "OrderMas [customerId=" + customerId + ", guid=" + guid + ", orderDay=" + orderDay + ", orderHour="
+        // return "OrderMas [customer_id=" + customerId + ", guid=" + guid + ", order_date=[" + "day=" + orderDay + ", hour="
+        //         + orderHour + "], delivery_date=[" + "day=" + deliveryDate + ", hour=" + deliveryHour + "], bakedGoods="
+        //         + bakedGoods + "]";
+
+        return "Order [customerId=" + customerId + ", guid=" + guid + ", orderDay=" + orderDay + ", orderHour="
                 + orderHour + ", deliveryDate=" + deliveryDate + ", deliveryHour=" + deliveryHour + ", bakedGoods="
                 + bakedGoods + "]";
     }

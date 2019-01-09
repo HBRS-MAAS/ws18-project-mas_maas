@@ -27,7 +27,9 @@ public class DoughPrepStageInitializer extends Initializer {
         agents.add("DummyOrderProcesser:org.mas_maas.agents.DummyOrderProcesser(" + scenarioPath + ")");
 
         // Create agents per bakery
-        for (Bakery bakery : bakeries) {
+        //for (Bakery bakery : bakeries) {
+		Bakery bakery = bakeries.get(0);
+
             String bakeryId = bakery.getGuid();
             System.out.println(bakeryId);
 
@@ -36,7 +38,7 @@ public class DoughPrepStageInitializer extends Initializer {
 			agents.add("Proofer_" + bakeryId + ":org.maas.agents.Proofer(" + bakeryId + ")");
 
 
-        }
+        //}
 
 
 
