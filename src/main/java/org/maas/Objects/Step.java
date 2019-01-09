@@ -1,19 +1,15 @@
-<<<<<<< HEAD
-package org.maas.objects;
-=======
 package org.maas.Objects;
->>>>>>> 298926414bfbfeb7024e795c3e59e1eeaeaaa5f9
 
 public class Step
 {
     private String action;
     private Float duration;
-    public final static String KNEADING_TIME = "kneading";
-    public final static String PROOFING_TIME = "proofing";
     public final static String KNEADING_STEP = "kneading";
-    public final static String COOLING_STEP =  "cooling";
-    public final static String PROOFING_STEP = "proofing";
     public final static String ITEM_PREPARATION_STEP = "item preparation";
+    public final static String PROOFING_STEP = "proofing";
+    public final static String BAKING_STEP = "baking";
+    public final static String COOLING_STEP =  "cooling";
+
 
     public Step(String action, Float duration2) {
         this.action = action;

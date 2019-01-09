@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-package org.maas.objects;
-=======
 package org.maas.Objects;
->>>>>>> 298926414bfbfeb7024e795c3e59e1eeaeaaa5f9
 
 public class Packaging {
     private int boxingTemp;
@@ -14,19 +10,19 @@ public class Packaging {
         this.breadsPerBox = breadsPerBox;
     }
 
-    private int getBoxingTemp() {
+    public int getBoxingTemp() {
         return boxingTemp;
     }
 
-    private void setBoxingTemp(int boxingTemp) {
+    public void setBoxingTemp(int boxingTemp) {
         this.boxingTemp = boxingTemp;
     }
 
-    private int getBreadsPerBox() {
+    public int getBreadsPerBox() {
         return breadsPerBox;
     }
 
-    private void setBreadsPerBox(int breadsPerBox) {
+    public void setBreadsPerBox(int breadsPerBox) {
         this.breadsPerBox = breadsPerBox;
     }
 

@@ -12,34 +12,21 @@ import jade.lang.acl.MessageTemplate;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.maas.behaviours.shutdown;
-<<<<<<< HEAD
-import org.maas.objects.Location;
-import org.maas.objects.Order;
-import org.maas.objects.Product;
-=======
 import org.maas.Objects.Order;
 import org.maas.Objects.Product;
 
->>>>>>> 298926414bfbfeb7024e795c3e59e1eeaeaaa5f9
 import java.util.*;
 
 public class SchedulerAgent extends BaseAgent {
     private String sBakeryId;
-<<<<<<< HEAD
-//    private Location lLocation;
-=======
     //    private Location lLocation;
->>>>>>> 298926414bfbfeb7024e795c3e59e1eeaeaaa5f9
     private HashMap<String, Float> hmPrepTables;
     private HashMap<String, Float> hmKneadingMachine;
     private HashMap<String, Product> hmProducts; // = Available Products
     private HashMap<Integer, Order> scheduledOrders;
     private AID order_processing;
     private int endDays;
-<<<<<<< HEAD
-=======
     private boolean order_received = false;
->>>>>>> 298926414bfbfeb7024e795c3e59e1eeaeaaa5f9
 
     protected void setup(){
         super.setup();
@@ -51,15 +38,10 @@ public class SchedulerAgent extends BaseAgent {
         findOrderProcessing();
         scheduledOrders = new HashMap<>();
 
-<<<<<<< HEAD
-        addBehaviour(new isNewOrderChecker());
-        addBehaviour(new QueueRequestServer());
-=======
         addBehaviour(new isNewOrderCheckerNew());
         addBehaviour(new TimeManager());
         addBehaviour(new QueueRequestServer());
         addBehaviour(new ScheduledOrderRequestServer());
->>>>>>> 298926414bfbfeb7024e795c3e59e1eeaeaaa5f9
 
         System.out.println("SchedulerAgent is ready");
     }
@@ -81,21 +63,14 @@ public class SchedulerAgent extends BaseAgent {
         System.out.println("OrderProcessing found! - " + order_processing);
     }
 
-<<<<<<< HEAD
-        private class isNewOrderChecker extends Behaviour {
-        boolean isDone = false;
-=======
     private class TimeManager extends Behaviour {
         private boolean isDone = false;
 
->>>>>>> 298926414bfbfeb7024e795c3e59e1eeaeaaa5f9
         @Override
         public void action() {
             if(!getAllowAction()) {
                 return;
             }
-<<<<<<< HEAD
-=======
             if(!order_received) {
                 finished();
 //                System.out.println(myAgent.getName() + " called finished");
@@ -120,25 +95,12 @@ public class SchedulerAgent extends BaseAgent {
         boolean isDone = false;
         @Override
         public void action() {
->>>>>>> 298926414bfbfeb7024e795c3e59e1eeaeaaa5f9
             MessageTemplate mtNewOrder = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
                     MessageTemplate.MatchSender(order_processing));
             ACLMessage newOrder = myAgent.receive(mtNewOrder);
             if(newOrder != null) {
-<<<<<<< HEAD
-                if(newOrder.getContent().toUpperCase().equals("NO NEW ORDER")) {
-                    //System.out.println(myAgent.getName() + " called finished()");
-                    while(myAgent.receive() != null){}
-                    finished();
-                }
-                else {
-                    myAgent.addBehaviour(new receiveOrder());
-                }
-                myAgent.addBehaviour(new isNewOrderChecker());
-=======
                 myAgent.addBehaviour(new receiveOrderNew());
                 myAgent.addBehaviour(new isNewOrderCheckerNew());
->>>>>>> 298926414bfbfeb7024e795c3e59e1eeaeaaa5f9
                 isDone = true;
             }
             else {
@@ -152,21 +114,11 @@ public class SchedulerAgent extends BaseAgent {
         }
     }
 
-<<<<<<< HEAD
-    private class receiveOrder extends Behaviour {
-=======
     private class receiveOrderNew extends Behaviour {
->>>>>>> 298926414bfbfeb7024e795c3e59e1eeaeaaa5f9
         private boolean isDone = false;
         private int step = 0;
         @Override
         public void action() {
-<<<<<<< HEAD
-            if(!getAllowAction()) {
-                return;
-            }
-=======
->>>>>>> 298926414bfbfeb7024e795c3e59e1eeaeaaa5f9
             if(getCurrentDay() >= endDays) {
                 addBehaviour(new shutdown());
             }
@@ -179,10 +131,6 @@ public class SchedulerAgent extends BaseAgent {
                         JSONObject jsoProducts = new JSONObject(sContent);
                         int delivery_day = jsoProducts.getJSONObject("deliveryDate").getInt("day");
                         ACLMessage schedule_reply = schedule_request.createReply();
-<<<<<<< HEAD
-                        System.out.println(schedule_reply.getAllReceiver().next());
-=======
->>>>>>> 298926414bfbfeb7024e795c3e59e1eeaeaaa5f9
                         if (scheduledOrders.containsKey(delivery_day)) {
                             schedule_reply.setPerformative(ACLMessage.DISCONFIRM);
                             schedule_reply.setContent("Scheduling impossible!");
@@ -222,11 +170,7 @@ public class SchedulerAgent extends BaseAgent {
                             propagate_accepted_order.addReceiver(agent);
                         }
                         sendMessage(propagate_accepted_order);
-<<<<<<< HEAD
-                        System.out.println("Propagated all scheduled Orders");
-=======
                         System.out.println("Scheduler Agent Propagated all scheduled Orders");
->>>>>>> 298926414bfbfeb7024e795c3e59e1eeaeaaa5f9
                         step++;
                     }
                     else {
@@ -238,12 +182,6 @@ public class SchedulerAgent extends BaseAgent {
         @Override
         public boolean done() {
             isDone = step >= 2;
-<<<<<<< HEAD
-            if(isDone) {
-                finished();
-            }
-=======
->>>>>>> 298926414bfbfeb7024e795c3e59e1eeaeaaa5f9
             return isDone;
         }
 
@@ -271,10 +209,6 @@ public class SchedulerAgent extends BaseAgent {
     }
 
     private class QueueRequestServer extends CyclicBehaviour {
-<<<<<<< HEAD
-        // TODO
-=======
->>>>>>> 298926414bfbfeb7024e795c3e59e1eeaeaaa5f9
         @Override
         public void action() {
             MessageTemplate mtQueueRequest = MessageTemplate.and(MessageTemplate.MatchConversationId("queue request"),
@@ -310,8 +244,6 @@ public class SchedulerAgent extends BaseAgent {
         }
     }
 
-<<<<<<< HEAD
-=======
     private class ScheduledOrderRequestServer extends CyclicBehaviour {
         /*
                 Behaviour for getting orders for visualization
@@ -344,7 +276,6 @@ public class SchedulerAgent extends BaseAgent {
         }
     }
 
->>>>>>> 298926414bfbfeb7024e795c3e59e1eeaeaaa5f9
     public static HashMap<Integer, Order> sortOrders(HashMap<Integer, Order> hm) {
         List<Map.Entry<Integer, Order>> orders = new LinkedList<Map.Entry<Integer, Order>>(hm.entrySet());
 

@@ -15,6 +15,7 @@ import jade.core.behaviours.*;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.SearchConstraints;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
@@ -27,11 +28,7 @@ import jade.domain.JADEAgentManagement.JADEManagementOntology;
 import jade.domain.JADEAgentManagement.ShutdownPlatform;
 import jade.domain.FIPANames;
 
-<<<<<<< HEAD
-import org.maas.objects.Meta;
-=======
 import org.maas.Objects.Meta;
->>>>>>> 298926414bfbfeb7024e795c3e59e1eeaeaaa5f9
 import org.maas.utils.Time;
 import org.maas.utils.JsonConverter;
 
@@ -42,14 +39,14 @@ public class TimeKeeper extends Agent{
 	 * so that TimeStep messages do not interfere with other communications
 	 */
 	public static final int BROADCAST_TIMESTEP_PERFORMATIVE = 55;
-	
+
 	private int currentTimeStep;
     private Time currentTime;
     private Time singleTimeStep;
 	private int countAgentsReplied;
     private Time endTime;
     private List<AID> finishedAgents;
-	
+
 	protected void setup() {
 		System.out.println("\tHello! time-keeper-agent "+getAID().getLocalName()+" is ready.");
 
@@ -81,7 +78,7 @@ public class TimeKeeper extends Agent{
 	}
 
     /*
-     * read meta.json file and read the single time step 
+     * read meta.json file and read the single time step
      */
     private void readSingleTimeStepFromMeta(String scenarioDirectory){
         String filePath = "config/" + scenarioDirectory + "/meta.json";
@@ -89,7 +86,7 @@ public class TimeKeeper extends Agent{
         File file = new File(classLoader.getResource(filePath).getFile());
         String fileString = "";
         try (Scanner sc = new Scanner(file)) {
-            sc.useDelimiter("\\Z"); 
+            sc.useDelimiter("\\Z");
             fileString = sc.next();
             sc.close();
         } catch (IOException e) {
@@ -99,24 +96,22 @@ public class TimeKeeper extends Agent{
         Meta m = JsonConverter.getInstance(fileString, type);
         this.singleTimeStep = m.getTimeStep();
     }
-	
+
 	protected void takeDown() {
         System.out.println("\t" + this.getAID().getLocalName() + " terminating.");
 	}
-	
+
     /* Get the AID for all alive agents who have registered with "JADE-bakery" name
      */
 	private List<DFAgentDescription> getAllAgents(){
 		DFAgentDescription template = new DFAgentDescription();
 		ServiceDescription sd = new ServiceDescription();
-<<<<<<< HEAD
-        sd.setName("JADE-bakery");
-=======
+		SearchConstraints getAll = new SearchConstraints();
+		getAll.setMaxResults(new Long(-1));
 //         sd.setName("JADE-bakery");
->>>>>>> 298926414bfbfeb7024e795c3e59e1eeaeaaa5f9
 		template.addServices(sd);
 		try {
-			DFAgentDescription[] result = DFService.search(this, template);
+			DFAgentDescription[] result = DFService.search(this, template, getAll);
 			return Arrays.asList(result);
 		}
 		catch (FIPAException fe) {
@@ -124,7 +119,7 @@ public class TimeKeeper extends Agent{
 			return new Vector<DFAgentDescription>();
 		}
 	}
-	
+
     /* Send next time step to all agents so that they can proceed with their tasks
      */
 	private class SendTimeStep extends OneShotBehaviour {
@@ -143,10 +138,10 @@ public class TimeKeeper extends Agent{
                 timeMessage.addReceiver(agent.getName());
                 timeMessage.setContent(currentTime.toString());
                 myAgent.send(timeMessage);
-            } 
+            }
 		}
 	}
-	
+
     /* Get `finish` message from all agents (BaseAgent) and once all message are received
      * call SendTimeStep to increment time step
      */
@@ -170,7 +165,7 @@ public class TimeKeeper extends Agent{
 			}
 		}
 	}
-    
+
     // Taken from http://www.rickyvanrijn.nl/2017/08/29/how-to-shutdown-jade-agent-platform-programmatically/
     private class shutdown extends OneShotBehaviour{
         public void action() {

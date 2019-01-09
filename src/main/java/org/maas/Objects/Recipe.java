@@ -1,28 +1,14 @@
-<<<<<<< HEAD
-package org.maas.objects;
-=======
 package org.maas.Objects;
->>>>>>> 298926414bfbfeb7024e795c3e59e1eeaeaaa5f9
 
 import java.util.Vector;
 
 public class Recipe{
-    private int coolingRate;
     private int bakingTemp;
     private Vector<Step> steps; //inner class Step defined at the end of the file
 
-    public Recipe(int coolingRate, int bakingTemp, Vector<Step> steps) {
-        this.coolingRate = coolingRate;
+    public Recipe(int bakingTemp, Vector<Step> steps) {
         this.bakingTemp = bakingTemp;
         this.steps = steps;
-    }
-
-    public int getCoolingRate() {
-        return coolingRate;
-    }
-
-    public void setCoolingRate(int coolingRate) {
-        this.coolingRate = coolingRate;
     }
 
     public int getBakingTemp() {
@@ -92,8 +78,31 @@ public class Recipe{
 
     }
 
+    public Vector<Step> getBakingPreparationSteps(){
+        Vector<Step> bakingPreparationSteps = new Vector<Step>();
+        boolean passedBaking = false;
+
+        for(Step step: steps) {
+            if (passedBaking) {
+                if (!step.getAction().equals(Step.COOLING_STEP)) {
+                    bakingPreparationSteps.add(step);
+                }
+                else {
+                    break;
+                }
+
+            }
+            if (step.getAction().equals(Step.BAKING_STEP)) {
+                // System.out.println("-------> Step =  " + step);
+                passedBaking = true;
+            }
+        }
+        return bakingPreparationSteps;
+
+    }
+
     @Override
     public String toString() {
-        return "Recipe [coolingRate=" + coolingRate + ", bakingTemp=" + bakingTemp + ", steps=" + steps + "]";
+        return "Recipe [bakingTemp=" + bakingTemp + ", steps=" + steps + "]";
     }
 }
