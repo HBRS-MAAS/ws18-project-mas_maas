@@ -9,21 +9,21 @@ public class OrderMas {
 
     // I thought about using a standard java object like Calendar or Date
     // but this seemed a better fit given the json format and our limited scope
-    private int orderDay;
-    private int orderHour;
+    private int order_day;
+    private int order_hour;
     private int delivery_date;
     private int delivery_hour;
     private Vector<BakedGood> bakedGoods;
 
     public OrderMas() {}
 
-    public OrderMas(String customer_id, String guid, int orderDay, int orderHour, int delivery_date, int delivery_hour,
+    public OrderMas(String customer_id, String guid, int order_day, int order_hour, int delivery_date, int delivery_hour,
             Vector<BakedGood> bakedGoods) {
         super();
         this.customer_id = customer_id;
         this.guid = guid;
-        this.orderDay = orderDay;
-        this.orderHour = orderHour;
+        this.order_day = order_day;
+        this.order_hour = order_hour;
         this.delivery_date = delivery_date;
         this.delivery_hour = delivery_hour;
         this.bakedGoods = bakedGoods;
@@ -45,20 +45,20 @@ public class OrderMas {
         this.guid = guid;
     }
 
-    public int getOrderDay() {
-        return orderDay;
+    public int getOrder_day() {
+        return order_day;
     }
 
-    public void setOrderDay(int orderDay) {
-        this.orderDay = orderDay;
+    public void setOrder_day(int order_day) {
+        this.order_day = order_day;
     }
 
-    public int getOrderHour() {
-        return orderHour;
+    public int getOrder_hour() {
+        return order_hour;
     }
 
-    public void setOrderHour(int orderHour) {
-        this.orderHour = orderHour;
+    public void setOrder_hour(int order_hour) {
+        this.order_hour = order_hour;
     }
 
     public int getDelivery_date() {
@@ -87,12 +87,12 @@ public class OrderMas {
 
     @Override
     public String toString() {
-        // return "OrderMas [customer_id=" + customer_id + ", guid=" + guid + ", order_date=[" + "day=" + orderDay + ", hour="
-        //         + orderHour + "], delivery_date=[" + "day=" + delivery_date + ", hour=" + delivery_hour + "], bakedGoods="
+        // return "OrderMas [customer_id=" + customer_id + ", guid=" + guid + ", order_date=[" + "day=" + order_day + ", hour="
+        //         + order_hour + "], delivery_date=[" + "day=" + delivery_date + ", hour=" + delivery_hour + "], bakedGoods="
         //         + bakedGoods + "]";
 
-        return "Order [customer_id=" + customer_id + ", guid=" + guid + ", orderDay=" + orderDay + ", orderHour="
-                + orderHour + ", delivery_date=" + delivery_date + ", delivery_hour=" + delivery_hour + ", bakedGoods="
+        return "Order [customer_id=" + customer_id + ", guid=" + guid + ", order_day=" + order_day + ", order_hour="
+                + order_hour + ", delivery_date=" + delivery_date + ", delivery_hour=" + delivery_hour + ", bakedGoods="
                 + bakedGoods + "]";
     }
 }
