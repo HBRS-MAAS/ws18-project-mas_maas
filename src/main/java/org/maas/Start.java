@@ -37,6 +37,9 @@ public class Start {
         StringBuilder sb = new StringBuilder();
         List<String> cmd = new Vector<>();
 
+        cmd.add("-jade_domain_df_maxresult");
+        cmd.add("10000");
+
         if(isHost) {
             cmd.add("-local-port");
             cmd.add(localPort);
@@ -51,18 +54,16 @@ public class Start {
         cmd.add("-agents");
 
         if(customerStage) {
-            Initializer init = new CustomerInitializer();
+			Initializer init = new CustomerInitializer();
             sb.append(init.initialize(scenarioDirectory));
-
         }
         if(orderProcessingStage) {
-            Initializer init = new OrderProcessingInitializer();
+			Initializer init = new OrderProcessingInitializer();
             sb.append(init.initialize(scenarioDirectory));
         }
         if(doughPrepStage) {
             Initializer init = new DoughPrepStageInitializer();
             sb.append(init.initialize(scenarioDirectory));
-            // endTime = "000.06.00";
         }
         if(bakingStage) {
 			Initializer init = new BakingStageInitializer();
