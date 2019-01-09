@@ -65,18 +65,18 @@ public class OrderMas {
     // but this seemed a better fit given the json format and our limited scope
     private OrderDate order_date;
     private DeliveryDate delivery_date;
-    private Vector<BakedGood> bakedGoods;
+    private Vector<BakedGood> products;
 
     public OrderMas() {}
 
-    public OrderMas(String customer_id, String guid, int day, int hour, int day, int hour,
-            Vector<BakedGood> bakedGoods) {
+    public OrderMas(String customer_id, String guid, int order_day, int order_hour, int delivery_day, int delivery_hour,
+            Vector<BakedGood> products) {
         super();
         this.customer_id = customer_id;
         this.guid = guid;
-        this.order_date = new OrderDate(day, hour);
-        this.delivery_date = new DeliveryDate(day, hour);
-        this.bakedGoods = bakedGoods;
+        this.order_date = new OrderDate(order_day, order_hour);
+        this.delivery_date = new DeliveryDate(delivery_day, delivery_hour);
+        this.products = products;
     }
 
     public String getCustomer_id() {
@@ -96,16 +96,16 @@ public class OrderMas {
     }
 
     public Vector<BakedGood> getBakedGoods() {
-        return bakedGoods;
+        return products;
     }
 
-    public void setBakedGoods(Vector<BakedGood> bakedGoods) {
-        this.bakedGoods = bakedGoods;
+    public void setBakedGoods(Vector<BakedGood> products) {
+        this.products = products;
     }
 
     @Override
     public String toString() {
         return "OrderMas [customer_id=" + customer_id + ", guid=" + guid + ", orderDate=" + order_date
-                + ", deliveryDate=" + delivery_date + ", bakedGoods=" + bakedGoods + "]";
+                + ", deliveryDate=" + delivery_date + ", products=" + products + "]";
     }
 }

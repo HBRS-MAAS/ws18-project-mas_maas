@@ -9,16 +9,6 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.Vector;
 
-import org.maas.messages.BakingNotification;
-import org.maas.messages.BakingRequest;
-import org.maas.messages.CoolingRequest;
-import org.maas.messages.DoughNotification;
-import org.maas.messages.KneadingNotification;
-import org.maas.messages.KneadingRequest;
-import org.maas.messages.LoadingBayMessage;
-import org.maas.messages.PreparationNotification;
-import org.maas.messages.PreparationRequest;
-import org.maas.messages.ProofingRequest;
 import org.maas.Objects.BakedGood;
 import org.maas.Objects.Bakery;
 import org.maas.Objects.Batch;
@@ -38,6 +28,16 @@ import org.maas.Objects.StreetLink;
 import org.maas.Objects.StreetNetwork;
 import org.maas.Objects.StreetNode;
 import org.maas.Objects.Truck;
+import org.maas.messages.BakingNotification;
+import org.maas.messages.BakingRequest;
+import org.maas.messages.CoolingRequest;
+import org.maas.messages.DoughNotification;
+import org.maas.messages.KneadingNotification;
+import org.maas.messages.KneadingRequest;
+import org.maas.messages.LoadingBayMessage;
+import org.maas.messages.PreparationNotification;
+import org.maas.messages.PreparationRequest;
+import org.maas.messages.ProofingRequest;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -326,11 +326,27 @@ public class JSONConverter
         // TODO this will need to be reworked in the future when BakedGood is more fleshed out
         // TODO also this JUST is a bit hacky...
         Vector<BakedGood> bakedGoods = new Vector<BakedGood>();
-        JsonObject jsonProducts = jsonOrder.get("products").getAsJsonObject();
-        for (String bakedGoodName : BakedGood.bakedGoodNames)
+        JsonElement jsonProductsElement = jsonOrder.get("products");
+        if (jsonProductsElement.isJsonArray())
         {
-            int amount = jsonProducts.get(bakedGoodName).getAsInt();
-            bakedGoods.add(new BakedGood(bakedGoodName, amount));
+            JsonArray jsonProducts = jsonProductsElement.getAsJsonArray();
+            for (JsonElement product : jsonProducts)
+            {
+                JsonObject jsonProduct = product.getAsJsonObject();
+                System.out.println(jsonProduct);
+                String name = jsonProduct.get("name").getAsString();
+                int amount = jsonProduct.get("amount").getAsInt();
+                bakedGoods.add(new BakedGood(name, amount));
+            }
+        }
+        else
+        {
+            JsonObject jsonProducts = jsonProductsElement.getAsJsonObject();
+            for (String bakedGoodName : BakedGood.bakedGoodNames)
+            {
+                int amount = jsonProducts.get(bakedGoodName).getAsInt();
+                bakedGoods.add(new BakedGood(bakedGoodName, amount));
+            }
         }
 
         OrderMas anOrder = new OrderMas(customerId, orderGuid, orderDay, orderHour, deliveryDay, deliveryHour, bakedGoods);
