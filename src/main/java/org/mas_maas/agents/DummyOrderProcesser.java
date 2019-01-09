@@ -1,31 +1,23 @@
 package org.mas_maas.agents;
-import java.util.Vector;
-
-import org.maas.JSONConverter;
-import org.maas.Objects.Bakery;
-import org.maas.Objects.OrderMas;
-import org.maas.Objects.Client;
-
-import com.google.gson.Gson;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.Vector;
+
+import org.maas.JSONConverter;
+import org.maas.Objects.Bakery;
+import org.maas.Objects.Client;
+import org.maas.Objects.OrderMas;
+import org.maas.agents.BaseAgent;
+
+import com.google.gson.Gson;
 
 import jade.core.AID;
 import jade.core.behaviours.Behaviour;
-import jade.core.behaviours.CyclicBehaviour;
-import jade.domain.DFService;
-import jade.domain.FIPAException;
-import jade.domain.FIPAAgentManagement.DFAgentDescription;
-import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-
-
-import org.maas.agents.BaseAgent;
 
 public class DummyOrderProcesser extends BaseAgent {
     //private AID [] doughManagerAgents;
@@ -37,9 +29,9 @@ public class DummyOrderProcesser extends BaseAgent {
     protected void setup(){
         super.setup();
         Object[] args = getArguments();
-		if (args != null && args.length > 0) {
-			this.scenarioPath = (String) args[0];
-		}
+        if (args != null && args.length > 0) {
+            this.scenarioPath = (String) args[0];
+        }
 
         System.out.println(getAID().getLocalName() + " is ready.");
         this.register("dummyOrderProcesser", "JADE-bakery");
@@ -53,15 +45,15 @@ public class DummyOrderProcesser extends BaseAgent {
         getDoughManagerAIDs();
         try {
             //Read the orders from the scenarioPath
-			getOrderInfo();
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+            getOrderInfo();
+        } catch (FileNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
 
         processOrders();
 
-	}
+    }
 
     public void getBakeries(String scenarioPath){
         String jsonDir = scenarioPath;
