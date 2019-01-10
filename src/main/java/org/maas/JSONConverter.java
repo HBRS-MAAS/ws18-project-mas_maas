@@ -333,7 +333,7 @@ public class JSONConverter
             for (JsonElement product : jsonProducts)
             {
                 JsonObject jsonProduct = product.getAsJsonObject();
-                System.out.println(jsonProduct);
+                //System.out.println(jsonProduct);
                 String name = jsonProduct.get("name").getAsString();
                 int amount = jsonProduct.get("amount").getAsInt();
                 bakedGoods.add(new BakedGood(name, amount));
