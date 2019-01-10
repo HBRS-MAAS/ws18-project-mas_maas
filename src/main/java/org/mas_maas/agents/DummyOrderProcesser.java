@@ -21,7 +21,7 @@ import jade.lang.acl.MessageTemplate;
 
 public class DummyOrderProcesser extends BaseAgent {
     //private AID [] doughManagerAgents;
-    ArrayList<AID> doughManagerAgents = new ArrayList<AID>();
+    private ArrayList<AID> doughManagerAgents = new ArrayList<AID>();
     private Vector<Bakery> bakeries;
     private String scenarioPath;
     private Vector<OrderMas> orders = new Vector<OrderMas>();
@@ -33,8 +33,8 @@ public class DummyOrderProcesser extends BaseAgent {
             this.scenarioPath = (String) args[0];
         }
 
-        System.out.println(getAID().getLocalName() + " is ready.");
-        this.register("dummyOrderProcesser", "JADE-bakery");
+        System.out.println("Hello! " + getAID().getLocalName() + " is ready.");
+        this.register("DummyOrderProcesser", "JADE-bakery");
 
         getBakeries(this.scenarioPath);
 
@@ -194,7 +194,7 @@ public class DummyOrderProcesser extends BaseAgent {
 
     public boolean done() {
         if (option == 2) {
-            System.out.println(getAID().getLocalName() + " My purpose is over ");
+            //System.out.println(getAID().getLocalName() + " My purpose is over ");
             //baseAgent.finished();
             // myAgent.doDelete(); //TODO Find when to die
             return true;

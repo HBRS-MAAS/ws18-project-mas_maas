@@ -52,7 +52,7 @@ public class Proofer extends BaseAgent {
 
         this.register("Proofer_" + bakeryId, "JADE-bakery");
 
-        System.out.println(getAID().getLocalName() + " is ready.");
+        System.out.println("Hello! " + getAID().getLocalName() + " is ready.");
 
         // Get Agents AIDS
         this.getBakingInterfaceAIDs();
@@ -77,7 +77,7 @@ public class Proofer extends BaseAgent {
         template.addServices(sd);
         try {
             DFAgentDescription [] result = DFService.search(this, template);
-            System.out.println(getAID().getLocalName() + "Found the following Baking-interface agents:");
+            System.out.println(getAID().getLocalName() + " Found the following Baking-interface agents:");
             bakingInterfaceAgents = new AID [result.length];
 
             for (int i = 0; i < result.length; ++i) {

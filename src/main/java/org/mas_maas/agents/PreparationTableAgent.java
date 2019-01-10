@@ -60,7 +60,7 @@ public class PreparationTableAgent extends BaseAgent {
             this.doughManagerName = (String) args[2];
         }
 
-        System.out.println(getAID().getLocalName() + " is ready." + "ITS DougManager is: " + doughManagerName);
+        System.out.println("Hello! " + getAID().getLocalName() + " is ready." + "its DougManager is: " + doughManagerName);
 
         this.register(this.doughPrepTableName, "JADE-bakery");
 
