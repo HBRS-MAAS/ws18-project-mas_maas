@@ -134,7 +134,7 @@ public class KneadingMachineAgent extends BaseAgent {
                 MessageTemplate.MatchPerformative(ACLMessage.CFP),
                 MessageTemplate.MatchConversationId("kneading-request"));
 
-            ACLMessage msg = myAgent.receive(mt);
+            ACLMessage msg = baseAgent.receive(mt);
 
             if (msg != null){
                 messageInProcress.set(true);
@@ -143,13 +143,15 @@ public class KneadingMachineAgent extends BaseAgent {
 
                 ACLMessage reply = msg.createReply();
                 if (kneadingMachine.isAvailable()){
+                	System.out.println(getAID().getLocalName() + " is available");
                     reply.setPerformative(ACLMessage.PROPOSE);
                     reply.setContent("Hey I am free, do you wanna use me ;)?");
                 }else{
+                	System.out.println(getAID().getLocalName() + " is unavailable");
                     reply.setPerformative(ACLMessage.REFUSE);
                     reply.setContent("Sorry, I am married potato :c");
                 }
-                baseAgent.send(reply);
+                baseAgent.sendMessage(reply);
             }
 
             else{
@@ -166,10 +168,10 @@ public class KneadingMachineAgent extends BaseAgent {
                 MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL),
                 MessageTemplate.MatchConversationId("kneading-request"));
 
-            ACLMessage msg = myAgent.receive(mt);
+            ACLMessage msg = baseAgent.receive(mt);
 
             if (msg != null) {
-                //messageInProcress.set(true);
+                messageInProcress.set(true);
                 kneadingMachine.setAvailable(false);
 
                 System.out.println(getAID().getLocalName() + "received kneading request from " + msg.getSender());

@@ -131,7 +131,7 @@ public class DummyOrderProcesser extends BaseAgent {
             int doughManagerIndex = rand.nextInt(doughManagerAgents.size());
             AID doughManagerAgent = doughManagerAgents.get(doughManagerIndex);
             System.out.println("Order will be sent to: " + doughManagerAgent);
-            System.out.println("---> My object " + order);
+            System.out.println("Order object " + order);
             String orderString = gson.toJson(order);
 
             addBehaviour(new sendOrder(orderString, doughManagerAgent));

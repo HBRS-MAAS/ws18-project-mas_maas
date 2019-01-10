@@ -157,10 +157,6 @@ public class DoughManager extends BaseAgent {
 
     }
 
-
-
-
-
     private void createEquipmentAgents() {
 
         for (int i = 0; i < equipment.size(); i++){
@@ -246,11 +242,11 @@ public class DoughManager extends BaseAgent {
 
             try {
                 DFAgentDescription [] result = DFService.search(this, template);
-                System.out.println(getAID().getLocalName() + " Found the following Kneading-machine agents:");
+                //System.out.println(getAID().getLocalName() + " Found the following Kneading-machine agents:");
 
                 for (int i = 0; i < result.length; ++i) {
                     kneadingMachineAgents[j] = result[i].getName();
-                    System.out.println(kneadingMachineAgents[j].getName());
+                    //System.out.println(kneadingMachineAgents[j].getName());
                 }
 
             }
@@ -277,11 +273,11 @@ public class DoughManager extends BaseAgent {
 
             try {
                 DFAgentDescription [] result = DFService.search(this, template);
-                System.out.println(getAID().getLocalName() + " Found the following doughPrepTable agents:");
+                //System.out.println(getAID().getLocalName() + " Found the following doughPrepTable agents:");
 
                 for (int i = 0; i < result.length; ++i) {
                     preparationTableAgents[j] = result[i].getName();
-                    System.out.println(preparationTableAgents[j].getName());
+                    //System.out.println(preparationTableAgents[j].getName());
                 }
 
             }
@@ -455,7 +451,7 @@ public class DoughManager extends BaseAgent {
             ACLMessage msg = myAgent.receive(mt);
             if (msg != null) {
                 String content = msg.getContent();
-                System.out.println("----> I have received " + content + " from " + msg.getSender().getName());
+                System.out.println(getAID().getLocalName() + "received order " + content + " from " + msg.getSender().getName());
                 OrderMas order = JSONConverter.parseOrder(content);
 
                 ACLMessage reply = msg.createReply();
@@ -595,21 +591,22 @@ public class DoughManager extends BaseAgent {
             switch(option){
                 case 0:
                     ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
-                    cfp.setContent(kneadingRequest);
-                    cfp.setConversationId("kneading-request");
 
                     // Send kneadingRequest msg to all kneadingMachineAgents
-                    System.out.println("-----");
                     for (int i=0; i<kneadingMachineAgents.length; i++){
                         cfp.addReceiver(kneadingMachineAgents[i]);
-                        System.out.println(kneadingMachineAgents[i]);
                     }
-                    System.out.println("-----");
+
+                    cfp.setContent(kneadingRequest);
+                    cfp.setConversationId("kneading-request");
                     cfp.setReplyWith("cfp"+System.currentTimeMillis());
+                    
+                    System.out.println("Sending: " + kneadingRequest);
+
                     baseAgent.sendMessage(cfp);  // calling sendMessage instead of send
 
 
-                    // Template to ger proposals/refusals
+                    // Template to get proposals/refusals
                     mt = MessageTemplate.and(MessageTemplate.MatchConversationId("kneading-request"),
                     MessageTemplate.MatchInReplyTo(cfp.getReplyWith()));
 
@@ -628,13 +625,19 @@ public class DoughManager extends BaseAgent {
                         // The kneadingMachine that replies first gets the job
                         if (reply.getPerformative() == ACLMessage.PROPOSE) {
                             repliesCnt++;
+                            messageProcessing.decrementAndGet();
+
                             if (repliesCnt == 1){
                                 kneadingMachine = reply.getSender();
                                 System.out.println(getAID().getLocalName() + "--->Received first confirmation from " + kneadingMachine);
                             }
-                            option = 2;
-                            messageProcessing.decrementAndGet();
+
                         }
+                        // We received all replies
+                        if (repliesCnt >= kneadingMachineAgents.length) {
+                        	option = 2;
+
+    					}
                     }
 
                     else {
