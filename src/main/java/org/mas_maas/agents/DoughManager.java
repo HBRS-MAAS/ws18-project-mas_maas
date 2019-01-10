@@ -51,12 +51,11 @@ public class DoughManager extends BaseAgent {
 
     private Bakery bakery;
     private String bakeryId;
-    private Client client;
 
     private String doughManagerAgentName; // Name used to register in the yellowpages
-    private WorkQueue needsKneading;
-    private WorkQueue needsPreparation;
-    private WorkQueue needsProofing;
+    private WorkQueue needsKneading = new WorkQueue();
+    private WorkQueue needsPreparation = new WorkQueue();
+    private WorkQueue needsProofing = new WorkQueue();
     private HashMap<String, OrderMas> orders = new HashMap<String, OrderMas>();
     private static final String NEEDS_KNEADING = "needsKneading";
     private static final String NEEDS_PREPARATION = "needsPreparation";
@@ -89,17 +88,7 @@ public class DoughManager extends BaseAgent {
 
         // Get equipment for this bakery
 		equipment = bakery.getEquipment();
-		//createEquipmentAgents();
-
-        // Create the prooferAgent for this bakery
-        //createProoferAgent();
-
-        // Queue of productStatus which require kneading
-        //needsKneading = new WorkQueue();
-        // Queue of productStatus which require preparation (resting, item preparation, ...)
-        //needsPreparation = new WorkQueue();
-        // Queue of productStatus which require proofing
-        //needsProofing = new WorkQueue();
+		createEquipmentAgents();
 
 
         //this.getOrderProcessingAIDs();
@@ -108,28 +97,8 @@ public class DoughManager extends BaseAgent {
         //this.getProoferAIDs();
 
         // Activate behavior that receives orders
-        //addBehaviour(new ReceiveOrders());
+        addBehaviour(new ReceiveOrders());
 
-        // For now, the orderProcessingAgents do not exist. The manager has an order object.
-
-        // Create order object
-
-        // String productName = "Bagel";
-        // int amount = 5;
-        // BakedGood bakedGood = new BakedGood(productName, amount);
-        //
-        // String customerId = "001";
-        // String guid = "order-001";
-        // int orderDay = 12;
-        // int orderHour = 4;
-        // int deliveryDate = 13;
-        // int deliveryHour = 4;
-        // Vector<BakedGood> bakedGoods = new Vector<BakedGood>();
-        // bakedGoods.add(bakedGood);
-        // Order order = new Order(customerId, guid, orderDay, orderHour, deliveryDate, deliveryHour, bakedGoods);
-        //
-        // System.out.println(getAID().getName() + " received the order " + order);
-        //
         // orders.put(order.getGuid(), order);
 
         // Get order info from the scenario files
@@ -198,7 +167,7 @@ public class DoughManager extends BaseAgent {
                 // Object of type KneadingMachine
                 KneadingMachine kneadingMachine = (KneadingMachine) equipment.get(i);
                 // Name of the kneadingMachineAgent
-                String kneadingMachineAgentName = "KneadingMachineAgent_" +  bakeryId + kneadingMachine.getGuid();
+                String kneadingMachineAgentName = "KneadingMachineAgent_" +  bakeryId + "_" + kneadingMachine.getGuid();
 
                 kneadingMachineNames.add(kneadingMachineAgentName);
 
@@ -211,7 +180,7 @@ public class DoughManager extends BaseAgent {
                     AgentController kneadingMachineAgent = container.createNewAgent(kneadingMachineAgentName, "org.mas_maas.agents.KneadingMachineAgent", args);
                     kneadingMachineAgent.start();
 
-                    System.out.println(getLocalName()+" created and started:"+ kneadingMachineAgent + " on container "+((ContainerController) container).getContainerName());
+                    // System.out.println(getLocalName()+" created and started:"+ kneadingMachineAgent + " on container "+((ContainerController) container).getContainerName());
 
                 } catch (Exception any) {
                     any.printStackTrace();
@@ -239,7 +208,7 @@ public class DoughManager extends BaseAgent {
 					AgentController preparationTableAgent = container.createNewAgent(doughPrepTableAgentName, "org.mas_maas.agents.PreparationTableAgent", args);
 					preparationTableAgent.start();
 
-					System.out.println(getLocalName()+" created and started:"+ preparationTableAgent + " on container "+((ContainerController) container).getContainerName());
+					// System.out.println(getLocalName()+" created and started:"+ preparationTableAgent + " on container "+((ContainerController) container).getContainerName());
 				} catch (Exception any) {
 					any.printStackTrace();
 				}
@@ -248,22 +217,6 @@ public class DoughManager extends BaseAgent {
 		}
 
 	}
-
-    private void createProoferAgent(){
-        String prooferAgentName = "Proofer_" + bakeryId;
-        try{
-            Object[] args = new Object[1];
-            args[0] = bakeryId;
-
-            AgentController prooferAgent = container.createNewAgent(prooferAgentName, "org.maas.agents.Proofer", args);
-            prooferAgent.start();
-
-            System.out.println(getLocalName()+" created and started:"+ prooferAgent + " on container "+((ContainerController) container).getContainerName());
-
-        } catch (Exception any) {
-            any.printStackTrace();
-        }
-    }
 
     protected void takeDown() {
         System.out.println(getAID().getLocalName() + ": Terminating.");
@@ -528,8 +481,7 @@ public class DoughManager extends BaseAgent {
 
                 orders.put(order.getGuid(), order);
                 queueOrder(order);
-                // TODO convert String to order object
-                // Add the order to the HashMap of orders. Trigger the doughPreparation (send Kneading request, etc)
+                // TODO Trigger the doughPreparation (send Kneading request, etc)
                 messageProcessing.decrementAndGet();
             }
             else {

@@ -37,17 +37,19 @@ public class DummyOrderProcesser extends BaseAgent {
         this.register("dummyOrderProcesser", "JADE-bakery");
 
         getBakeries(this.scenarioPath);
-        // try {
-        //     Thread.sleep(3000);
-        // } catch (InterruptedException e) {
-        //     e.printStackTrace();
-        // }
+
         getDoughManagerAIDs();
         try {
             //Read the orders from the scenarioPath
             getOrderInfo();
         } catch (FileNotFoundException e) {
             // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
@@ -71,7 +73,7 @@ public class DummyOrderProcesser extends BaseAgent {
         // For now get just the first one to test
         //for (Bakery bakery : bakeries) {
         Bakery bakery = bakeries.get(0);
-            String doughManagerAgentName = "DoughManagerAgent_" + bakery.getGuid();
+            String doughManagerAgentName = "DoughManager_" + bakery.getGuid();
             doughManagerAgents.add(new AID (doughManagerAgentName, AID.ISLOCALNAME));
         //}
     }
@@ -131,12 +133,8 @@ public class DummyOrderProcesser extends BaseAgent {
             System.out.println("Order will be sent to: " + doughManagerAgent);
             System.out.println("---> My object " + order);
             String orderString = gson.toJson(order);
-            System.out.println("---> My converted object " + orderString);
-            System.out.println(JSONConverter.parseOrder(orderString));
-            //String orderString = order.toString();
-            //System.out.println("---> My converted object " + orderString );
-            //System.out.println(JSONConverter.parseOrder(orderString));
-            //addBehaviour(new sendOrder(orderString, doughManagerName));
+
+            addBehaviour(new sendOrder(orderString, doughManagerAgent));
             // }
     }
 
@@ -146,11 +144,11 @@ public class DummyOrderProcesser extends BaseAgent {
         private int option = 0;
         private Gson gson = new Gson();
         private String orderString;
-        private String doughManagerName;
+        private AID doughManagerAgent;
 
-        private sendOrder(String orderString, String doughManagerName){
+        private sendOrder(String orderString, AID doughManagerAgent){
             this.orderString = orderString;
-            this.doughManagerName = doughManagerName;
+            this.doughManagerAgent = doughManagerAgent;
         }
 
     public void action() {
@@ -162,15 +160,16 @@ public class DummyOrderProcesser extends BaseAgent {
                 // msg.setConversationId("sending-Order"+doughManagerName);
 
                 // Send kneadingNotification msg to doughManagerAgents
-                for (int i = 0; i < doughManagerAgents.size(); i++){
-                    if (doughManagerAgents.get(i).getName().equals(doughManagerName)){
-                        msg.addReceiver(doughManagerAgents.get(i));
-                    }
-                }
+                // for (int i = 0; i < doughManagerAgents.size(); i++){
+                //     if (doughManagerAgents.get(i).getName().equals(doughManagerName)){
+                //         msg.addReceiver(doughManagerAgents.get(i));
+                //     }
+                // }
+                msg.addReceiver(doughManagerAgent);
                 baseAgent.sendMessage(msg);
 
                 option = 1;
-                System.out.println("----> " + getAID().getLocalName() + " Sent Order to dough manager " + doughManagerName );
+                // System.out.println("----> " + getAID().getLocalName() + " Sent Order to dough manager " + doughManagerName );
                 break;
 
             case 1:
@@ -196,7 +195,7 @@ public class DummyOrderProcesser extends BaseAgent {
     public boolean done() {
         if (option == 2) {
             System.out.println(getAID().getLocalName() + " My purpose is over ");
-            baseAgent.finished();
+            //baseAgent.finished();
             // myAgent.doDelete(); //TODO Find when to die
             return true;
         }
