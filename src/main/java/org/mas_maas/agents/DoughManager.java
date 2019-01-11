@@ -189,30 +189,30 @@ public class DoughManager extends BaseAgent {
 
 
             // Create DougPrepTable agents for this bakery
-            if (equipment.get(i) instanceof DoughPrepTable){
-
-                //Object of type DoughPrepTable
-                DoughPrepTable doughPrepTable = (DoughPrepTable) equipment.get(i);
-                //Name of preparationTableAgent
-
-				String doughPrepTableAgentName = "DoughPrepTableAgent_" +  bakeryId + "_" + doughPrepTable.getGuid();
-
-                doughPrepTableNames.add(doughPrepTableAgentName);
-
-				try {
-					 Object[] args = new Object[3];
-		        	 args[0] = doughPrepTable;
-		        	 args[1] = doughPrepTableAgentName;
-		        	 args[2] = doughManagerAgentName;
-
-					AgentController preparationTableAgent = container.createNewAgent(doughPrepTableAgentName, "org.mas_maas.agents.PreparationTableAgent", args);
-					preparationTableAgent.start();
-
-					// System.out.println(getLocalName()+" created and started:"+ preparationTableAgent + " on container "+((ContainerController) container).getContainerName());
-				} catch (Exception any) {
-					any.printStackTrace();
-				}
-			}
+            // if (equipment.get(i) instanceof DoughPrepTable){
+            //
+            //     //Object of type DoughPrepTable
+            //     DoughPrepTable doughPrepTable = (DoughPrepTable) equipment.get(i);
+            //     //Name of preparationTableAgent
+            //
+			// 	String doughPrepTableAgentName = "DoughPrepTableAgent_" +  bakeryId + "_" + doughPrepTable.getGuid();
+            //
+            //     doughPrepTableNames.add(doughPrepTableAgentName);
+            //
+			// 	try {
+			// 		 Object[] args = new Object[3];
+		    //     	 args[0] = doughPrepTable;
+		    //     	 args[1] = doughPrepTableAgentName;
+		    //     	 args[2] = doughManagerAgentName;
+            //
+			// 		AgentController preparationTableAgent = container.createNewAgent(doughPrepTableAgentName, "org.mas_maas.agents.PreparationTableAgent", args);
+			// 		preparationTableAgent.start();
+            //
+			// 		// System.out.println(getLocalName()+" created and started:"+ preparationTableAgent + " on container "+((ContainerController) container).getContainerName());
+			// 	} catch (Exception any) {
+			// 		any.printStackTrace();
+			// 	}
+			// }
 
 		}
 
@@ -312,7 +312,6 @@ public class DoughManager extends BaseAgent {
 
             // Add behavior to send the kneadingRequest to the Kneading Agents
             addBehaviour(new RequestKneading(kneadingRequestString));
-
         }
     }
 
@@ -600,8 +599,8 @@ public class DoughManager extends BaseAgent {
                     cfp.setContent(kneadingRequest);
                     cfp.setConversationId("kneading-request");
                     cfp.setReplyWith("cfp"+System.currentTimeMillis());
-                    
-                    System.out.println("Sending: " + kneadingRequest);
+
+                    System.out.println("CFP for: " + kneadingRequest);
 
                     baseAgent.sendMessage(cfp);  // calling sendMessage instead of send
 
@@ -625,11 +624,10 @@ public class DoughManager extends BaseAgent {
                         // The kneadingMachine that replies first gets the job
                         if (reply.getPerformative() == ACLMessage.PROPOSE) {
                             repliesCnt++;
-                            messageProcessing.decrementAndGet();
 
                             if (repliesCnt == 1){
                                 kneadingMachine = reply.getSender();
-                                System.out.println(getAID().getLocalName() + "--->Received first confirmation from " + kneadingMachine);
+                                //System.out.println(getAID().getLocalName() + "Received first confirmation from " + kneadingMachine);
                             }
 
                         }
@@ -638,6 +636,7 @@ public class DoughManager extends BaseAgent {
                         	option = 2;
 
     					}
+                        messageProcessing.decrementAndGet();
                     }
 
                     else {
@@ -665,12 +664,15 @@ public class DoughManager extends BaseAgent {
                     // Receive the confirmation for the kneadingMachine
                     reply = baseAgent.receive(mt);
                     if (reply != null) {
-                        if (reply.getPerformative() == ACLMessage.INFORM) {
-                        	System.out.println("---->" + getAID().getLocalName()+ " placed a kneading order to "+reply.getSender().getLocalName());
+                        if (reply.getPerformative() == ACLMessage.CONFIRM) {
+                        	System.out.println(getAID().getLocalName()+ " placed a kneading order to "+reply.getSender().getLocalName());
 
                         }
                         else {
-                            System.out.println("Attempt failed");
+                            System.out.println(kneadingMachine + " is already taken");
+                            // Send a knew kneading request for the failed attempt
+                            option = 4;
+                            addBehaviour(new RequestKneading(kneadingRequest));
                         }
 
                         option = 4;
@@ -688,12 +690,11 @@ public class DoughManager extends BaseAgent {
             }
         }
         public boolean done(){
-            if (option == 2 && kneadingMachine == null){
-                //return true;
-            	System.out.println("Attempt failed");
+            if (option == 3){
+                return true;
 
             }
-            return ((option == 2 && kneadingMachine == null) || option == 4);
+            return false;
         }
     }
 

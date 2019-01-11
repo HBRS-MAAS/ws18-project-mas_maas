@@ -118,7 +118,7 @@ public class KneadingMachineAgent extends BaseAgent {
             }else{
                 if (kneadingInProcess.get()){
                     int curCount = kneadingCounter.incrementAndGet();
-                    System.out.println(">>>>> Kneading Counter -> " + kneadingCounter + " <<<<<");
+                    System.out.println(">>>>> Kneading Counter -> " + getAID().getLocalName() + " " + kneadingCounter + " <<<<<");
                     addBehaviour(new Kneading());
                 }
             }
@@ -139,15 +139,15 @@ public class KneadingMachineAgent extends BaseAgent {
             if (msg != null){
                 messageInProcress.set(true);
                 String content = msg.getContent();
-                System.out.println(getAID().getLocalName() + "has received a proposal request from " + msg.getSender().getName());
+                //System.out.println(getAID().getLocalName() + "has received a proposal request from " + msg.getSender().getName());
 
                 ACLMessage reply = msg.createReply();
                 if (kneadingMachine.isAvailable()){
-                	System.out.println(getAID().getLocalName() + " is available");
+                	//System.out.println(getAID().getLocalName() + " is available");
                     reply.setPerformative(ACLMessage.PROPOSE);
                     reply.setContent("Hey I am free, do you wanna use me ;)?");
                 }else{
-                	System.out.println(getAID().getLocalName() + " is unavailable");
+                	//System.out.println(getAID().getLocalName() + " is unavailable");
                     reply.setPerformative(ACLMessage.REFUSE);
                     reply.setContent("Sorry, I am married potato :c");
                 }
@@ -172,25 +172,39 @@ public class KneadingMachineAgent extends BaseAgent {
 
             if (msg != null) {
                 messageInProcress.set(true);
-                kneadingMachine.setAvailable(false);
+                if (kneadingMachine.isAvailable()){
+                    kneadingMachine.setAvailable(false);
 
-                System.out.println(getAID().getLocalName() + "received kneading request from " + msg.getSender());
-                String content = msg.getContent();
-                System.out.println("Kneading request contains -> " + content);
-                KneadingRequest kneadingRequest = JSONConverter.parseKneadingRequest(content);
+                    String content = msg.getContent();
+                    System.out.println(getAID().getLocalName() + " WILL perform Kneading for " + msg.getSender() + "Kneading information -> " + content);
 
-                ACLMessage reply = msg.createReply();
-                reply.setPerformative(ACLMessage.CONFIRM);
-                reply.setContent("Kneading request was received");
-                reply.setConversationId("kneading-request");
-                baseAgent.sendMessage(reply);
+                    KneadingRequest kneadingRequest = JSONConverter.parseKneadingRequest(content);
 
-                kneadingTime = kneadingRequest.getKneadingTime();
-                guids = kneadingRequest.getGuids();
-                productType = kneadingRequest.getProductType();
+                    ACLMessage reply = msg.createReply();
+                    reply.setPerformative(ACLMessage.CONFIRM);
+                    reply.setContent("Kneading request was received");
+                    reply.setConversationId("kneading-request");
+                    baseAgent.sendMessage(reply);
 
-                messageInProcress.set(false);
-                addBehaviour(new Kneading());
+                    kneadingTime = kneadingRequest.getKneadingTime();
+                    guids = kneadingRequest.getGuids();
+                    productType = kneadingRequest.getProductType();
+
+                    messageInProcress.set(false);
+                    addBehaviour(new Kneading());
+
+                }
+                else{
+                    System.out.println(getAID().getLocalName()  + " is already taken");
+
+                    ACLMessage reply = msg.createReply();
+                    reply.setPerformative(ACLMessage.INFORM);
+                    reply.setContent("KneadingMachine is taken");
+                    reply.setConversationId("kneading-request");
+                    baseAgent.sendMessage(reply);
+
+                }
+
 
             }else {
                 block();
@@ -212,7 +226,7 @@ public class KneadingMachineAgent extends BaseAgent {
                 kneadingInProcess.set(false);
                 kneadingMachine.setAvailable(true);
                 kneadingCounter.set(0);
-                System.out.println("Finishing kneading");
+                System.out.println(getAID().getLocalName() + "Finishing kneading");
                 // System.out.println("----> " + guidAvailable + " finished Kneading");
                 addBehaviour(new SendKneadingNotification());
             }
@@ -228,6 +242,7 @@ public class KneadingMachineAgent extends BaseAgent {
         private String kneadingNotificationString = gson.toJson(kneadingNotification);
 
         public void action() {
+            messageInProcress.set(true);
             switch (option) {
                 case 0:
 
@@ -247,9 +262,6 @@ public class KneadingMachineAgent extends BaseAgent {
                     System.out.println(getAID().getLocalName() + " Sent kneadingNotification");
                     break;
 
-
-
-
                 case 1:
                     mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.CONFIRM),
                         MessageTemplate.MatchConversationId("kneading-notification-reply"));
@@ -259,21 +271,24 @@ public class KneadingMachineAgent extends BaseAgent {
                     if (reply != null) {
                         System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
                         option = 2;
+                        messageInProcress.set(false);
                     }
                     else {
+                        messageInProcress.set(false);
                         block();
                     }
                     break;
 
                 default:
+                    messageInProcress.set(false);
                     break;
             }
         }
 
         public boolean done() {
             if (option == 2) {
-                System.out.println(getAID().getLocalName() + " My purpose is over ");
-                baseAgent.finished();
+                //System.out.println(getAID().getLocalName() + " My purpose is over ");
+                //baseAgent.finished();
                 // myAgent.doDelete(); //TODO Find when to die
                 return true;
             }
