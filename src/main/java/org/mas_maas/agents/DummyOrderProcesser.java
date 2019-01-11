@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.Vector;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.maas.JSONConverter;
 import org.maas.Objects.Bakery;
@@ -16,15 +18,17 @@ import com.google.gson.Gson;
 
 import jade.core.AID;
 import jade.core.behaviours.Behaviour;
+import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
 public class DummyOrderProcesser extends BaseAgent {
-    //private AID [] doughManagerAgents;
     private ArrayList<AID> doughManagerAgents = new ArrayList<AID>();
     private Vector<Bakery> bakeries;
     private String scenarioPath;
     private Vector<OrderMas> orders = new Vector<OrderMas>();
+    private AtomicBoolean messageInProcress = new AtomicBoolean(false);
+
 
     protected void setup(){
         super.setup();
@@ -47,14 +51,34 @@ public class DummyOrderProcesser extends BaseAgent {
             e.printStackTrace();
         }
 
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        // try {
+        //     Thread.sleep(3000);
+        // } catch (InterruptedException e) {
+        //     e.printStackTrace();
+        // }
 
+        addBehaviour(new timeTracker());
         processOrders();
 
+    }
+
+    protected void takeDown() {
+        System.out.println(getAID().getLocalName() + ": Terminating.");
+        this.deRegister();
+    }
+
+    private class timeTracker extends CyclicBehaviour {
+        public void action() {
+            if (!baseAgent.getAllowAction()) {
+                return;
+            }
+
+            // only advance if we aren't currently processing any messages
+            if (!messageInProcress.get())
+            {
+                baseAgent.finished();
+            }
+        }
     }
 
     public void getBakeries(String scenarioPath){
@@ -77,39 +101,6 @@ public class DummyOrderProcesser extends BaseAgent {
             doughManagerAgents.add(new AID (doughManagerAgentName, AID.ISLOCALNAME));
         //}
     }
-
-    // public void getDoughManagerAIDs() {
-    //     /*
-    //     Object the AID of all the dough-manager agents found
-    //     */
-    //     DFAgentDescription template = new DFAgentDescription();
-    //     ServiceDescription sd = new ServiceDescription();
-    //
-    //     doughManagerAgents = new AID [doughManagerAgentNames.size()];
-    //
-    //     int j = 0;
-    //
-    //     for(String doughManagerAgentName : doughManagerAgentNames) {
-    //
-    //         sd.setType(doughManagerAgentName);
-    //         template.addServices(sd);
-    //         try {
-    //             DFAgentDescription[] result = DFService.search(this, template);
-    //             System.out.println("-----> " + getAID().getLocalName() + "Found the following Dough-manager agent:");
-    //             // doughManagerAgents = new AID [result.length];
-    //             //doughManagerAgents = new AID ();
-    //             for (int i = 0; i < result.length; ++i) {
-    //                 doughManagerAgents[j] = result[i].getName();
-    //                 System.out.println(doughManagerAgents[j].getName());
-    //             }
-    //         }
-    //         catch (FIPAException fe) {
-    //             System.out.println("-----> Failed to find " + doughManagerAgentName);
-    //             fe.printStackTrace();
-    //         }
-    //         j++;
-    //     }
-    // }
 
     private void getOrderInfo() throws FileNotFoundException{
         String clientFile = new Scanner(new File(this.scenarioPath+ "clients.json")).useDelimiter("\\Z").next();
@@ -152,6 +143,10 @@ public class DummyOrderProcesser extends BaseAgent {
         }
 
     public void action() {
+
+        // Don't allow any action while processing this message
+        // TODO: Change to CFP ?
+        messageInProcress.set(true);
         switch (option) {
             case 0:
 
@@ -169,7 +164,8 @@ public class DummyOrderProcesser extends BaseAgent {
                 baseAgent.sendMessage(msg);
 
                 option = 1;
-                // System.out.println("----> " + getAID().getLocalName() + " Sent Order to dough manager " + doughManagerName );
+                System.out.println(getAID().getLocalName() + " Sent Order to dough manager " + doughManagerAgent );
+                messageInProcress.set(false);
                 break;
 
             case 1:
@@ -181,13 +177,16 @@ public class DummyOrderProcesser extends BaseAgent {
                 if (reply != null) {
                     System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
                     option = 2;
+                    messageInProcress.set(false);
                 }
                 else {
+                    messageInProcress.set(false);
                     block();
                 }
                 break;
 
             default:
+                messageInProcress.set(false);
                 break;
         }
     }
