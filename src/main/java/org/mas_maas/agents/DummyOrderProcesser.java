@@ -27,7 +27,7 @@ public class DummyOrderProcesser extends BaseAgent {
     private Vector<Bakery> bakeries;
     private String scenarioPath;
     private Vector<OrderMas> orders = new Vector<OrderMas>();
-    private AtomicBoolean messageInProcress = new AtomicBoolean(false);
+    private AtomicInteger messageProcessing = new AtomicInteger(0);
 
 
     protected void setup(){
@@ -74,7 +74,7 @@ public class DummyOrderProcesser extends BaseAgent {
             }
 
             // only advance if we aren't currently processing any messages
-            if (!messageInProcress.get())
+            if (messageProcessing.get() <= 0)
             {
                 baseAgent.finished();
             }
@@ -144,9 +144,8 @@ public class DummyOrderProcesser extends BaseAgent {
 
     public void action() {
 
-        // Don't allow any action while processing this message
         // TODO: Change to CFP ?
-        messageInProcress.set(true);
+        messageProcessing.incrementAndGet();
         switch (option) {
             case 0:
 
@@ -165,7 +164,7 @@ public class DummyOrderProcesser extends BaseAgent {
 
                 option = 1;
                 System.out.println(getAID().getLocalName() + " Sent Order to dough manager " + doughManagerAgent );
-                messageInProcress.set(false);
+                messageProcessing.decrementAndGet();
                 break;
 
             case 1:
@@ -177,16 +176,18 @@ public class DummyOrderProcesser extends BaseAgent {
                 if (reply != null) {
                     System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
                     option = 2;
-                    messageInProcress.set(false);
+                    // messageInProcress.set(false);
                 }
                 else {
-                    messageInProcress.set(false);
+                    // messageInProcress.set(false);
                     block();
                 }
+                messageProcessing.decrementAndGet();
                 break;
 
             default:
-                messageInProcress.set(false);
+                // messageInProcress.set(false);
+                messageProcessing.decrementAndGet();
                 break;
         }
     }

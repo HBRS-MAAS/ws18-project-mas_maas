@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Scanner;
 import java.util.Vector;
+import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.maas.JSONConverter;
@@ -296,22 +297,24 @@ public class DoughManager extends BaseAgent {
 
         for(BakedGood bakedGood : order.getBakedGoods()) {
 
-            String guid = order.getGuid();
-            String status = NEEDS_KNEADING;
             int amount = bakedGood.getAmount();
-            ProductMas product = bakery.findProduct(bakedGood.getName());
-            ProductStatus productStatus = new ProductStatus(guid, status, amount, product);
+            if (amount > 0){
+                String guid = order.getGuid();
+                String status = NEEDS_KNEADING;
+                ProductMas product = bakery.findProduct(bakedGood.getName());
+                ProductStatus productStatus = new ProductStatus(guid, status, amount, product);
 
-            needsKneading.addProduct(productStatus);
+                needsKneading.addProduct(productStatus);
 
-            KneadingRequest kneadingRequestMessage = createKneadingRequestMessage();
+                KneadingRequest kneadingRequestMessage = createKneadingRequestMessage();
 
-			// Convert the kneadingRequest object to a String.
-            Gson gson = new Gson();
-            String kneadingRequestString = gson.toJson(kneadingRequestMessage);
+			    // Convert the kneadingRequest object to a String.
+                Gson gson = new Gson();
+                String kneadingRequestString = gson.toJson(kneadingRequestMessage);
 
-            // Add behavior to send the kneadingRequest to the Kneading Agents
-            addBehaviour(new RequestKneading(kneadingRequestString));
+                // Add behavior to send the kneadingRequest to the Kneading Agents
+                addBehaviour(new RequestKneading(kneadingRequestString));
+            }
         }
     }
 
@@ -576,7 +579,7 @@ public class DoughManager extends BaseAgent {
     private class RequestKneading extends Behaviour{
         private String kneadingRequest;
         private MessageTemplate mt;
-        private AID kneadingMachine; // The kneadingMachineAgent that will perform kneading
+        private ArrayList<AID> kneadingMachinesAvailable = new ArrayList<AID>(); // The kneadingMachineAgent that will perform kneading
         private int repliesCnt = 0;
         private int option = 0;
 
@@ -621,14 +624,14 @@ public class DoughManager extends BaseAgent {
                     // Receive proposals/refusals
                     ACLMessage reply = baseAgent.receive(mt);
                     if (reply != null) {
+                        repliesCnt++;
                         // The kneadingMachine that replies first gets the job
                         if (reply.getPerformative() == ACLMessage.PROPOSE) {
-                            repliesCnt++;
-
-                            if (repliesCnt == 1){
-                                kneadingMachine = reply.getSender();
-                                //System.out.println(getAID().getLocalName() + "Received first confirmation from " + kneadingMachine);
-                            }
+                            kneadingMachinesAvailable.add(reply.getSender());
+                            // if (repliesCnt == 1){
+                            //     kneadingMachine = reply.getSender();
+                            System.out.println(getAID().getLocalName() + " received a proposal from " + reply.getSender().getName() + " for: " + kneadingRequest);
+                            // }
 
                         }
                         // We received all replies
@@ -646,18 +649,21 @@ public class DoughManager extends BaseAgent {
                     break;
 
                 case 2:
-                    // Accept proposal from the kneading machine that replied first
-                    ACLMessage msg = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
-                    msg.addReceiver(kneadingMachine);
-                    msg.setContent(kneadingRequest);
-                    msg.setConversationId("kneading-request");
-                    msg.setReplyWith("msg"+System.currentTimeMillis());
-                    baseAgent.sendMessage(msg);
-                    // Prepare the template to get the msg reply
-                    mt = MessageTemplate.and(MessageTemplate.MatchConversationId("kneading-request"),
-                    		MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
-                    option = 3;
-                    messageProcessing.decrementAndGet();
+                    if (!kneadingMachinesAvailable.isEmpty()){
+                        // Accept proposal from the kneading machine that replied first
+                        ACLMessage msg = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
+                        msg.addReceiver(kneadingMachinesAvailable.get(0));
+                        kneadingMachinesAvailable.remove(0);
+                        msg.setContent(kneadingRequest);
+                        msg.setConversationId("kneading-request");
+                        msg.setReplyWith("msg"+System.currentTimeMillis());
+                        baseAgent.sendMessage(msg);
+                        // Prepare the template to get the msg reply
+                        mt = MessageTemplate.and(MessageTemplate.MatchConversationId("kneading-request"),
+                    		  MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
+                        option = 3;
+                        messageProcessing.decrementAndGet();
+                    }
                     break;
 
                 case 3:
@@ -665,17 +671,20 @@ public class DoughManager extends BaseAgent {
                     reply = baseAgent.receive(mt);
                     if (reply != null) {
                         if (reply.getPerformative() == ACLMessage.CONFIRM) {
-                        	System.out.println(getAID().getLocalName()+ " placed a kneading order to "+reply.getSender().getLocalName());
-
+                        	System.out.println(getAID().getLocalName()+ " confirmation received from -> "
+                                +reply.getSender().getLocalName() + " for: " + kneadingRequest);
+                            option = 4;
                         }
                         else {
-                            System.out.println(kneadingMachine + " is already taken");
+                            System.out.println(getAID().getLocalName() + " rejection received from -> "
+                                +reply.getSender().getLocalName() + " for: " + kneadingRequest);
+                            if (!kneadingMachinesAvailable.isEmpty()){
+                                option = 2;
+                            }else{
+                                option = 0;
+                            }
                             // Send a knew kneading request for the failed attempt
-                            option = 4;
-                            addBehaviour(new RequestKneading(kneadingRequest));
                         }
-
-                        option = 4;
                         messageProcessing.decrementAndGet();
                     }
                     else {
@@ -690,9 +699,8 @@ public class DoughManager extends BaseAgent {
             }
         }
         public boolean done(){
-            if (option == 3){
+            if (option == 4){
                 return true;
-
             }
             return false;
         }

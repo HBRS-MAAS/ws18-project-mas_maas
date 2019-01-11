@@ -30,7 +30,8 @@ public class KneadingMachineAgent extends BaseAgent {
     private AID [] doughManagerAgents;
 
     private AtomicBoolean kneadingInProcess = new AtomicBoolean(false);
-    private AtomicBoolean messageInProcress = new AtomicBoolean(false);
+    // private AtomicBoolean messageInProcress = new AtomicBoolean(false);
+    private AtomicInteger messageProcessing = new AtomicInteger(0);
     private AtomicInteger kneadingCounter = new AtomicInteger(0);
 
     // private Bakery bakery;
@@ -122,7 +123,11 @@ public class KneadingMachineAgent extends BaseAgent {
                     addBehaviour(new Kneading());
                 }
             }
-            if (!messageInProcress.get()){
+            // if (!messageInProcress.get()){
+            //     baseAgent.finished();
+            // }
+            if (messageProcessing.get() <= 0)
+            {
                 baseAgent.finished();
             }
         }
@@ -130,6 +135,8 @@ public class KneadingMachineAgent extends BaseAgent {
 
     private class ReceiveProposalRequests extends CyclicBehaviour{
         public void action(){
+            messageProcessing.incrementAndGet();
+
             MessageTemplate mt = MessageTemplate.and(
                 MessageTemplate.MatchPerformative(ACLMessage.CFP),
                 MessageTemplate.MatchConversationId("kneading-request"));
@@ -137,7 +144,7 @@ public class KneadingMachineAgent extends BaseAgent {
             ACLMessage msg = baseAgent.receive(mt);
 
             if (msg != null){
-                messageInProcress.set(true);
+                // messageInProcress.set(true);
                 String content = msg.getContent();
                 //System.out.println(getAID().getLocalName() + "has received a proposal request from " + msg.getSender().getName());
 
@@ -152,9 +159,11 @@ public class KneadingMachineAgent extends BaseAgent {
                     reply.setContent("Sorry, I am married potato :c");
                 }
                 baseAgent.sendMessage(reply);
+                messageProcessing.decrementAndGet();
             }
 
             else{
+                messageProcessing.decrementAndGet();
                 block();
             }
         }
@@ -163,7 +172,7 @@ public class KneadingMachineAgent extends BaseAgent {
     // Receiving Kneading requests behavior
     private class ReceiveKneadingRequests extends CyclicBehaviour {
         public void action() {
-
+            messageProcessing.incrementAndGet();
             MessageTemplate mt = MessageTemplate.and(
                 MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL),
                 MessageTemplate.MatchConversationId("kneading-request"));
@@ -171,7 +180,7 @@ public class KneadingMachineAgent extends BaseAgent {
             ACLMessage msg = baseAgent.receive(mt);
 
             if (msg != null) {
-                messageInProcress.set(true);
+                // messageInProcress.set(true);
                 if (kneadingMachine.isAvailable()){
                     kneadingMachine.setAvailable(false);
 
@@ -190,23 +199,25 @@ public class KneadingMachineAgent extends BaseAgent {
                     guids = kneadingRequest.getGuids();
                     productType = kneadingRequest.getProductType();
 
-                    messageInProcress.set(false);
+                    // messageInProcress.set(false);
                     addBehaviour(new Kneading());
-
                 }
                 else{
-                    System.out.println(getAID().getLocalName()  + " is already taken");
+                    // System.out.println(getAID().getLocalName()  + " is already taken");
 
                     ACLMessage reply = msg.createReply();
-                    reply.setPerformative(ACLMessage.INFORM);
+                    reply.setPerformative(ACLMessage.FAILURE);
                     reply.setContent("KneadingMachine is taken");
                     reply.setConversationId("kneading-request");
                     baseAgent.sendMessage(reply);
+                    System.out.println(getAID().getLocalName() + " failed kneading of " + msg.getContent());
 
                 }
+                messageProcessing.decrementAndGet();
 
 
             }else {
+                messageProcessing.decrementAndGet();
                 block();
             }
         }
@@ -242,7 +253,8 @@ public class KneadingMachineAgent extends BaseAgent {
         private String kneadingNotificationString = gson.toJson(kneadingNotification);
 
         public void action() {
-            messageInProcress.set(true);
+            messageProcessing.incrementAndGet();
+            // messageInProcress.set(true);
             switch (option) {
                 case 0:
 
@@ -260,6 +272,7 @@ public class KneadingMachineAgent extends BaseAgent {
 
                     option = 1;
                     System.out.println(getAID().getLocalName() + " Sent kneadingNotification");
+                    messageProcessing.decrementAndGet();
                     break;
 
                 case 1:
@@ -271,16 +284,18 @@ public class KneadingMachineAgent extends BaseAgent {
                     if (reply != null) {
                         System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
                         option = 2;
-                        messageInProcress.set(false);
+                        // messageInProcress.set(false);
                     }
                     else {
-                        messageInProcress.set(false);
+                        // messageInProcress.set(false);
                         block();
                     }
+                    messageProcessing.decrementAndGet();
                     break;
 
                 default:
-                    messageInProcress.set(false);
+                    // messageInProcress.set(false);
+                    messageProcessing.decrementAndGet();
                     break;
             }
         }
