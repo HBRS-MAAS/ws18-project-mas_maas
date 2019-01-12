@@ -125,7 +125,6 @@ public class KneadingMachineAgent extends BaseAgent {
             ACLMessage msg = baseAgent.receive(mt);
 
             if (msg != null){
-                // messageInProcress.set(true);
                 String content = msg.getContent();
                 //System.out.println(getAID().getLocalName() + "has received a proposal request from " + msg.getSender().getName());
 
