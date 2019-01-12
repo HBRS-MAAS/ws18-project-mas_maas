@@ -154,7 +154,7 @@ public class KneadingMachineAgent extends BaseAgent {
                     reply.setPerformative(ACLMessage.PROPOSE);
                     reply.setContent("Hey I am free, do you wanna use me ;)?");
                 }else{
-                	//System.out.println(getAID().getLocalName() + " is unavailable");
+                	System.out.println(getAID().getLocalName() + " is unavailable");
                     reply.setPerformative(ACLMessage.REFUSE);
                     reply.setContent("Sorry, I am married potato :c");
                 }
