@@ -27,7 +27,7 @@ import jade.lang.acl.MessageTemplate;
 
 import org.maas.agents.BaseAgent;
 public class KneadingMachineAgent extends BaseAgent {
-    private AID [] doughManagerAgents;
+    private AID doughManagerAgent;
 
     private AtomicBoolean kneadingInProcess = new AtomicBoolean(false);
     // private AtomicBoolean messageInProcress = new AtomicBoolean(false);
@@ -58,7 +58,7 @@ public class KneadingMachineAgent extends BaseAgent {
             this.doughManagerName = (String) args[2];
         }
 
-        this.getDoughManagerAIDs();
+        this.getDoughManagerAID();
 
         System.out.println("Hello! " + getAID().getLocalName() + " is ready." + "its DougManager is: " + doughManagerName);
 
@@ -88,28 +88,9 @@ public class KneadingMachineAgent extends BaseAgent {
         this.deRegister();
     }
 
-    public void getDoughManagerAIDs() {
+    public void getDoughManagerAID() {
+        doughManagerAgent = new AID (doughManagerName, AID.ISLOCALNAME);
 
-        DFAgentDescription template = new DFAgentDescription();
-        ServiceDescription sd = new ServiceDescription();
-
-        sd.setType(doughManagerName);
-        template.addServices(sd);
-        try {
-            DFAgentDescription[] result = DFService.search(this, template);
-            System.out.println(getAID().getLocalName() + "Found the following Dough-manager agent:");
-            doughManagerAgents = new AID [result.length];
-            //doughManagerAgents = new AID ();
-
-             for (int i = 0; i < result.length; ++i) {
-                 doughManagerAgents[i] = result[i].getName();
-                 System.out.println(doughManagerAgents[i].getName());
-             }
-
-        }
-        catch (FIPAException fe) {
-            fe.printStackTrace();
-        }
     }
 
     private class timeTracker extends CyclicBehaviour {
@@ -263,10 +244,7 @@ public class KneadingMachineAgent extends BaseAgent {
                     msg.setContent(kneadingNotificationString);
                     msg.setConversationId("kneading-notification");
 
-                    // Send kneadingNotification msg to doughManagerAgents
-                    for (int i = 0; i < doughManagerAgents.length; i++){
-                        msg.addReceiver(doughManagerAgents[i]);
-                    }
+                    msg.addReceiver(doughManagerAgent);
 
                     baseAgent.sendMessage(msg);
 
