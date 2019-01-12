@@ -103,18 +103,8 @@ public class DoughManager extends BaseAgent {
         // Activate behavior that receives orders
         addBehaviour(new ReceiveOrders());
 
-
-        // System.out.println("Needs kneading queue " + needsKneading.getFirstProduct().getGuid());
-
-        //KneadingRequest kneadingRequestMessage = createKneadingRequestMessage();
-
-        // Convert the kneadingRequest object to a String.
-        //String kneadingRequestString = gson.toJson(kneadingRequestMessage);
-
-        // Add behavior to send the kneadingRequest to the Kneading Agents
-        //addBehaviour(new RequestKneading( kneadingRequestString, kneadingMachineAgents));
-        //addBehaviour(new ReceiveKneadingNotification());
-        //addBehaviour(new ReceivePreparationNotification());
+        addBehaviour(new ReceiveKneadingNotification());
+        addBehaviour(new ReceivePreparationNotification());
 
 
     }
@@ -189,31 +179,31 @@ public class DoughManager extends BaseAgent {
             }
 
 
-            // Create DougPrepTable agents for this bakery
-            // if (equipment.get(i) instanceof DoughPrepTable){
-            //
-            //     //Object of type DoughPrepTable
-            //     DoughPrepTable doughPrepTable = (DoughPrepTable) equipment.get(i);
-            //     //Name of preparationTableAgent
-            //
-			// 	String doughPrepTableAgentName = "DoughPrepTableAgent_" +  bakeryId + "_" + doughPrepTable.getGuid();
-            //
-            //     doughPrepTableNames.add(doughPrepTableAgentName);
-            //
-			// 	try {
-			// 		 Object[] args = new Object[3];
-		    //     	 args[0] = doughPrepTable;
-		    //     	 args[1] = doughPrepTableAgentName;
-		    //     	 args[2] = doughManagerAgentName;
-            //
-			// 		AgentController preparationTableAgent = container.createNewAgent(doughPrepTableAgentName, "org.mas_maas.agents.PreparationTableAgent", args);
-			// 		preparationTableAgent.start();
-            //
-			// 		// System.out.println(getLocalName()+" created and started:"+ preparationTableAgent + " on container "+((ContainerController) container).getContainerName());
-			// 	} catch (Exception any) {
-			// 		any.printStackTrace();
-			// 	}
-			// }
+            //Create DougPrepTable agents for this bakery
+            if (equipment.get(i) instanceof DoughPrepTable){
+
+                //Object of type DoughPrepTable
+                DoughPrepTable doughPrepTable = (DoughPrepTable) equipment.get(i);
+                //Name of preparationTableAgent
+
+                String doughPrepTableAgentName = "DoughPrepTableAgent_" +  bakeryId + "_" + doughPrepTable.getGuid();
+
+                doughPrepTableNames.add(doughPrepTableAgentName);
+
+                try {
+                    Object[] args = new Object[3];
+                     args[0] = doughPrepTable;
+                     args[1] = doughPrepTableAgentName;
+                     args[2] = doughManagerAgentName;
+
+                    AgentController preparationTableAgent = container.createNewAgent(doughPrepTableAgentName, "org.mas_maas.agents.PreparationTableAgent", args);
+                    preparationTableAgent.start();
+
+                    // System.out.println(getLocalName()+" created and started:"+ preparationTableAgent + " on container "+((ContainerController) container).getContainerName());
+                } catch (Exception any) {
+                    any.printStackTrace();
+                }
+                }
 
 		}
 
@@ -516,7 +506,7 @@ public class DoughManager extends BaseAgent {
                 String preparationRequestString = gson.toJson(preparationRequestMessage);
 
                 // Send preparationRequestMessage
-                addBehaviour(new RequestPreparation(preparationRequestString, preparationTableAgents));
+                addBehaviour(new RequestPreparation(preparationRequestString));
                 messageProcessing.decrementAndGet();
             }
             else {
@@ -682,7 +672,7 @@ public class DoughManager extends BaseAgent {
                                 option = 2;
                             }else{
                                 //option = 0;
-                                // All machines are unavailable. Try in the next time step. 
+                                // All machines are unavailable. Try in the next time step.
                                 option = 4;
 
                             }
@@ -712,14 +702,13 @@ public class DoughManager extends BaseAgent {
     //This is the behaviour used for sending a PreparationRequest
     private class RequestPreparation extends Behaviour{
         private String preparationRequest;
-        private AID [] preparationTableAgents;
         private MessageTemplate mt;
-        private ACLMessage msg;
+        private ArrayList<AID> preparationTablesAvailable = new ArrayList<AID>();
+        private int repliesCnt = 0;
         private int option = 0;
 
-        public RequestPreparation(String preparationRequest, AID [] preparationTableAgents){
+        public RequestPreparation(String preparationRequest){
             this.preparationRequest = preparationRequest;
-            this.preparationTableAgents = preparationTableAgents;
         }
         public void action(){
             // insure we don't allow a time step until we are done processing this message
@@ -727,39 +716,97 @@ public class DoughManager extends BaseAgent {
 
             switch(option){
                 case 0:
-                    ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-                    msg.setContent(preparationRequest);
-                    msg.setConversationId("preparation-request");
+                    ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
 
                     // Send preparation requests msg to all preparationTableAgents
                     for (int i=0; i<preparationTableAgents.length; i++){
-                        msg.addReceiver(preparationTableAgents[i]);
+                        cfp.addReceiver(preparationTableAgents[i]);
                     }
 
-                    // msg.setReplyWith("msg"+System.currentTimeMillis());
-                    baseAgent.sendMessage(msg);  // calling sendMessage instead of send
+                    cfp.setContent(preparationRequest);
+                    cfp.setConversationId("preparation-request");
+                    cfp.setReplyWith("cfp"+System.currentTimeMillis());
 
-                    option = 1;
-                    System.out.println(getLocalName()+" Sent preparationRequest");
+                    System.out.println("CFP for: " + preparationRequest);
+
+                    baseAgent.sendMessage(cfp);
+
+                    // Template to get proposals/refusals
+                    mt = MessageTemplate.and(MessageTemplate.MatchConversationId("preparation-request"),
+                    MessageTemplate.MatchInReplyTo(cfp.getReplyWith()));
+
                     messageProcessing.decrementAndGet();
+                    option = 1;
                     break;
 
                 case 1:
-                    mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.CONFIRM),
-                        MessageTemplate.MatchConversationId("preparation-request-reply"));
-                    ACLMessage reply = baseAgent.receive(mt);
-
-                    if (reply != null) {
-
-                        System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
+                ACLMessage reply = baseAgent.receive(mt);
+                if (reply != null) {
+                    repliesCnt++;
+                    // The doughPrepTable that replies first gets the job
+                    if (reply.getPerformative() == ACLMessage.PROPOSE) {
+                        preparationTablesAvailable.add(reply.getSender());
+                        System.out.println(getAID().getLocalName() + " received a proposal from " + reply.getSender().getName() + " for: " + preparationRequest);
+                    }
+                    // We received all replies
+                    if (repliesCnt >= preparationTableAgents.length) {
                         option = 2;
-                        messageProcessing.decrementAndGet();
+                    }
+                    messageProcessing.decrementAndGet();
+                }
+
+                else {
+                    messageProcessing.decrementAndGet();
+                    block();
+                }
+                break;
+
+            case 2:
+                if (!preparationTablesAvailable.isEmpty()){
+                    // Accept proposal from the preparationTable that replied first
+                    ACLMessage msg = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
+                    msg.addReceiver(preparationTablesAvailable.get(0));
+                    preparationTablesAvailable.remove(0);
+                    msg.setContent(preparationRequest);
+                    msg.setConversationId("preparation-request");
+                    msg.setReplyWith("msg"+System.currentTimeMillis());
+                    baseAgent.sendMessage(msg);
+                    // Prepare the template to get the msg reply
+                    mt = MessageTemplate.and(MessageTemplate.MatchConversationId("preparation-request"),
+                          MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
+                    option = 3;
+                    messageProcessing.decrementAndGet();
+                }
+                break;
+
+            case 3:
+                // Receive the confirmation from the prepTable
+                reply = baseAgent.receive(mt);
+                if (reply != null) {
+                    if (reply.getPerformative() == ACLMessage.CONFIRM) {
+                        System.out.println(getAID().getLocalName()+ " confirmation received from -> "
+                            +reply.getSender().getLocalName() + " for: " + preparationRequest);
+                        option = 4;
                     }
                     else {
-                        messageProcessing.decrementAndGet();
-                        block();
+                        System.out.println(getAID().getLocalName() + " rejection received from -> "
+                            +reply.getSender().getLocalName() + " for: " + preparationRequest);
+                        if (!preparationTablesAvailable.isEmpty()){
+                            option = 2;
+                        }else{
+                            //option = 0;
+                            // All machines are unavailable. Try in the next time step.
+                            option = 4;
+
+                        }
                     }
-                    break;
+                    messageProcessing.decrementAndGet();
+                }
+                else {
+                    messageProcessing.decrementAndGet();
+                    block();
+                }
+                break;
 
             default:
                 messageProcessing.decrementAndGet();
@@ -767,9 +814,8 @@ public class DoughManager extends BaseAgent {
             }
         }
         public boolean done(){
-            if (option == 2){
+            if (option == 4){
                 return true;
-
             }
             return false;
         }

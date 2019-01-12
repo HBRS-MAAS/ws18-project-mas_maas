@@ -30,16 +30,15 @@ import jade.lang.acl.MessageTemplate;
 import org.maas.agents.BaseAgent;
 
 public class PreparationTableAgent extends BaseAgent {
-    private AID [] doughManagerAgents;
+    private AID doughManagerAgent;
 
-    private AtomicBoolean processingMessage = new AtomicBoolean(false);
+    //private AtomicBoolean processingMessage = new AtomicBoolean(false);
     private AtomicBoolean preparationInProcess = new AtomicBoolean(false);
     private AtomicBoolean fullPrepDone = new AtomicBoolean(false);
     private AtomicInteger stepCounter = new AtomicInteger(0);
 
-    // private Bakery bakery;
-    // private Vector<DoughPrepTable> preparationTables = new Vector<DoughPrepTable> ();
-    // private Vector<Equipment> equipment;
+    private AtomicInteger messageProcessing = new AtomicInteger(0);
+
     private DoughPrepTable doughPrepTable;
     private String doughPrepTableName;
     private String doughManagerName;
@@ -60,23 +59,21 @@ public class PreparationTableAgent extends BaseAgent {
             this.doughManagerName = (String) args[2];
         }
 
-        System.out.println("Hello! " + getAID().getLocalName() + " is ready." + "its DougManager is: " + doughManagerName);
+        this.getDoughManagerAID();
+
+        System.out.println("Hello! " + getAID().getLocalName() + " is ready." + "its DougManager is: " + doughManagerAgent.getName());
 
         this.register(this.doughPrepTableName, "JADE-bakery");
 
-        //this.getDoughManagerAIDs();
+        doughPrepTable.setAvailable(true);
 
-        // Load bakery information (includes recipes for each product)
-        //getbakery();
 
-        // Get KneadingMachines
-        //this.getPreparationTables();
+        stepCounter.set(0);
 
         // Time tracker behavior
-        stepCounter.set(0);
         addBehaviour(new timeTracker());
 
-        // Creating receive kneading requests behaviour
+        addBehaviour(new ReceiveProposalRequests());
         addBehaviour(new ReceivePreparationRequests());
     }
 
@@ -85,78 +82,80 @@ public class PreparationTableAgent extends BaseAgent {
         this.deRegister();
     }
 
-    public void getDoughManagerAIDs() {
-        /*
-        Object the AID of all the dough-manager agents found
-        */
-        DFAgentDescription template = new DFAgentDescription();
-        ServiceDescription sd = new ServiceDescription();
+    public void getDoughManagerAID() {
+        doughManagerAgent = new AID (doughManagerName, AID.ISLOCALNAME);
 
-        sd.setType("Dough-manager");
-        template.addServices(sd);
-        try {
-            DFAgentDescription [] result = DFService.search(this, template);
-            System.out.println(getAID().getLocalName() + "Found the following Dough-manager agents:");
-            doughManagerAgents = new AID [result.length];
-
-            for (int i = 0; i < result.length; ++i) {
-                doughManagerAgents[i] = result[i].getName();
-                System.out.println(doughManagerAgents[i].getName());
-            }
-
-        }
-        catch (FIPAException fe) {
-            fe.printStackTrace();
-        }
     }
-
-    // public void getbakery(){
-    //
-    //     String jsonDir = "src/main/resources/config/shared_stage_communication/";
-    //     try {
-    //         // System.out.println("Working Directory = " + System.getProperty("user.dir"));
-    //         String bakeryFile = new Scanner(new File(jsonDir + "bakery.json")).useDelimiter("\\Z").next();
-    //         Vector<Bakery> bakeries = JSONConverter.parseBakeries(bakeryFile);
-    //         for (Bakery bakery : bakeries)
-    //         {
-    //             this.bakery = bakery;
-    //         }
-    //     } catch (FileNotFoundException e) {
-    //         // TODO Auto-generated catch block
-    //         e.printStackTrace();
-    //     }
-    // }
-
-    // public void getPreparationTables(){
-    //     equipment = bakery.getEquipment();
-    //     System.out.println("Bakery name " + bakery.getName());
-    //
-    //     for (int i = 0; i < equipment.size(); i++){
-    //         if (equipment.get(i) instanceof DoughPrepTable){
-    //             preparationTables.add((DoughPrepTable) equipment.get(i));
-    //         }
-    //     }
-    //
-    //     System.out.println("Preparation tables found " + preparationTables.size());
-    //
-    // }
 
     private class timeTracker extends CyclicBehaviour {
         public void action() {
-            // first we make sure we are even allowed to do anything
             if (!baseAgent.getAllowAction()) {
                 return;
-            }
-
-            // once we know our agent is able to do an action check if we need to actually do anything
-            if (!processingMessage.get())
-            {
+            }else{
                 if (preparationInProcess.get() && !fullPrepDone.get()){
                     int curCount = stepCounter.incrementAndGet();
-                    //System.out.println("-------> Dough Prep Clock-> " + baseAgent.getCurrentHour());
-                    //System.out.println("-------> step Counter -> " + curCount);
+                    System.out.println(">>>>> DoughPrep Counter -> " + getAID().getLocalName() + " " + stepCounter + " <<<<<");
                 }
+            }
+            if (messageProcessing.get() <= 0)
+            {
                 baseAgent.finished();
+            }
+        }
+    }
+
+
+    // private class timeTracker extends CyclicBehaviour {
+    //     public void action() {
+    //         // first we make sure we are even allowed to do anything
+    //         if (!baseAgent.getAllowAction()) {
+    //             return;
+    //         }
+    //
+    //         // once we know our agent is able to do an action check if we need to actually do anything
+    //         if (!processingMessage.get())
+    //         {
+    //             if (preparationInProcess.get() && !fullPrepDone.get()){
+    //                 int curCount = stepCounter.incrementAndGet();
+    //                 //System.out.println("-------> Dough Prep Clock-> " + baseAgent.getCurrentHour());
+    //                 //System.out.println("-------> step Counter -> " + curCount);
+    //             }
+    //             baseAgent.finished();
+    //         }
+    //     }
+    // }
+
+    private class ReceiveProposalRequests extends CyclicBehaviour{
+        public void action(){
+            messageProcessing.incrementAndGet();
+
+            MessageTemplate mt = MessageTemplate.and(
+                MessageTemplate.MatchPerformative(ACLMessage.CFP),
+                MessageTemplate.MatchConversationId("preparation-request"));
+
+            ACLMessage msg = baseAgent.receive(mt);
+
+            if (msg != null){
+                String content = msg.getContent();
+                //System.out.println(getAID().getLocalName() + "has received a proposal request from " + msg.getSender().getName());
+
+                ACLMessage reply = msg.createReply();
+                if (doughPrepTable.isAvailable()){
+                	//System.out.println(getAID().getLocalName() + " is available");
+                    reply.setPerformative(ACLMessage.PROPOSE);
+                    reply.setContent("Hey I am free, do you wanna use me ;)?");
+                }else{
+                	System.out.println(getAID().getLocalName() + " is unavailable");
+                    reply.setPerformative(ACLMessage.REFUSE);
+                    reply.setContent("Sorry, I am married potato :c");
+                }
+                baseAgent.sendMessage(reply);
+                messageProcessing.decrementAndGet();
+            }
+
+            else{
+                messageProcessing.decrementAndGet();
+                block();
             }
         }
     }
@@ -164,35 +163,52 @@ public class PreparationTableAgent extends BaseAgent {
     // Receiving Preparation requests behaviour
     private class ReceivePreparationRequests extends CyclicBehaviour {
         public void action() {
-            processingMessage.set(true);
+            messageProcessing.incrementAndGet();
 
-            MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
+            MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL),
                 MessageTemplate.MatchConversationId("preparation-request"));
             ACLMessage msg = myAgent.receive(mt);
 
             if (msg != null) {
-                System.out.println(getAID().getLocalName() + " Received preparation request from " + msg.getSender());
-                String content = msg.getContent();
-                System.out.println("Preparation request contains -> " + content);
-                PreparationRequest preparationRequest = JSONConverter.parsePreparationRequest(content);
 
-                ACLMessage reply = msg.createReply();
-                reply.setPerformative(ACLMessage.CONFIRM);
-                reply.setContent("Preparation request was received");
-                reply.setConversationId("preparation-request-reply");
-                baseAgent.sendMessage(reply);
+                if (doughPrepTable.isAvailable()){
+                    doughPrepTable.setAvailable(false);
 
-                guids = preparationRequest.getGuids();
-                productType = preparationRequest.getProductType();
-                steps = preparationRequest.getSteps();
-                System.out.println("----> I should do the following actions " + steps);
-                productQuantities = preparationRequest.getProductQuantities();
+                    String content = msg.getContent();
+                    System.out.println(getAID().getLocalName() + " WILL perform preparation for " + msg.getSender() + "Preparation information -> " + content);
 
-                addBehaviour(new Preparation());
-                processingMessage.set(false);
-            }
-            else {
-                processingMessage.set(false);
+                    PreparationRequest preparationRequest = JSONConverter.parsePreparationRequest(content);
+
+                    ACLMessage reply = msg.createReply();
+                    reply.setPerformative(ACLMessage.CONFIRM);
+                    reply.setContent("Preparation request was received");
+                    reply.setConversationId("preparation-request");
+                    baseAgent.sendMessage(reply);
+
+                    guids = preparationRequest.getGuids();
+                    productType = preparationRequest.getProductType();
+                    steps = preparationRequest.getSteps();
+                    System.out.println(getAID().getLocalName() + " WILL do the following actions " + steps);
+                    productQuantities = preparationRequest.getProductQuantities();
+
+                    addBehaviour(new Preparation());
+                }
+
+                else{
+                    // System.out.println(getAID().getLocalName()  + " is already taken");
+
+                    ACLMessage reply = msg.createReply();
+                    reply.setPerformative(ACLMessage.FAILURE);
+                    reply.setContent("doughPrepTable is taken");
+                    reply.setConversationId("preparation-request");
+                    baseAgent.sendMessage(reply);
+                    System.out.println(getAID().getLocalName() + " failed preparation of " + msg.getContent());
+
+                }
+                messageProcessing.decrementAndGet();
+
+            }else {
+                messageProcessing.decrementAndGet();
                 block();
             }
         }
@@ -205,27 +221,6 @@ public class PreparationTableAgent extends BaseAgent {
         private String guidTableAvailable;
         private String stepAction;
         private int productIndex = 0;
-
-        /*
-        public String findAvailableTables(){
-            for (DoughPrepTable prepTable : preparationTables) {
-                if (prepTable.isAvailable()){
-                    prepTable.setAvailable(false);
-                    preparationInProcess.set(true);
-                    return prepTable.getGuid();
-                }
-            }
-            return "NOT_AVAILABLE";
-        }
-
-        public void releaseUsedTable(String guid){
-            for (DoughPrepTable prepTable : preparationTables) {
-                if (prepTable.getGuid().equals(guid)){
-                    prepTable.setAvailable(true);
-                }
-            }
-        }
-        */
 
         public void action(){
             // TODO: Iterate over different guids
@@ -256,7 +251,7 @@ public class PreparationTableAgent extends BaseAgent {
 
                 }else{
                     curStepIndex = 0;
-                    addBehaviour(new SendPreparationNotification(doughManagerAgents));
+                    addBehaviour(new SendPreparationNotification());
                     fullPrepDone.set(true);
                     preparationInProcess.set(false);
                 }
@@ -285,16 +280,11 @@ public class PreparationTableAgent extends BaseAgent {
 
   // Send a preparationNotification msg to the doughManager agents
   private class SendPreparationNotification extends Behaviour {
-    private AID [] doughManagerAgents;
     private MessageTemplate mt;
     private int option = 0;
     private Gson gson = new Gson();
     private PreparationNotification preparationNotification = new PreparationNotification(guids,productType);
     private String preparationNotificationString = gson.toJson(preparationNotification);
-
-    public SendPreparationNotification(AID [] doughManagerAgents){
-        this.doughManagerAgents = doughManagerAgents;
-    }
 
        public void action() {
 
@@ -305,9 +295,11 @@ public class PreparationTableAgent extends BaseAgent {
                     msg.setConversationId("preparation-notification");
 
                     // Send preparationNotification msg to doughManagerAgents
-                    for (int i = 0; i < doughManagerAgents.length; i++){
-                        msg.addReceiver(doughManagerAgents[i]);
-                    }
+                    // for (int i = 0; i < doughManagerAgents.length; i++){
+                    //     msg.addReceiver(doughManagerAgents[i]);
+                    // }
+
+                    msg.addReceiver(doughManagerAgent);
 
                     // msg.setReplyWith("msg" + System.currentTimeMillis());
                     baseAgent.sendMessage(msg);
