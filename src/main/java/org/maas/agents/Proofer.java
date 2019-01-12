@@ -240,7 +240,7 @@ public class Proofer extends BaseAgent {
                 proofingCounter.set(0);
                 System.out.println(getAID().getLocalName() + "Finishing proofing");
                 // System.out.println("----> " + guidAvailable + " finished Kneading");
-                addBehaviour(new SendDoughNotification());
+                //addBehaviour(new SendDoughNotification());
             }
         }
     }
