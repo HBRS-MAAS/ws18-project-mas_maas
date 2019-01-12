@@ -553,7 +553,7 @@ public class DoughManager extends BaseAgent {
                 String proofingRequestString = gson.toJson(proofingRequestMessage);
 
                 // Send preparationRequestMessage
-                addBehaviour(new RequestProofing(proofingRequestString, prooferAgent));
+                addBehaviour(new RequestProofing(proofingRequestString));
                 messageProcessing.decrementAndGet();
             }
             else {
@@ -824,55 +824,111 @@ public class DoughManager extends BaseAgent {
     // This is the behavior used for sensing a ProofingRequest
     private class RequestProofing extends Behaviour{
         private String proofingRequest;
-        private AID prooferAgent;
         private MessageTemplate mt;
-        private boolean proofingRequested = false;
+        // TODO: There is only one proofer
+        private ArrayList<AID> proofersAvailable = new ArrayList<AID>();
+        private int repliesCnt = 0;
         private int option = 0;
 
-        public RequestProofing(String proofingRequest, AID prooferAgent){
+        public RequestProofing(String proofingRequest){
             this.proofingRequest = proofingRequest;
-            this.prooferAgent = prooferAgent;
         }
+
         public void action(){
             // insure we don't allow a time step until we are done processing this message
             messageProcessing.incrementAndGet();
 
             switch(option){
                 case 0:
-                    ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-                    msg.setContent(proofingRequest);
-                    msg.setConversationId("proofing-request");
+                    ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
+                    cfp.addReceiver(prooferAgent);
 
-                    // Send proofingRequest msg to all prooferAgents
-                    //for (int i=0; i<prooferAgents.length; i++){
-                    //    msg.addReceiver(prooferAgents[i]);
-                    //}
-                    msg.addReceiver(prooferAgent);
-                    // msg.setReplyWith("msg"+System.currentTimeMillis());
-                    baseAgent.sendMessage(msg);  // calling sendMessage instead of send
+                    cfp.setContent(proofingRequest);
+                    cfp.setConversationId("proofing-request");
+                    cfp.setReplyWith("cfp"+System.currentTimeMillis());
 
-                    option = 1;
-                    proofingRequested = true;
-                    System.out.println("-----> " + getLocalName()+" Sent proofingRequest" + proofingRequest);
+                    System.out.println("CFP for: " + proofingRequest);
+
+                    baseAgent.sendMessage(cfp);
+
+                    // Template to get proposals/refusals
+                    mt = MessageTemplate.and(MessageTemplate.MatchConversationId("proofing-request"),
+                    MessageTemplate.MatchInReplyTo(cfp.getReplyWith()));
+
                     messageProcessing.decrementAndGet();
+                    option = 1;
                     break;
 
                 case 1:
-                    mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.CONFIRM),
-                        MessageTemplate.MatchConversationId("proofing-request-reply"));
                     ACLMessage reply = baseAgent.receive(mt);
-
-
                     if (reply != null) {
-                        System.out.println("-----> " +getAID().getLocalName() + " Received confirmation from " + reply.getSender());
-                        option = 2;
+                        repliesCnt++;
+                        // The Proofer that replies first gets the job
+                        if (reply.getPerformative() == ACLMessage.PROPOSE) {
+                            proofersAvailable.add(reply.getSender());
+
+                            System.out.println(getAID().getLocalName() + " received a proposal from " + reply.getSender().getName() + " for: " + proofingRequest);
+                        }
+                        // We received all replies
+                        if (repliesCnt >= 1) {
+                            option = 2;
+
+                        }
                         messageProcessing.decrementAndGet();
                     }
+
                     else {
                         messageProcessing.decrementAndGet();
                         block();
                     }
                     break;
+                    case 2:
+                        if (!proofersAvailable.isEmpty()){
+                            // Accept proposal from the kneading machine that replied first
+                            ACLMessage msg = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
+                            msg.addReceiver(proofersAvailable.get(0));
+                            proofersAvailable.remove(0);
+                            msg.setContent(proofingRequest);
+                            msg.setConversationId("proofing-request");
+                            msg.setReplyWith("msg"+System.currentTimeMillis());
+                            baseAgent.sendMessage(msg);
+                            // Prepare the template to get the msg reply
+                            mt = MessageTemplate.and(MessageTemplate.MatchConversationId("proofing-request"),
+                        		  MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
+                            option = 3;
+                            messageProcessing.decrementAndGet();
+                        }
+                        break;
+
+                    case 3:
+                        // Receive the confirmation for the kneadingMachine
+                        reply = baseAgent.receive(mt);
+                        if (reply != null) {
+                            if (reply.getPerformative() == ACLMessage.CONFIRM) {
+                            	System.out.println(getAID().getLocalName()+ " confirmation received from -> "
+                                    +reply.getSender().getLocalName() + " for: " + proofingRequest);
+                                option = 4;
+                            }
+                            else {
+                                System.out.println(getAID().getLocalName() + " rejection received from -> "
+                                    +reply.getSender().getLocalName() + " for: " + proofingRequest);
+                                if (!proofersAvailable.isEmpty()){
+                                    option = 2;
+                                }else{
+                                    //option = 0;
+                                    // All machines are unavailable. Try in the next time step.
+                                    option = 4;
+
+                                }
+                                // Send a knew kneading request for the failed attempt
+                            }
+                            messageProcessing.decrementAndGet();
+                        }
+                        else {
+                            messageProcessing.decrementAndGet();
+                            block();
+                        }
+                        break;
 
                 default:
                     messageProcessing.decrementAndGet();
@@ -880,17 +936,10 @@ public class DoughManager extends BaseAgent {
             }
         }
         public boolean done(){
-            if (option == 2){
-                proofingRequested = false;
-                // For now the DoughManager terminates after processing one order
-                //System.out.println(getAID().getLocalName() + " My life is over ");
-                //baseAgent.finished();
-                //baseAgent.doDelete();
+            if (option == 4){
                 return true;
-
             }
             return false;
         }
     }
-
 }

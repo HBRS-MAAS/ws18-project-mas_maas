@@ -13,6 +13,7 @@ import com.google.gson.Gson;
 import jade.core.AID;
 import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.CyclicBehaviour;
+import jade.core.behaviours.OneShotBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -37,6 +38,9 @@ public class Proofer extends BaseAgent {
     private String bakeryId;
     private String doughManagerAgentName;
 
+    private boolean isAvailable = true;
+    private Float proofingTime;
+
     protected void setup() {
         super.setup();
 
@@ -47,7 +51,7 @@ public class Proofer extends BaseAgent {
         }
 
         // Name of the doughManager the Proofer communicates with
-        doughManagerAgentName = "DoughManagerAgent_" + bakeryId;
+        doughManagerAgentName = "DoughManager_" + bakeryId;
         AID doughManager = new AID(doughManagerAgentName, AID.ISLOCALNAME);
 
         this.register("Proofer_" + bakeryId, "JADE-bakery");
@@ -58,8 +62,8 @@ public class Proofer extends BaseAgent {
         this.getBakingInterfaceAIDs();
 
         proofingCounter.set(0);
-        // Time tracker behavior
         addBehaviour(new timeTracker());
+        addBehaviour(new ReceiveProposalRequests());
         addBehaviour(new ReceiveProofingRequests());
     }
 
@@ -91,91 +95,154 @@ public class Proofer extends BaseAgent {
         }
     }
 
-    // Behaviour used to keep track of time
-    private class timeTracker extends CyclicBehaviour {
+   //  // Behaviour used to keep track of time
+   //  private class timeTracker extends CyclicBehaviour {
+   //     public void action() {
+   //         // first we make sure we are even allowed to do anything
+   //         if (!baseAgent.getAllowAction()) {
+   //             return;
+   //         }
+   //
+   //         // once we know our agent is able to do an action check if we need to actually do anything
+   //         if (messageProcessing.get() <= 0)
+   //         {
+   //             if (proofingInProcess.get()){
+   //                 int curCount = proofingCounter.incrementAndGet();
+   //                 System.out.println("-------> Proofer Clock-> " + baseAgent.getCurrentTime());
+   //                 System.out.println("-------> Proofer Counter -> " + curCount);
+   //             }
+   //             baseAgent.finished();
+   //         }
+   //     }
+   // }
+
+   private class timeTracker extends CyclicBehaviour {
        public void action() {
-           // first we make sure we are even allowed to do anything
            if (!baseAgent.getAllowAction()) {
                return;
-           }
-
-           // once we know our agent is able to do an action check if we need to actually do anything
-           if (messageProcessing.get() <= 0)
-           {
+           }else{
                if (proofingInProcess.get()){
                    int curCount = proofingCounter.incrementAndGet();
-                   System.out.println("-------> Proofer Clock-> " + baseAgent.getCurrentTime());
-                   System.out.println("-------> Proofer Counter -> " + curCount);
+                   System.out.println(">>>>> Proofing Counter -> " + getAID().getLocalName() + " " + proofingCounter + " <<<<<");
+                   addBehaviour(new Proofing());
                }
+           }
+           if (messageProcessing.get() <= 0)
+           {
                baseAgent.finished();
            }
        }
    }
 
+   private class ReceiveProposalRequests extends CyclicBehaviour{
+       public void action(){
+           messageProcessing.incrementAndGet();
+
+           MessageTemplate mt = MessageTemplate.and(
+               MessageTemplate.MatchPerformative(ACLMessage.CFP),
+               MessageTemplate.MatchConversationId("proofing-request"));
+
+           ACLMessage msg = baseAgent.receive(mt);
+
+           if (msg != null){
+               String content = msg.getContent();
+               System.out.println(getAID().getLocalName() + "has received a proposal request from " + msg.getSender().getName());
+
+               ACLMessage reply = msg.createReply();
+               if (isAvailable){
+                   //System.out.println(getAID().getLocalName() + " is available");
+                   reply.setPerformative(ACLMessage.PROPOSE);
+                   reply.setContent("Hey I am free, do you wanna use me ;)?");
+               }else{
+                   System.out.println(getAID().getLocalName() + " is unavailable");
+                   reply.setPerformative(ACLMessage.REFUSE);
+                   reply.setContent("Sorry, I am married potato :c");
+               }
+               baseAgent.sendMessage(reply);
+               messageProcessing.decrementAndGet();
+           }
+
+           else{
+               messageProcessing.decrementAndGet();
+               block();
+           }
+       }
+   }
 
     /* This is the behaviour used for receiving proofing requests */
     private class ReceiveProofingRequests extends CyclicBehaviour {
         public void action() {
 
             messageProcessing.getAndIncrement();
-            MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
+            MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL),
                 MessageTemplate.MatchConversationId("proofing-request"));
             ACLMessage msg = baseAgent.receive(mt);
 
             if (msg != null) {
-                System.out.println(getAID().getLocalName() + " Received proofing request from " + msg.getSender());
-                String content = msg.getContent();
-                System.out.println("Proofing request contains -> " + content);
-                ProofingRequest proofingRequest = JSONConverter.parseProofingRequest(content);
+                if (isAvailable){
+                    isAvailable = false;
 
-                ACLMessage reply = msg.createReply();
-                reply.setPerformative(ACLMessage.CONFIRM);
-                reply.setContent("Proofing request was received");
-                reply.setConversationId("proofing-request-reply");
-                baseAgent.sendMessage(reply);
+                    String content = msg.getContent();
+                    System.out.println(getAID().getLocalName() + " WILL perform Proofing for " + msg.getSender() + "Proofing information -> " + content);
 
-                Float proofingTime = proofingRequest.getProofingTime();
-                guids = proofingRequest.getGuids();
-                productType = proofingRequest.getProductType();
-                productQuantities = proofingRequest.getProductQuantities();
+                    ProofingRequest proofingRequest = JSONConverter.parseProofingRequest(content);
 
-                proofingInProcess.set(true);
-                addBehaviour(new Proofing(proofingTime));
-                messageProcessing.getAndDecrement();
-            }
-            else {
-                messageProcessing.getAndDecrement();
+                    ACLMessage reply = msg.createReply();
+                    reply.setPerformative(ACLMessage.CONFIRM);
+                    reply.setContent("Proofing request was received");
+                    reply.setConversationId("proofing-request");
+                    baseAgent.sendMessage(reply);
+
+                    proofingTime = proofingRequest.getProofingTime();
+                    guids = proofingRequest.getGuids();
+                    productType = proofingRequest.getProductType();
+                    productQuantities = proofingRequest.getProductQuantities();
+
+                    proofingInProcess.set(true);
+                    //messageProcessing.getAndDecrement();
+                    addBehaviour(new Proofing());
+                }
+                else{
+                    // System.out.println(getAID().getLocalName()  + " is already taken");
+
+                    ACLMessage reply = msg.createReply();
+                    reply.setPerformative(ACLMessage.FAILURE);
+                    reply.setContent("Proofer is taken");
+                    reply.setConversationId("proofing-request");
+                    baseAgent.sendMessage(reply);
+                    System.out.println(getAID().getLocalName() + " failed proofing of " + msg.getContent());
+
+                }
+                messageProcessing.decrementAndGet();
+
+
+            }else {
+                messageProcessing.decrementAndGet();
                 block();
             }
         }
     }
 
+
     // This is the behaviour that performs the proofing process.
-    private class Proofing extends Behaviour {
-      private float proofingTime;
-      private int option = 0;
+    private class Proofing extends OneShotBehaviour {
+        public void action(){
+            if (proofingCounter.get() < proofingTime){
+                if (!proofingInProcess.get()){
+                    System.out.println(getAID().getLocalName() + " Proofing for " + proofingTime);
+                    proofingInProcess.set(true);
+                    isAvailable = false;
+                }
 
-      public Proofing(float proofingTime){
-          this.proofingTime = proofingTime;
-          System.out.println(getAID().getLocalName() + " proofing for " + proofingTime);
-      }
-
-      public void action(){
-          if (proofingCounter.get() >= proofingTime){
-              proofingCounter.set(0);
-              // TODO do we need another bool to make sure this gets sent?
-              addBehaviour(new SendDoughNotification());
-              proofingInProcess.set(false);
-          }
-      }
-
-      public boolean done(){
-          if (proofingInProcess.get()){
-              return false;
-          }else{
-              return true;
-          }
-      }
+            }else{
+                proofingInProcess.set(false);
+                isAvailable = true;
+                proofingCounter.set(0);
+                System.out.println(getAID().getLocalName() + "Finishing proofing");
+                // System.out.println("----> " + guidAvailable + " finished Kneading");
+                addBehaviour(new SendDoughNotification());
+            }
+        }
     }
 
 
@@ -241,13 +308,14 @@ public class Proofer extends BaseAgent {
                     break;
 
                 default:
+                    messageProcessing.decrementAndGet();
                     break;
                 }
             }
 
         public boolean done() {
             if (option == 2) {
-                baseAgent.finished();
+                //baseAgent.finished();
                 //myAgent.doDelete();
                 return true;
             }
