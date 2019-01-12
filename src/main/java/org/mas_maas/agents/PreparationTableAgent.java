@@ -286,6 +286,7 @@ public class PreparationTableAgent extends BaseAgent {
                     baseAgent.sendMessage(msg);
 
                     System.out.println(getAID().getLocalName() + " Sent preparationNotification to" + doughManagerAgent);
+                    messageProcessing.decrementAndGet();
                     option = 1;
                     break;
 
