@@ -644,6 +644,7 @@ public class DoughManager extends BaseAgent {
                         ACLMessage msg = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
                         msg.addReceiver(kneadingMachinesAvailable.get(0));
                         kneadingMachinesAvailable.remove(0);
+                        System.out.println(getAID().getLocalName() + " Accepting proposal");
                         msg.setContent(kneadingRequest);
                         msg.setConversationId("kneading-request");
                         msg.setReplyWith("msg"+System.currentTimeMillis());
@@ -651,8 +652,8 @@ public class DoughManager extends BaseAgent {
                         // Prepare the template to get the msg reply
                         mt = MessageTemplate.and(MessageTemplate.MatchConversationId("kneading-request"),
                     		  MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
-                        option = 3;
                         messageProcessing.decrementAndGet();
+                        option = 3;
                     }
                     break;
 
@@ -767,6 +768,7 @@ public class DoughManager extends BaseAgent {
                     ACLMessage msg = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
                     msg.addReceiver(preparationTablesAvailable.get(0));
                     preparationTablesAvailable.remove(0);
+                    System.out.println(getAID().getLocalName() + " Accepting proposal");
                     msg.setContent(preparationRequest);
                     msg.setConversationId("preparation-request");
                     msg.setReplyWith("msg"+System.currentTimeMillis());
