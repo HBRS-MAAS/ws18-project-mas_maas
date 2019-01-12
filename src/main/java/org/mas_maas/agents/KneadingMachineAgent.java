@@ -270,9 +270,9 @@ public class KneadingMachineAgent extends BaseAgent {
 
                     baseAgent.sendMessage(msg);
 
-                    option = 1;
                     System.out.println(getAID().getLocalName() + " Sent kneadingNotification");
                     messageProcessing.decrementAndGet();
+                    option = 1;
                     break;
 
                 case 1:
@@ -282,7 +282,7 @@ public class KneadingMachineAgent extends BaseAgent {
                     ACLMessage reply = baseAgent.receive(mt);
 
                     if (reply != null) {
-                        System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
+                        System.out.println(getAID().getLocalName() + " Received kneading notification confirmation from " + reply.getSender());
                         option = 2;
                         // messageInProcress.set(false);
                     }
@@ -302,9 +302,6 @@ public class KneadingMachineAgent extends BaseAgent {
 
         public boolean done() {
             if (option == 2) {
-                //System.out.println(getAID().getLocalName() + " My purpose is over ");
-                //baseAgent.finished();
-                // myAgent.doDelete(); //TODO Find when to die
                 return true;
             }
 
