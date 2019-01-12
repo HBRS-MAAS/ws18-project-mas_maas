@@ -20,6 +20,7 @@ import com.google.gson.Gson;
 import jade.core.AID;
 import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.CyclicBehaviour;
+import jade.core.behaviours.OneShotBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -47,6 +48,11 @@ public class PreparationTableAgent extends BaseAgent {
     private Vector<Integer> productQuantities;
     private String productType;
     private Vector<Step> steps;
+
+    private Float stepDuration;
+    private int curStepIndex = 0;
+    private String stepAction;
+    private int productIndex = 0;
 
     protected void setup() {
         super.setup();
@@ -95,6 +101,7 @@ public class PreparationTableAgent extends BaseAgent {
                 if (preparationInProcess.get() && !fullPrepDone.get()){
                     int curCount = stepCounter.incrementAndGet();
                     System.out.println(">>>>> DoughPrep Counter -> " + getAID().getLocalName() + " " + stepCounter + " <<<<<");
+                    addBehaviour(new Preparation());
                 }
             }
             if (messageProcessing.get() <= 0)
@@ -142,6 +149,7 @@ public class PreparationTableAgent extends BaseAgent {
                 ACLMessage reply = msg.createReply();
                 if (doughPrepTable.isAvailable()){
                 	//System.out.println(getAID().getLocalName() + " is available");
+                    fullPrepDone.set(false);
                     reply.setPerformative(ACLMessage.PROPOSE);
                     reply.setContent("Hey I am free, do you wanna use me ;)?");
                 }else{
@@ -215,29 +223,16 @@ public class PreparationTableAgent extends BaseAgent {
     }
 
     // performs Preparation process
-    private class Preparation extends Behaviour {
-        private Float stepDuration;
-        private int curStepIndex = 0;
-        private String guidTableAvailable;
-        private String stepAction;
-        private int productIndex = 0;
-
+    private class Preparation extends OneShotBehaviour {
         public void action(){
-            // TODO: Iterate over different guids
             if (!preparationInProcess.get() && !fullPrepDone.get()){
-                //guidTableAvailable = findAvailableTables();
-                //DoughPrepTable prepTable = preparationTables.get(0); // TODO each agent will only have on table
+
                 preparationInProcess.set(true);
-                /* TODO if our one table is busy rejection should happen in the message processing area
-                if (guidTableAvailable != "NOT_AVAILABLE"){
-                    System.out.println("----> Using dough prepTable " + guidTableAvailable);
-                }else{
-                    System.out.println("----> No dough prepTable currently available");
-                    //TODO: What do we do?
-                }
-                */
+                doughPrepTable.setAvailable(false);
 
                 if (curStepIndex < steps.size()){
+                    // Get the action and its duration
+
                     stepAction = steps.get(curStepIndex).getAction();
 
                     if (stepAction.equals(Step.ITEM_PREPARATION_STEP)){
@@ -246,33 +241,25 @@ public class PreparationTableAgent extends BaseAgent {
                         stepDuration = steps.get(curStepIndex).getDuration();
                     }
 
-                    System.out.println("-----> Performing " + stepAction);
-                    System.out.println("-----> Preparation for " + stepDuration);
+                    System.out.println("-----> Performing " + stepAction + "for " + stepDuration);
 
                 }else{
+                    // We have performed all preparation actions.
                     curStepIndex = 0;
-                    addBehaviour(new SendPreparationNotification());
                     fullPrepDone.set(true);
+                    stepCounter.set(0);
                     preparationInProcess.set(false);
+                    doughPrepTable.setAvailable(true);
+                    addBehaviour(new SendPreparationNotification());
                 }
             }
 
             if (stepCounter.get() >= stepDuration && !fullPrepDone.get()){
-                //releaseUsedTable(guidTableAvailable);
                 curStepIndex++;
                 stepCounter.set(0);
                 preparationInProcess.set(false);
+                addBehaviour(new Preparation());
             }
-
-        }
-        public boolean done(){
-            if (fullPrepDone.get()){
-                fullPrepDone.set(false);
-                return true;
-            }{
-                return false;
-            }
-
         }
   }
 
@@ -287,30 +274,25 @@ public class PreparationTableAgent extends BaseAgent {
     private String preparationNotificationString = gson.toJson(preparationNotification);
 
        public void action() {
-
+           messageProcessing.incrementAndGet();
            switch (option) {
                 case 0:
                     ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
                     msg.setContent(preparationNotificationString);
                     msg.setConversationId("preparation-notification");
 
-                    // Send preparationNotification msg to doughManagerAgents
-                    // for (int i = 0; i < doughManagerAgents.length; i++){
-                    //     msg.addReceiver(doughManagerAgents[i]);
-                    // }
-
                     msg.addReceiver(doughManagerAgent);
 
-                    // msg.setReplyWith("msg" + System.currentTimeMillis());
                     baseAgent.sendMessage(msg);
 
+                    System.out.println(getAID().getLocalName() + " Sent preparationNotification to" + doughManagerAgent);
                     option = 1;
-                    System.out.println(getAID().getLocalName() + " Sent preparationNotification");
                     break;
 
                 case 1:
                     mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.CONFIRM),
                         MessageTemplate.MatchConversationId("preparation-notification-reply"));
+
                     ACLMessage reply = baseAgent.receive(mt);
 
                     if (reply != null) {
@@ -320,17 +302,17 @@ public class PreparationTableAgent extends BaseAgent {
                     else {
                         block();
                     }
+                    messageProcessing.decrementAndGet();
                     break;
 
                 default:
+                    messageProcessing.decrementAndGet();
                     break;
            }
        }
 
        public boolean done() {
            if (option == 2) {
-               baseAgent.finished(); // calling finished method
-               //myAgent.doDelete();
                return true;
            }
 

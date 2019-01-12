@@ -58,14 +58,14 @@ public class KneadingMachineAgent extends BaseAgent {
             this.doughManagerName = (String) args[2];
         }
 
+        this.getDoughManagerAIDs();
+
         System.out.println("Hello! " + getAID().getLocalName() + " is ready." + "its DougManager is: " + doughManagerName);
 
-        // Register KneadingMachine Agent to the yellow Pages
         this.register(this.kneadingMachineName, "JADE-bakery");
 
         kneadingMachine.setAvailable(true);
 
-        this.getDoughManagerAIDs();
 
         // Load bakery information (includes recipes for each product)
         // getbakery();

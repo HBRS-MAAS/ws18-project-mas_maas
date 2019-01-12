@@ -77,7 +77,7 @@ public class DoughManager extends BaseAgent {
 
         //Get the container of this agent
         container = (AgentContainer)getContainerController();
-        doughManagerAgentName = "DoughManagerAgent_" + bakeryId;
+        doughManagerAgentName = "DoughManager_" + bakeryId;
 
         // Register the Dough-manager in the yellow pages
         this.register(doughManagerAgentName, "JADE-bakery");
