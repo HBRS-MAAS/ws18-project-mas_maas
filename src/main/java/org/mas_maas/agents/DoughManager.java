@@ -681,7 +681,10 @@ public class DoughManager extends BaseAgent {
                             if (!kneadingMachinesAvailable.isEmpty()){
                                 option = 2;
                             }else{
-                                option = 0;
+                                //option = 0;
+                                // All machines are unavailable. Try in the next time step. 
+                                option = 4;
+
                             }
                             // Send a knew kneading request for the failed attempt
                         }
