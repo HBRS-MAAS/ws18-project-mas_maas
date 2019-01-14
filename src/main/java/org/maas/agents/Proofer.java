@@ -154,24 +154,37 @@ public class Proofer extends BaseAgent {
 
             messageProcessing.getAndIncrement();
             MessageTemplate mt = MessageTemplate.and(
-                MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL),
-                MessageTemplate.MatchConversationId("proofing-request"));
+                MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL), MessageTemplate.MatchSender(doughManager));
+                //MessageTemplate.MatchConversationId("proofing-request"));
             ACLMessage msg = baseAgent.receive(mt);
 
             if (msg != null) {
-                if (isAvailable){
-                    isAvailable = false;
+                ACLMessage reply = msg.createReply();
+
+                if (!isAvailable){
+                    // System.out.println(getAID().getLocalName()  + " is already taken");
+
+                    reply.setPerformative(ACLMessage.FAILURE);
+                    reply.setContent("Proofer is taken");
+                    reply.setConversationId("proofing-request");
+                    //baseAgent.sendMessage(reply);
+                    System.out.println(getAID().getLocalName() + " failed proofing of " + msg.getContent());
+
+                }
+                else{
+
+                    //isAvailable = false;
 
                     String content = msg.getContent();
                     System.out.println(getAID().getLocalName() + " WILL perform Proofing for " + msg.getSender() + "Proofing information -> " + content);
 
                     ProofingRequest proofingRequest = JSONConverter.parseProofingRequest(content);
 
-                    ACLMessage reply = msg.createReply();
+                    //ACLMessage reply = msg.createReply();
                     reply.setPerformative(ACLMessage.CONFIRM);
                     reply.setContent("Proofing request was received");
                     reply.setConversationId("proofing-request");
-                    baseAgent.sendMessage(reply);
+                    //baseAgent.sendMessage(reply);
 
                     proofingTime = proofingRequest.getProofingTime();
                     guids = proofingRequest.getGuids();
@@ -181,22 +194,13 @@ public class Proofer extends BaseAgent {
                     // proofingInProcess.set(true);
                     //messageProcessing.getAndDecrement();
                     addBehaviour(new Proofing());
-                }
-                else{
-                    // System.out.println(getAID().getLocalName()  + " is already taken");
-
-                    ACLMessage reply = msg.createReply();
-                    reply.setPerformative(ACLMessage.FAILURE);
-                    reply.setContent("Proofer is taken");
-                    reply.setConversationId("proofing-request");
-                    baseAgent.sendMessage(reply);
-                    System.out.println(getAID().getLocalName() + " failed proofing of " + msg.getContent());
 
                 }
+                baseAgent.sendMessage(reply);
                 messageProcessing.decrementAndGet();
+            }
 
-
-            }else {
+            else {
                 messageProcessing.decrementAndGet();
                 block();
             }
@@ -220,9 +224,9 @@ public class Proofer extends BaseAgent {
                 proofingInProcess.set(false);
                 isAvailable = true;
                 proofingCounter.set(0);
-                System.out.println("======================================");
+                System.out.println("*******************************************");
                 System.out.println(getAID().getLocalName() + " Finishing proofing " + productType);
-                System.out.println("======================================");
+                System.out.println("*******************************************");
                 // System.out.println("----> " + guidAvailable + " finished Kneading");
                 // addBehaviour(new SendDoughNotification());
             }

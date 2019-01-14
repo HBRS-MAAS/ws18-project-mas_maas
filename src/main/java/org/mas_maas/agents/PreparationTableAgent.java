@@ -163,8 +163,21 @@ public class PreparationTableAgent extends BaseAgent {
 
             if (msg != null) {
 
-                if (doughPrepTable.isAvailable()){
-                    doughPrepTable.setAvailable(false);
+                if (!doughPrepTable.isAvailable()){
+
+                    // System.out.println(getAID().getLocalName()  + " is already taken");
+
+                    ACLMessage reply = msg.createReply();
+                    reply.setPerformative(ACLMessage.FAILURE);
+                    reply.setContent("doughPrepTable is taken");
+                    reply.setConversationId("preparation-request");
+                    baseAgent.sendMessage(reply);
+                    // System.out.println(getAID().getLocalName() + " failed preparation of " + msg.getContent());
+
+
+                }
+                else{
+                    //doughPrepTable.setAvailable(false);
 
                     String content = msg.getContent();
                     System.out.println("***** > " + getAID().getLocalName() + " WILL perform preparation for " + msg.getSender() + "Preparation information -> " + content);
@@ -184,17 +197,7 @@ public class PreparationTableAgent extends BaseAgent {
                     productQuantities = preparationRequest.getProductQuantities();
 
                     addBehaviour(new Preparation());
-                }
 
-                else{
-                    // System.out.println(getAID().getLocalName()  + " is already taken");
-
-                    ACLMessage reply = msg.createReply();
-                    reply.setPerformative(ACLMessage.FAILURE);
-                    reply.setContent("doughPrepTable is taken");
-                    reply.setConversationId("preparation-request");
-                    baseAgent.sendMessage(reply);
-                    // System.out.println(getAID().getLocalName() + " failed preparation of " + msg.getContent());
 
                 }
                 messageProcessing.decrementAndGet();

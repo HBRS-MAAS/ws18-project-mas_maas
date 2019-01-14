@@ -514,7 +514,7 @@ public class DoughManager extends BaseAgent {
                 String preparationRequestString = gson.toJson(preparationRequestMessage);
 
                 // Send preparationRequestMessage
-                addBehaviour(new RequestPreparation(preparationRequestString));
+                //addBehaviour(new RequestPreparation(preparationRequestString));
                 messageProcessing.decrementAndGet();
             }
             else {
@@ -562,7 +562,7 @@ public class DoughManager extends BaseAgent {
                 String proofingRequestString = gson.toJson(proofingRequestMessage);
 
                 // Send preparationRequestMessage
-                // addBehaviour(new RequestProofing(proofingRequestString));
+                addBehaviour(new RequestProofing(proofingRequestString));
                 messageProcessing.decrementAndGet();
             }
             else {
@@ -577,9 +577,9 @@ public class DoughManager extends BaseAgent {
     //This is the behaviour used for sensing a KneadingRequest
     private class RequestKneading extends Behaviour{
         private String kneadingRequest;
-        private MessageTemplate mt;
-        // private ArrayList<AID> kneadingMachinesAvailable = new ArrayList<AID>(); // The kneadingMachineAgent that will perform kneading
+        private MessageTemplate mt;;
         private ArrayList<AID> kneadingMachinesAvailable;
+        private AID kneadingMachine; // The kneadingMachineAgent that will perform kneading
         private int repliesCnt = 0;
         private int option = 0;
 
@@ -608,8 +608,7 @@ public class DoughManager extends BaseAgent {
                     // System.out.println(" << << CFP for: " + kneadingRequest);
                     // System.out.println("======================================");
 
-                    baseAgent.sendMessage(cfp);  // calling sendMessage instead of send
-
+                    baseAgent.sendMessage(cfp);
 
                     // Template to get proposals/refusals
                     mt = MessageTemplate.and(MessageTemplate.MatchConversationId("kneading-request"),
@@ -636,6 +635,9 @@ public class DoughManager extends BaseAgent {
                         }
                         // All kneadingMachines replied
                         if (repliesCnt >= kneadingMachineAgents.size()) {
+                            // Reset reply counter
+                            repliesCnt = 0;
+                            //System.out.println("*** Going to option 2 for " + kneadingRequest);
                         	option = 2;
 
                             // No kneading KneadingMachines available
@@ -656,28 +658,30 @@ public class DoughManager extends BaseAgent {
                     // if (!kneadingMachinesAvailable.isEmpty()){
                         // Accept proposal from the kneading machine that replied first
                         ACLMessage msg = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
-                        msg.addReceiver(kneadingMachinesAvailable.get(0));
-                        // System.out.println(">>>>> " + getAID().getLocalName() + " Accepting proposal from "
-                        //     + kneadingMachinesAvailable.get(0).getName() + " for: " + kneadingRequest);
+                        kneadingMachine = kneadingMachinesAvailable.get(0);
                         kneadingMachinesAvailable.remove(0); //Remove kneadingMachine from list
+                        msg.addReceiver(kneadingMachine);
+
+                        // System.out.println(">>>>> " + getAID().getLocalName() + " Accepting proposal from "
+                        //     + kneadingMachine.getName() + " for: " + kneadingRequest);
 
                         msg.setContent(kneadingRequest);
                         msg.setConversationId("kneading-request");
-                        msg.setReplyWith("msg" + System.currentTimeMillis());
+                        //msg.setReplyWith("msg" + System.currentTimeMillis());
                         baseAgent.sendMessage(msg);
 
                         // Prepare the template to get the msg reply
-                        mt = MessageTemplate.and(MessageTemplate.MatchConversationId("kneading-request"),
-                    		  MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
-
-                        messageProcessing.decrementAndGet();
+                        // Match sender instead of currentTimeMillis
+                        mt = MessageTemplate.and(MessageTemplate.MatchConversationId("kneading-request"), MessageTemplate.MatchSender(kneadingMachine));
+                    		  //MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
 
                         option = 3;
+                        messageProcessing.decrementAndGet();
                     // }
                     break;
 
                 case 3:
-                    // Receive the confirmation for the kneadingMachine
+                    // Receive the confirmation from the kneadingMachine
                     reply = baseAgent.receive(mt);
                     if (reply != null) {
                         if (reply.getPerformative() == ACLMessage.CONFIRM) {
@@ -685,18 +689,15 @@ public class DoughManager extends BaseAgent {
                                 + reply.getSender().getLocalName() + " for: " + reply.getContent());
                             option = 4;
                         }
+
                         else {
-                            // System.out.println(getAID().getLocalName() + " rejection received from -> "
-                            //     + reply.getSender().getLocalName() + " for: " + kneadingRequest);
+                            System.out.println(getAID().getLocalName() + " rejection received from -> "
+                                + reply.getSender().getLocalName() + " for: " + kneadingRequest);
                             if (!kneadingMachinesAvailable.isEmpty()){
                                 option = 2;
                             }else{
                                 option = 0;
-                                // All machines are unavailable. Try in the next time step.
-                                // option = 4;
-
                             }
-                            // Send a knew kneading request for the failed attempt
                         }
                         messageProcessing.decrementAndGet();
                     }
@@ -724,6 +725,7 @@ public class DoughManager extends BaseAgent {
         private String preparationRequest;
         private MessageTemplate mt;
         private ArrayList<AID> preparationTablesAvailable;
+        private AID preparationTable; // The preparationTable that will perform the preparation steps
         private int repliesCnt = 0;
         private int option = 0;
 
@@ -747,9 +749,11 @@ public class DoughManager extends BaseAgent {
                     cfp.setContent(preparationRequest);
                     cfp.setConversationId("preparation-request");
                     cfp.setReplyWith("cfp"+System.currentTimeMillis());
-                    System.out.println("======================================");
-                    System.out.println("CFP for: " + preparationRequest);
-                    System.out.println("======================================");
+
+                    // System.out.println("======================================");
+                    // System.out.println("CFP for: " + preparationRequest);
+                    // System.out.println("======================================");
+
                     baseAgent.sendMessage(cfp);
 
                     // Template to get proposals/refusals
@@ -771,11 +775,11 @@ public class DoughManager extends BaseAgent {
                     }
                     // We received all replies
                     if (repliesCnt >= preparationTableAgents.size()) {
-                        // System.out.println("*****************");
+                        repliesCnt = 0;
                         option = 2;
+
                         // No kneading KneadingMachines available
                         if (preparationTablesAvailable.isEmpty()){
-                            // System.out.println("Nobody wants me");
                             option = 0; // Create a new CFP
                         }
                     }
@@ -792,18 +796,21 @@ public class DoughManager extends BaseAgent {
                 // if (!preparationTablesAvailable.isEmpty()){
                     // Accept proposal from the preparationTable that replied first
                     ACLMessage msg = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
-                    msg.addReceiver(preparationTablesAvailable.get(0));
-                    // System.out.println(getAID().getLocalName() + " Accepting proposal from "
-                        // + preparationTablesAvailable.get(0).getName() + " for: " + preparationRequest);
+                    preparationTable = preparationTablesAvailable.get(0);
                     preparationTablesAvailable.remove(0);
+                    msg.addReceiver(preparationTable);
+
+
+                    // System.out.println(getAID().getLocalName() + " Accepting proposal from "
+                    //     + preparationTable.getName() + " for: " + preparationRequest);
 
                     msg.setContent(preparationRequest);
                     msg.setConversationId("preparation-request");
-                    msg.setReplyWith("msg"+System.currentTimeMillis());
+                    //msg.setReplyWith("msg"+System.currentTimeMillis());
                     baseAgent.sendMessage(msg);
                     // Prepare the template to get the msg reply
-                    mt = MessageTemplate.and(MessageTemplate.MatchConversationId("preparation-request"),
-                          MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
+                    mt = MessageTemplate.and(MessageTemplate.MatchConversationId("preparation-request"), MessageTemplate.MatchSender(preparationTable));
+                        //  MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
                     option = 3;
                     messageProcessing.decrementAndGet();
                 // }
@@ -818,16 +825,13 @@ public class DoughManager extends BaseAgent {
                             +reply.getSender().getLocalName() + " for: " + preparationRequest);
                         option = 4;
                     }
-                    else {
+                    else if (reply.getPerformative() == ACLMessage.FAILURE){
                         // System.out.println(getAID().getLocalName() + " rejection received from -> "
                         //     +reply.getSender().getLocalName() + " for: " + preparationRequest);
                         if (!preparationTablesAvailable.isEmpty()){
                             option = 2;
                         }else{
                             option = 0;
-                            // All machines are unavailable. Try in the next time step.
-                            // option = 4;
-
                         }
                     }
                     messageProcessing.decrementAndGet();
@@ -855,9 +859,6 @@ public class DoughManager extends BaseAgent {
     private class RequestProofing extends Behaviour{
         private String proofingRequest;
         private MessageTemplate mt;
-        // TODO: There is only one proofer
-        // private ArrayList<AID> proofersAvailable;
-        private int repliesCnt = 0;
         private int option = 0;
 
         public RequestProofing(String proofingRequest){
@@ -872,16 +873,14 @@ public class DoughManager extends BaseAgent {
                 case 0:
                     ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
 
-                    // proofersAvailable = new ArrayList<AID>();
-
                     cfp.addReceiver(prooferAgent);
 
                     cfp.setContent(proofingRequest);
                     cfp.setConversationId("proofing-request");
                     cfp.setReplyWith("cfp"+System.currentTimeMillis());
-                    System.out.println("***************************************");
-                    System.out.println("CFP for: " + proofingRequest);
-                    System.out.println("***************************************");
+                    // System.out.println("***************************************");
+                    // System.out.println("CFP for: " + proofingRequest);
+                    // System.out.println("***************************************");
                     baseAgent.sendMessage(cfp);
 
                     // Template to get proposals/refusals
@@ -895,16 +894,14 @@ public class DoughManager extends BaseAgent {
                 case 1:
                     ACLMessage reply = baseAgent.receive(mt);
                     if (reply != null) {
-                        // repliesCnt++;
                         // The Proofer that replies first gets the job
                         if (reply.getPerformative() == ACLMessage.PROPOSE) {
-                            // proofersAvailable.add(reply.getSender());
                             System.out.println(getAID().getLocalName() + " received a proposal from " +
                                 reply.getSender().getName() + " for: " + proofingRequest);
 
                             option = 2;
 
-                        }else{
+                        }else if (reply.getPerformative() == ACLMessage.FAILURE){
                             option = 0;
 
                         }
@@ -924,15 +921,17 @@ public class DoughManager extends BaseAgent {
                     msg.addReceiver(prooferAgent);
                     msg.setContent(proofingRequest);
                     msg.setConversationId("proofing-request");
-                    msg.setReplyWith("msg"+System.currentTimeMillis());
+                    //msg.setReplyWith("msg"+System.currentTimeMillis());
                     System.out.println(getAID().getLocalName() + " Accepting proposal from "
                         + prooferAgent.getName() + " for: " + proofingRequest);
+
                     baseAgent.sendMessage(msg);
                     // Prepare the template to get the msg reply
                     mt = MessageTemplate.and(MessageTemplate.MatchConversationId("proofing-request"),
-                    	  MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
-                          messageProcessing.decrementAndGet();
+                    MessageTemplate.MatchSender(prooferAgent));
+
                     option = 3;
+                    messageProcessing.decrementAndGet();
 
                     break;
 

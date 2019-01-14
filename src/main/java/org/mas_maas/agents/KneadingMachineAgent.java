@@ -163,21 +163,32 @@ public class KneadingMachineAgent extends BaseAgent {
             ACLMessage msg = baseAgent.receive(mt);
 
             if (msg != null) {
-                // messageInProcress.set(true);
-                if (kneadingMachine.isAvailable()){
-                    kneadingMachine.setAvailable(false);
+                ACLMessage reply = msg.createReply();
 
+                if (!kneadingMachine.isAvailable()){
+                    //Check if the kneadingMachine is busy performing the kneading for this kneading request
+                    // System.out.println(getAID().getLocalName()  + " is already taken");
+
+                    reply.setPerformative(ACLMessage.FAILURE);
+                    reply.setContent("KneadingMachine is taken");
+                    reply.setConversationId("kneading-request");
+                    //baseAgent.sendMessage(reply);
+                    // System.out.println("****************************");
+                    // System.out.println(getAID().getLocalName() + " failed kneading of " + msg.getContent());
+                    // System.out.println("****************************");
+                }
+                else{
+                    //kneadingMachine.setAvailable(false);
                     String content = msg.getContent();
                     System.out.println("***** > " + getAID().getLocalName() + " WILL perform Kneading for "
                         + msg.getSender() + "Kneading information -> " + content);
 
                     KneadingRequest kneadingRequest = JSONConverter.parseKneadingRequest(content);
 
-                    ACLMessage reply = msg.createReply();
                     reply.setPerformative(ACLMessage.CONFIRM);
                     reply.setContent("Kneading request was received " + content);
                     reply.setConversationId("kneading-request");
-                    baseAgent.sendMessage(reply);
+                    //baseAgent.sendMessage(reply);
 
                     kneadingTime = kneadingRequest.getKneadingTime();
                     guids = kneadingRequest.getGuids();
@@ -186,20 +197,9 @@ public class KneadingMachineAgent extends BaseAgent {
                     // messageInProcress.set(false);
                     addBehaviour(new Kneading());
                 }
-                else{
-                    // System.out.println(getAID().getLocalName()  + " is already taken");
 
-                    ACLMessage reply = msg.createReply();
-                    reply.setPerformative(ACLMessage.FAILURE);
-                    reply.setContent("KneadingMachine is taken");
-                    reply.setConversationId("kneading-request");
-                    baseAgent.sendMessage(reply);
-                    // System.out.println("****************************");
-                    // System.out.println(getAID().getLocalName() + " failed kneading of " + msg.getContent());
-                    // System.out.println("****************************");
-                }
+                baseAgent.sendMessage(reply);
                 messageProcessing.decrementAndGet();
-
 
             }else {
                 messageProcessing.decrementAndGet();
