@@ -193,7 +193,7 @@ public class DoughManager extends BaseAgent {
 
                 doughPrepTableNames.add(doughPrepTableAgentName);
                 preparationTableAgents.add(new AID(doughPrepTableAgentName, AID.ISLOCALNAME));
-                
+
 
 
                 try {
@@ -482,10 +482,10 @@ public class DoughManager extends BaseAgent {
             ACLMessage msg = baseAgent.receive(mt);
 
             if (msg != null) {
-                System.out.println("================================================================================");
+                // System.out.println("================================================================================");
                 System.out.println(getAID().getLocalName()+" Received Kneading Notification from " + msg.getSender() + " for: ");
                 System.out.println(msg.getContent());
-                System.out.println("================================================================================");
+                // System.out.println("================================================================================");
                 String kneadingNotificationString = msg.getContent();
                 // System.out.println("-----> Kneading notification " + kneadingNotificationString);
 
@@ -515,7 +515,7 @@ public class DoughManager extends BaseAgent {
                 String preparationRequestString = gson.toJson(preparationRequestMessage);
 
                 // Send preparationRequestMessage
-                //addBehaviour(new RequestPreparation(preparationRequestString));
+                addBehaviour(new RequestPreparation(preparationRequestString));
                 messageProcessing.decrementAndGet();
             }
             else {
@@ -536,8 +536,9 @@ public class DoughManager extends BaseAgent {
             ACLMessage msg = baseAgent.receive(mt);
 
             if (msg != null) {
-
-                System.out.println(getAID().getLocalName()+" Received Preparation Notification from " + msg.getSender());
+                System.out.println("======================================");
+                System.out.println(getAID().getLocalName()+" Received Preparation Notification from " + msg.getSender() + " " + msg.getContent());
+                System.out.println("======================================");
                 String preparationNotificationString = msg.getContent();
 
                 ACLMessage reply = msg.createReply();
@@ -562,7 +563,7 @@ public class DoughManager extends BaseAgent {
                 String proofingRequestString = gson.toJson(proofingRequestMessage);
 
                 // Send preparationRequestMessage
-                addBehaviour(new RequestProofing(proofingRequestString));
+                // addBehaviour(new RequestProofing(proofingRequestString));
                 messageProcessing.decrementAndGet();
             }
             else {
@@ -719,7 +720,7 @@ public class DoughManager extends BaseAgent {
     private class RequestPreparation extends Behaviour{
         private String preparationRequest;
         private MessageTemplate mt;
-        private ArrayList<AID> preparationTablesAvailable = new ArrayList<AID>();
+        private ArrayList<AID> preparationTablesAvailable;
         private int repliesCnt = 0;
         private int option = 0;
 
@@ -734,6 +735,7 @@ public class DoughManager extends BaseAgent {
                 case 0:
                     ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
 
+                    preparationTablesAvailable = new ArrayList<AID>();
                     // Send preparation requests msg to all preparationTableAgents
                     for (int i=0; i<preparationTableAgents.size(); i++){
                         cfp.addReceiver(preparationTableAgents.get(i));
@@ -742,9 +744,9 @@ public class DoughManager extends BaseAgent {
                     cfp.setContent(preparationRequest);
                     cfp.setConversationId("preparation-request");
                     cfp.setReplyWith("cfp"+System.currentTimeMillis());
-
+                    System.out.println("======================================");
                     System.out.println("CFP for: " + preparationRequest);
-
+                    System.out.println("======================================");
                     baseAgent.sendMessage(cfp);
 
                     // Template to get proposals/refusals
@@ -767,6 +769,10 @@ public class DoughManager extends BaseAgent {
                     // We received all replies
                     if (repliesCnt >= preparationTableAgents.size()) {
                         option = 2;
+                        // No kneading KneadingMachines available
+                        if (preparationTableAgents.isEmpty()){
+                            option = 0; // Create a new CFP
+                        }
                     }
                     messageProcessing.decrementAndGet();
                 }
@@ -782,8 +788,10 @@ public class DoughManager extends BaseAgent {
                     // Accept proposal from the preparationTable that replied first
                     ACLMessage msg = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
                     msg.addReceiver(preparationTablesAvailable.get(0));
+                    System.out.println(getAID().getLocalName() + " Accepting proposal from "
+                        + preparationTablesAvailable.get(0).getName() + " for: " + preparationRequest);
                     preparationTablesAvailable.remove(0);
-                    System.out.println(getAID().getLocalName() + " Accepting proposal");
+
                     msg.setContent(preparationRequest);
                     msg.setConversationId("preparation-request");
                     msg.setReplyWith("msg"+System.currentTimeMillis());
@@ -801,7 +809,7 @@ public class DoughManager extends BaseAgent {
                 reply = baseAgent.receive(mt);
                 if (reply != null) {
                     if (reply.getPerformative() == ACLMessage.CONFIRM) {
-                        System.out.println(getAID().getLocalName()+ " confirmation received from -> "
+                        System.out.println("----> " + getAID().getLocalName()+ " confirmation received from -> "
                             +reply.getSender().getLocalName() + " for: " + preparationRequest);
                         option = 4;
                     }
@@ -811,9 +819,9 @@ public class DoughManager extends BaseAgent {
                         if (!preparationTablesAvailable.isEmpty()){
                             option = 2;
                         }else{
-                            //option = 0;
+                            option = 0;
                             // All machines are unavailable. Try in the next time step.
-                            option = 4;
+                            // option = 4;
 
                         }
                     }

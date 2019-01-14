@@ -98,7 +98,8 @@ public class PreparationTableAgent extends BaseAgent {
             if (!baseAgent.getAllowAction()) {
                 return;
             }else{
-                if (preparationInProcess.get() && !fullPrepDone.get()){
+                // if (preparationInProcess.get() && !fullPrepDone.get()){
+                if (preparationInProcess.get()){
                     int curCount = stepCounter.incrementAndGet();
                     System.out.println(">>>>> DoughPrep Counter -> " + getAID().getLocalName() + " " + stepCounter + " <<<<<");
                     addBehaviour(new Preparation());
@@ -110,27 +111,6 @@ public class PreparationTableAgent extends BaseAgent {
             }
         }
     }
-
-
-    // private class timeTracker extends CyclicBehaviour {
-    //     public void action() {
-    //         // first we make sure we are even allowed to do anything
-    //         if (!baseAgent.getAllowAction()) {
-    //             return;
-    //         }
-    //
-    //         // once we know our agent is able to do an action check if we need to actually do anything
-    //         if (!processingMessage.get())
-    //         {
-    //             if (preparationInProcess.get() && !fullPrepDone.get()){
-    //                 int curCount = stepCounter.incrementAndGet();
-    //                 //System.out.println("-------> Dough Prep Clock-> " + baseAgent.getCurrentHour());
-    //                 //System.out.println("-------> step Counter -> " + curCount);
-    //             }
-    //             baseAgent.finished();
-    //         }
-    //     }
-    // }
 
     private class ReceiveProposalRequests extends CyclicBehaviour{
         public void action(){
@@ -149,11 +129,11 @@ public class PreparationTableAgent extends BaseAgent {
                 ACLMessage reply = msg.createReply();
                 if (doughPrepTable.isAvailable()){
                 	//System.out.println(getAID().getLocalName() + " is available");
-                    fullPrepDone.set(false);
+                    // fullPrepDone.set(false);
                     reply.setPerformative(ACLMessage.PROPOSE);
                     reply.setContent("Hey I am free, do you wanna use me ;)?");
                 }else{
-                	System.out.println(getAID().getLocalName() + " is unavailable");
+                	// System.out.println(getAID().getLocalName() + " is unavailable");
                     reply.setPerformative(ACLMessage.REFUSE);
                     reply.setContent("Sorry, I am married potato :c");
                 }
@@ -225,7 +205,8 @@ public class PreparationTableAgent extends BaseAgent {
     // performs Preparation process
     private class Preparation extends OneShotBehaviour {
         public void action(){
-            if (!preparationInProcess.get() && !fullPrepDone.get()){
+            // if (!preparationInProcess.get() && !fullPrepDone.get()){
+            if (!preparationInProcess.get()){
 
                 preparationInProcess.set(true);
                 doughPrepTable.setAvailable(false);
@@ -241,12 +222,13 @@ public class PreparationTableAgent extends BaseAgent {
                         stepDuration = steps.get(curStepIndex).getDuration();
                     }
 
-                    System.out.println("-----> Performing " + stepAction + "for " + stepDuration);
+                    System.out.println("-----> Performing " + stepAction + " for " + stepDuration
+                                      + " for product " + productType);
 
                 }else{
                     // We have performed all preparation actions.
                     curStepIndex = 0;
-                    fullPrepDone.set(true);
+                    // fullPrepDone.set(true);
                     stepCounter.set(0);
                     preparationInProcess.set(false);
                     doughPrepTable.setAvailable(true);
@@ -254,7 +236,8 @@ public class PreparationTableAgent extends BaseAgent {
                 }
             }
 
-            if (stepCounter.get() >= stepDuration && !fullPrepDone.get()){
+            // if (stepCounter.get() >= stepDuration && !fullPrepDone.get()){
+            if (stepCounter.get() >= stepDuration){
                 curStepIndex++;
                 stepCounter.set(0);
                 preparationInProcess.set(false);
