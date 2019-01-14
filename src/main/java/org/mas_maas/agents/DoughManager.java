@@ -44,8 +44,10 @@ import org.maas.agents.BaseAgent;
 public class DoughManager extends BaseAgent {
     private AID dummyOrderProcesserAgent;
     private AID prooferAgent;
-    private AID [] kneadingMachineAgents;
-    private AID [] preparationTableAgents;
+
+    private ArrayList<AID> preparationTableAgents = new ArrayList<AID>();
+    private ArrayList<AID> kneadingMachineAgents = new ArrayList<AID>();
+
     private AID dummyOrderProcesser = new AID("dummyOrderProcesser", AID.ISLOCALNAME);
     private String scenarioPath;
     private AgentContainer container = null;
@@ -94,8 +96,8 @@ public class DoughManager extends BaseAgent {
 
 		getDummyOrderProcesserAID();
 		getProoferAID();
-        getKneadingMachineAIDs();
-        getPreparationTableAIDS();
+        //getKneadingMachineAIDs();
+        //getPreparationTableAIDS();
 
         // Time tracker behavior
         addBehaviour(new timeTracker());
@@ -161,6 +163,7 @@ public class DoughManager extends BaseAgent {
                 String kneadingMachineAgentName = "KneadingMachineAgent_" +  bakeryId + "_" + kneadingMachine.getGuid();
 
                 kneadingMachineNames.add(kneadingMachineAgentName);
+                kneadingMachineAgents.add(new AID (kneadingMachineAgentName, AID.ISLOCALNAME));
 
                 try {
                     Object[] args = new Object[3];
@@ -189,6 +192,9 @@ public class DoughManager extends BaseAgent {
                 String doughPrepTableAgentName = "DoughPrepTableAgent_" +  bakeryId + "_" + doughPrepTable.getGuid();
 
                 doughPrepTableNames.add(doughPrepTableAgentName);
+                preparationTableAgents.add(new AID(doughPrepTableAgentName, AID.ISLOCALNAME));
+                
+
 
                 try {
                     Object[] args = new Object[3];
@@ -219,66 +225,67 @@ public class DoughManager extends BaseAgent {
         prooferAgent = new AID(prooferAgentName, AID.ISLOCALNAME);
     }
 
-    public void getKneadingMachineAIDs() {
-        DFAgentDescription template = new DFAgentDescription();
-        ServiceDescription sd = new ServiceDescription();
 
-        kneadingMachineAgents = new AID [kneadingMachineNames.size()];
+    // public void getKneadingMachineAIDs() {
+    //     DFAgentDescription template = new DFAgentDescription();
+    //     ServiceDescription sd = new ServiceDescription();
+    //
+    //     kneadingMachineAgents = new AID [kneadingMachineNames.size()];
+    //
+    //     int j = 0;
+    //
+    //     for(String kneadingMachineName : kneadingMachineNames) {
+    //     	sd.setType(kneadingMachineName);
+    //         template.addServices(sd);
+    //
+    //         try {
+    //             DFAgentDescription [] result = DFService.search(this, template);
+    //             System.out.println(getAID().getLocalName() + " Found the following Kneading-machine agents:");
+    //
+    //             for (int i = 0; i < result.length; ++i) {
+    //                 kneadingMachineAgents[j] = result[i].getName();
+    //                 System.out.println("------->" + kneadingMachineAgents[j].getName());
+    //             }
+    //
+    //         }
+    //         catch (FIPAException fe) {
+    //             System.out.println("NOT FOUND " + kneadingMachineName);
+    //             fe.printStackTrace();
+    //         }
+    //         j ++;
+    //     }
+    //
+    // }
 
-        int j = 0;
-
-        for(String kneadingMachineName : kneadingMachineNames) {
-        	sd.setType(kneadingMachineName);
-            template.addServices(sd);
-
-            try {
-                DFAgentDescription [] result = DFService.search(this, template);
-                //System.out.println(getAID().getLocalName() + " Found the following Kneading-machine agents:");
-
-                for (int i = 0; i < result.length; ++i) {
-                    kneadingMachineAgents[j] = result[i].getName();
-                    //System.out.println(kneadingMachineAgents[j].getName());
-                }
-
-            }
-            catch (FIPAException fe) {
-                System.out.println("NOT FOUND " + kneadingMachineName);
-                fe.printStackTrace();
-            }
-            j ++;
-        }
-
-    }
-
-    public void getPreparationTableAIDS() {
-        DFAgentDescription template = new DFAgentDescription();
-        ServiceDescription sd = new ServiceDescription();
-
-        preparationTableAgents = new AID [doughPrepTableNames.size()];
-
-        int j = 0;
-
-        for(String doughPrepTableName : doughPrepTableNames) {
-        	sd.setType(doughPrepTableName);
-            template.addServices(sd);
-
-            try {
-                DFAgentDescription [] result = DFService.search(this, template);
-                //System.out.println(getAID().getLocalName() + " Found the following doughPrepTable agents:");
-
-                for (int i = 0; i < result.length; ++i) {
-                    preparationTableAgents[j] = result[i].getName();
-                    //System.out.println(preparationTableAgents[j].getName());
-                }
-
-            }
-            catch (FIPAException fe) {
-                System.out.println("NOT FOUND " + doughPrepTableName);
-                fe.printStackTrace();
-            }
-            j ++;
-        }
-    }
+    // public void getPreparationTableAIDS() {
+    //     DFAgentDescription template = new DFAgentDescription();
+    //     ServiceDescription sd = new ServiceDescription();
+    //
+    //     preparationTableAgents = new AID [doughPrepTableNames.size()];
+    //
+    //     int j = 0;
+    //
+    //     for(String doughPrepTableName : doughPrepTableNames) {
+    //     	sd.setType(doughPrepTableName);
+    //         template.addServices(sd);
+    //
+    //         try {
+    //             DFAgentDescription [] result = DFService.search(this, template);
+    //             //System.out.println(getAID().getLocalName() + " Found the following doughPrepTable agents:");
+    //
+    //             for (int i = 0; i < result.length; ++i) {
+    //                 preparationTableAgents[j] = result[i].getName();
+    //                 //System.out.println(preparationTableAgents[j].getName());
+    //             }
+    //
+    //         }
+    //         catch (FIPAException fe) {
+    //             System.out.println("NOT FOUND " + doughPrepTableName);
+    //             fe.printStackTrace();
+    //         }
+    //         j ++;
+    //     }
+    // }
 
 
 
@@ -508,7 +515,7 @@ public class DoughManager extends BaseAgent {
                 String preparationRequestString = gson.toJson(preparationRequestMessage);
 
                 // Send preparationRequestMessage
-                addBehaviour(new RequestPreparation(preparationRequestString));
+                //addBehaviour(new RequestPreparation(preparationRequestString));
                 messageProcessing.decrementAndGet();
             }
             else {
@@ -589,8 +596,8 @@ public class DoughManager extends BaseAgent {
 
                     kneadingMachinesAvailable = new ArrayList<AID>();
                     // Send kneadingRequest msg to all kneadingMachineAgents
-                    for (int i=0; i<kneadingMachineAgents.length; i++){
-                        cfp.addReceiver(kneadingMachineAgents[i]);
+                    for (int i=0; i<kneadingMachineAgents.size(); i++){
+                        cfp.addReceiver(kneadingMachineAgents.get(i));
                     }
 
                     cfp.setContent(kneadingRequest);
@@ -624,7 +631,7 @@ public class DoughManager extends BaseAgent {
                             System.out.println(getAID().getLocalName() + " received a proposal from " + reply.getSender().getName() + " for: " + kneadingRequest);
                         }
                         // All kneadingMachines replied
-                        if (repliesCnt >= kneadingMachineAgents.length) {
+                        if (repliesCnt >= kneadingMachineAgents.size()) {
                         	option = 2;
 
                             // No kneading KneadingMachines available
@@ -728,8 +735,8 @@ public class DoughManager extends BaseAgent {
                     ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
 
                     // Send preparation requests msg to all preparationTableAgents
-                    for (int i=0; i<preparationTableAgents.length; i++){
-                        cfp.addReceiver(preparationTableAgents[i]);
+                    for (int i=0; i<preparationTableAgents.size(); i++){
+                        cfp.addReceiver(preparationTableAgents.get(i));
                     }
 
                     cfp.setContent(preparationRequest);
@@ -758,7 +765,7 @@ public class DoughManager extends BaseAgent {
                         System.out.println(getAID().getLocalName() + " received a proposal from " + reply.getSender().getName() + " for: " + preparationRequest);
                     }
                     // We received all replies
-                    if (repliesCnt >= preparationTableAgents.length) {
+                    if (repliesCnt >= preparationTableAgents.size()) {
                         option = 2;
                     }
                     messageProcessing.decrementAndGet();
