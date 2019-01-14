@@ -744,9 +744,9 @@ public class DoughManager extends BaseAgent {
                     cfp.setContent(preparationRequest);
                     cfp.setConversationId("preparation-request");
                     cfp.setReplyWith("cfp"+System.currentTimeMillis());
-                    System.out.println("======================================");
+                    // System.out.println("======================================");
                     System.out.println("CFP for: " + preparationRequest);
-                    System.out.println("======================================");
+                    // System.out.println("======================================");
                     baseAgent.sendMessage(cfp);
 
                     // Template to get proposals/refusals
@@ -768,9 +768,11 @@ public class DoughManager extends BaseAgent {
                     }
                     // We received all replies
                     if (repliesCnt >= preparationTableAgents.size()) {
+                        // System.out.println("*****************");
                         option = 2;
                         // No kneading KneadingMachines available
-                        if (preparationTableAgents.isEmpty()){
+                        if (preparationTablesAvailable.isEmpty()){
+                            // System.out.println("Nobody wants me");
                             option = 0; // Create a new CFP
                         }
                     }

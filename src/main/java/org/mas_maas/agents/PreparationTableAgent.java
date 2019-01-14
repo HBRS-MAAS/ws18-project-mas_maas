@@ -124,16 +124,16 @@ public class PreparationTableAgent extends BaseAgent {
 
             if (msg != null){
                 String content = msg.getContent();
-                //System.out.println(getAID().getLocalName() + "has received a proposal request from " + msg.getSender().getName());
+                System.out.println(getAID().getLocalName() + "has received a proposal request from " + msg.getSender().getName());
 
                 ACLMessage reply = msg.createReply();
                 if (doughPrepTable.isAvailable()){
-                	//System.out.println(getAID().getLocalName() + " is available");
+                	System.out.println(getAID().getLocalName() + " is available");
                     // fullPrepDone.set(false);
                     reply.setPerformative(ACLMessage.PROPOSE);
                     reply.setContent("Hey I am free, do you wanna use me ;)?");
                 }else{
-                	// System.out.println(getAID().getLocalName() + " is unavailable");
+                	System.out.println(getAID().getLocalName() + " is unavailable");
                     reply.setPerformative(ACLMessage.REFUSE);
                     reply.setContent("Sorry, I am married potato :c");
                 }
