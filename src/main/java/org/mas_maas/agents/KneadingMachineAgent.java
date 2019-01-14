@@ -120,23 +120,25 @@ public class KneadingMachineAgent extends BaseAgent {
 
             MessageTemplate mt = MessageTemplate.and(
                 MessageTemplate.MatchPerformative(ACLMessage.CFP),
-                MessageTemplate.MatchConversationId("kneading-request"));
+                MessageTemplate.MatchSender(doughManagerAgent));
+                // MessageTemplate.MatchConversationId("kneading-request"));
 
             ACLMessage msg = baseAgent.receive(mt);
 
             if (msg != null){
                 String content = msg.getContent();
-                // System.out.println(getAID().getLocalName() + "has received a CFP from " + msg.getSender().getName());
+                // System.out.println(" << << " + getAID().getLocalName() + " has received a CFP from "
+                    // + msg.getSender().getName() + " for " + content);
 
                 ACLMessage reply = msg.createReply();
                 if (kneadingMachine.isAvailable()){
                 	//System.out.println(getAID().getLocalName() + " is available");
                     reply.setPerformative(ACLMessage.PROPOSE);
-                    reply.setContent("Hey I am free, do you wanna use me ;)?");
+                    reply.setContent("Hey I am free, do you wanna use me ;)? " + content);
                 }else{
                 	// System.out.println(getAID().getLocalName() + " is unavailable");
                     reply.setPerformative(ACLMessage.REFUSE);
-                    reply.setContent("Sorry, I am married potato :c");
+                    reply.setContent("Sorry, I am married potato :c " + content);
                 }
                 baseAgent.sendMessage(reply);
                 messageProcessing.decrementAndGet();
@@ -155,7 +157,8 @@ public class KneadingMachineAgent extends BaseAgent {
             messageProcessing.incrementAndGet();
             MessageTemplate mt = MessageTemplate.and(
                 MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL),
-                MessageTemplate.MatchConversationId("kneading-request"));
+                MessageTemplate.MatchSender(doughManagerAgent));
+                // MessageTemplate.MatchConversationId("kneading-request"));
 
             ACLMessage msg = baseAgent.receive(mt);
 
@@ -165,13 +168,14 @@ public class KneadingMachineAgent extends BaseAgent {
                     kneadingMachine.setAvailable(false);
 
                     String content = msg.getContent();
-                    System.out.println(getAID().getLocalName() + " WILL perform Kneading for " + msg.getSender() + "Kneading information -> " + content);
+                    System.out.println("***** > " + getAID().getLocalName() + " WILL perform Kneading for "
+                        + msg.getSender() + "Kneading information -> " + content);
 
                     KneadingRequest kneadingRequest = JSONConverter.parseKneadingRequest(content);
 
                     ACLMessage reply = msg.createReply();
                     reply.setPerformative(ACLMessage.CONFIRM);
-                    reply.setContent("Kneading request was received");
+                    reply.setContent("Kneading request was received " + content);
                     reply.setConversationId("kneading-request");
                     baseAgent.sendMessage(reply);
 
@@ -190,8 +194,9 @@ public class KneadingMachineAgent extends BaseAgent {
                     reply.setContent("KneadingMachine is taken");
                     reply.setConversationId("kneading-request");
                     baseAgent.sendMessage(reply);
-                    System.out.println(getAID().getLocalName() + " failed kneading of " + msg.getContent());
-
+                    // System.out.println("****************************");
+                    // System.out.println(getAID().getLocalName() + " failed kneading of " + msg.getContent());
+                    // System.out.println("****************************");
                 }
                 messageProcessing.decrementAndGet();
 
@@ -208,7 +213,7 @@ public class KneadingMachineAgent extends BaseAgent {
         public void action(){
             if (kneadingCounter.get() < kneadingTime){
                 if (!kneadingInProcess.get()){
-                    System.out.println(getAID().getLocalName() + " Kneading for " + kneadingTime);
+                    System.out.println(getAID().getLocalName() + " Kneading for " + kneadingTime + " " + productType);
                     kneadingInProcess.set(true);
                     kneadingMachine.setAvailable(false);
                 }
@@ -217,7 +222,7 @@ public class KneadingMachineAgent extends BaseAgent {
                 kneadingInProcess.set(false);
                 kneadingMachine.setAvailable(true);
                 kneadingCounter.set(0);
-                System.out.println(getAID().getLocalName() + "Finishing kneading");
+                System.out.println(getAID().getLocalName() + " Finishing kneading " + productType);
                 // System.out.println("----> " + guidAvailable + " finished Kneading");
                 addBehaviour(new SendKneadingNotification());
             }
@@ -247,7 +252,7 @@ public class KneadingMachineAgent extends BaseAgent {
 
                     baseAgent.sendMessage(msg);
 
-                    System.out.println(getAID().getLocalName() + " Sent kneadingNotification");
+                    // System.out.println(getAID().getLocalName() + " Sent kneadingNotification");
                     messageProcessing.decrementAndGet();
                     option = 1;
                     break;
@@ -259,7 +264,7 @@ public class KneadingMachineAgent extends BaseAgent {
                     ACLMessage reply = baseAgent.receive(mt);
 
                     if (reply != null) {
-                        System.out.println(getAID().getLocalName() + " Received kneading notification confirmation from " + reply.getSender());
+                        // System.out.println(getAID().getLocalName() + " Received kneading notification confirmation from " + reply.getSender());
                         option = 2;
                         // messageInProcress.set(false);
                     }

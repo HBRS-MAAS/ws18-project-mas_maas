@@ -95,27 +95,6 @@ public class Proofer extends BaseAgent {
         }
     }
 
-   //  // Behaviour used to keep track of time
-   //  private class timeTracker extends CyclicBehaviour {
-   //     public void action() {
-   //         // first we make sure we are even allowed to do anything
-   //         if (!baseAgent.getAllowAction()) {
-   //             return;
-   //         }
-   //
-   //         // once we know our agent is able to do an action check if we need to actually do anything
-   //         if (messageProcessing.get() <= 0)
-   //         {
-   //             if (proofingInProcess.get()){
-   //                 int curCount = proofingCounter.incrementAndGet();
-   //                 System.out.println("-------> Proofer Clock-> " + baseAgent.getCurrentTime());
-   //                 System.out.println("-------> Proofer Counter -> " + curCount);
-   //             }
-   //             baseAgent.finished();
-   //         }
-   //     }
-   // }
-
    private class timeTracker extends CyclicBehaviour {
        public void action() {
            if (!baseAgent.getAllowAction()) {
@@ -146,7 +125,7 @@ public class Proofer extends BaseAgent {
 
            if (msg != null){
                String content = msg.getContent();
-               System.out.println(getAID().getLocalName() + "has received a proposal request from " + msg.getSender().getName());
+               // System.out.println(getAID().getLocalName() + "has received a proposal request from " + msg.getSender().getName());
 
                ACLMessage reply = msg.createReply();
                if (isAvailable){
@@ -154,7 +133,7 @@ public class Proofer extends BaseAgent {
                    reply.setPerformative(ACLMessage.PROPOSE);
                    reply.setContent("Hey I am free, do you wanna use me ;)?");
                }else{
-                   System.out.println(getAID().getLocalName() + " is unavailable");
+                   // System.out.println(getAID().getLocalName() + " is unavailable");
                    reply.setPerformative(ACLMessage.REFUSE);
                    reply.setContent("Sorry, I am married potato :c");
                }
@@ -174,7 +153,8 @@ public class Proofer extends BaseAgent {
         public void action() {
 
             messageProcessing.getAndIncrement();
-            MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL),
+            MessageTemplate mt = MessageTemplate.and(
+                MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL),
                 MessageTemplate.MatchConversationId("proofing-request"));
             ACLMessage msg = baseAgent.receive(mt);
 
@@ -198,7 +178,7 @@ public class Proofer extends BaseAgent {
                     productType = proofingRequest.getProductType();
                     productQuantities = proofingRequest.getProductQuantities();
 
-                    proofingInProcess.set(true);
+                    // proofingInProcess.set(true);
                     //messageProcessing.getAndDecrement();
                     addBehaviour(new Proofing());
                 }
@@ -229,7 +209,9 @@ public class Proofer extends BaseAgent {
         public void action(){
             if (proofingCounter.get() < proofingTime){
                 if (!proofingInProcess.get()){
-                    System.out.println(getAID().getLocalName() + " Proofing for " + proofingTime);
+                    // System.out.println("======================================");
+                    System.out.println("----> " + getAID().getLocalName() + " Proofing for " + proofingTime + " " + productType);
+                    // System.out.println("======================================");
                     proofingInProcess.set(true);
                     isAvailable = false;
                 }
@@ -238,9 +220,11 @@ public class Proofer extends BaseAgent {
                 proofingInProcess.set(false);
                 isAvailable = true;
                 proofingCounter.set(0);
-                System.out.println(getAID().getLocalName() + "Finishing proofing");
+                System.out.println("======================================");
+                System.out.println(getAID().getLocalName() + " Finishing proofing " + productType);
+                System.out.println("======================================");
                 // System.out.println("----> " + guidAvailable + " finished Kneading");
-                //addBehaviour(new SendDoughNotification());
+                // addBehaviour(new SendDoughNotification());
             }
         }
     }
