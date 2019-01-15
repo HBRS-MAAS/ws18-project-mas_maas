@@ -120,8 +120,8 @@ public class KneadingMachineAgent extends BaseAgent {
 
             MessageTemplate mt = MessageTemplate.and(
                 MessageTemplate.MatchPerformative(ACLMessage.CFP),
-                MessageTemplate.MatchSender(doughManagerAgent));
-                // MessageTemplate.MatchConversationId("kneading-request"));
+                MessageTemplate.MatchConversationId("kneading-request"));
+                //MessageTemplate.MatchSender(doughManagerAgent));
 
             ACLMessage msg = baseAgent.receive(mt);
 
@@ -155,12 +155,13 @@ public class KneadingMachineAgent extends BaseAgent {
     private class ReceiveKneadingRequests extends CyclicBehaviour {
         public void action() {
             messageProcessing.incrementAndGet();
-            MessageTemplate mt = MessageTemplate.and(
-                MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL),
-                MessageTemplate.MatchSender(doughManagerAgent));
-                // MessageTemplate.MatchConversationId("kneading-request"));
 
-            ACLMessage msg = baseAgent.receive(mt);
+            MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL);
+            ACLMessage msg = myAgent.receive(mt);
+
+
+                //MessageTemplate.MatchSender(doughManagerAgent));
+                // MessageTemplate.MatchConversationId("kneading-request"));
 
             if (msg != null) {
                 ACLMessage reply = msg.createReply();
@@ -171,23 +172,23 @@ public class KneadingMachineAgent extends BaseAgent {
 
                     reply.setPerformative(ACLMessage.FAILURE);
                     reply.setContent("KneadingMachine is taken");
-                    reply.setConversationId("kneading-request");
+                    //reply.setConversationId("kneading-request");
                     //baseAgent.sendMessage(reply);
                     // System.out.println("****************************");
                     // System.out.println(getAID().getLocalName() + " failed kneading of " + msg.getContent());
                     // System.out.println("****************************");
                 }
                 else{
-                    //kneadingMachine.setAvailable(false);
+                    kneadingMachine.setAvailable(false);
                     String content = msg.getContent();
                     System.out.println("***** > " + getAID().getLocalName() + " WILL perform Kneading for "
                         + msg.getSender() + "Kneading information -> " + content);
 
                     KneadingRequest kneadingRequest = JSONConverter.parseKneadingRequest(content);
 
-                    reply.setPerformative(ACLMessage.CONFIRM);
+                    reply.setPerformative(ACLMessage.INFORM);
                     reply.setContent("Kneading request was received " + content);
-                    reply.setConversationId("kneading-request");
+                    //reply.setConversationId("kneading-request");
                     //baseAgent.sendMessage(reply);
 
                     kneadingTime = kneadingRequest.getKneadingTime();

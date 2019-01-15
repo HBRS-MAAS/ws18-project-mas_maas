@@ -30,6 +30,7 @@ import com.google.gson.Gson;
 import jade.core.AID;
 import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.CyclicBehaviour;
+import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -90,25 +91,52 @@ public class DoughManager extends BaseAgent {
         //System.out.println("Bakery " + bakeryId + " is " + bakery.getGuid());
 
         // Get equipment for this bakery
-		equipment = bakery.getEquipment();
-		// Create an agent for each equipment
-		createEquipmentAgents();
+        equipment = bakery.getEquipment();
+        // Create an agent for each equipment
+        createEquipmentAgents();
 
-		getDummyOrderProcesserAID();
-		getProoferAID();
-        //getKneadingMachineAIDs();
-        //getPreparationTableAIDS();
+        getDummyOrderProcesserAID();
+        getProoferAID();
 
-        // Time tracker behavior
         addBehaviour(new timeTracker());
-
-        // Activate behavior that receives orders
         addBehaviour(new ReceiveOrders());
-
         addBehaviour(new ReceiveKneadingNotification());
         addBehaviour(new ReceivePreparationNotification());
 
+        addBehaviour(new checkingKneadingWorkqueue());
 
+    }
+
+    // Behaviour that checks the needsKneading workqueue and activates CFP for requesting kneading
+    private class checkingKneadingWorkqueue extends CyclicBehaviour{
+        public void action(){
+            messageProcessing.incrementAndGet();
+
+            if (needsKneading.hasProducts()){
+
+                // Creates a kneadingRequestMessage for the first product in the workqueue
+                KneadingRequest kneadingRequestMessage = createKneadingRequestMessage();
+
+                String productType = kneadingRequestMessage.getProductType();
+
+                //Batch of ProductStatuses used for creating the kneadingRequest
+                Vector <ProductStatus> batch = needsKneading.findProductStatus(productType);
+
+                //Remove the product from the needsKneading workQueue
+                needsKneading.removeProductStatus(productType);
+
+                // Convert the kneadingRequest object to a String.
+                Gson gson = new Gson();
+                String kneadingRequestString = gson.toJson(kneadingRequestMessage);
+
+                // System.out.println("KneadingRequest: " + kneadingRequestString);
+
+                // Add behavior to send a CFP for this kneadingRequest
+                addBehaviour(new RequestKneading(kneadingRequestString, batch));
+            }
+            messageProcessing.decrementAndGet();
+
+        }
     }
 
     private class timeTracker extends CyclicBehaviour {
@@ -116,7 +144,6 @@ public class DoughManager extends BaseAgent {
             if (!baseAgent.getAllowAction()) {
                 return;
             }
-
             // only advance if we aren't currently processing any messages
             if (messageProcessing.get() <= 0)
             {
@@ -174,8 +201,6 @@ public class DoughManager extends BaseAgent {
                     AgentController kneadingMachineAgent = container.createNewAgent(kneadingMachineAgentName, "org.mas_maas.agents.KneadingMachineAgent", args);
                     kneadingMachineAgent.start();
 
-                    // System.out.println(getLocalName()+" created and started:"+ kneadingMachineAgent + " on container "+((ContainerController) container).getContainerName());
-
                 } catch (Exception any) {
                     any.printStackTrace();
                 }
@@ -187,14 +212,12 @@ public class DoughManager extends BaseAgent {
 
                 //Object of type DoughPrepTable
                 DoughPrepTable doughPrepTable = (DoughPrepTable) equipment.get(i);
-                //Name of preparationTableAgent
 
+                //Name of preparationTableAgent
                 String doughPrepTableAgentName = "DoughPrepTableAgent_" +  bakeryId + "_" + doughPrepTable.getGuid();
 
                 doughPrepTableNames.add(doughPrepTableAgentName);
                 preparationTableAgents.add(new AID(doughPrepTableAgentName, AID.ISLOCALNAME));
-
-
 
                 try {
                     Object[] args = new Object[3];
@@ -205,15 +228,14 @@ public class DoughManager extends BaseAgent {
                     AgentController preparationTableAgent = container.createNewAgent(doughPrepTableAgentName, "org.mas_maas.agents.PreparationTableAgent", args);
                     preparationTableAgent.start();
 
-                    // System.out.println(getLocalName()+" created and started:"+ preparationTableAgent + " on container "+((ContainerController) container).getContainerName());
                 } catch (Exception any) {
                     any.printStackTrace();
                 }
-                }
+            }
 
-		}
+        }
 
-	}
+    }
 
     public void getDummyOrderProcesserAID() {
         String dummyOrderProcesserAgentName = "DummyOrderProcesser";
@@ -224,70 +246,6 @@ public class DoughManager extends BaseAgent {
         String prooferAgentName = "Proofer_" + bakeryId;
         prooferAgent = new AID(prooferAgentName, AID.ISLOCALNAME);
     }
-
-
-    // public void getKneadingMachineAIDs() {
-    //     DFAgentDescription template = new DFAgentDescription();
-    //     ServiceDescription sd = new ServiceDescription();
-    //
-    //     kneadingMachineAgents = new AID [kneadingMachineNames.size()];
-    //
-    //     int j = 0;
-    //
-    //     for(String kneadingMachineName : kneadingMachineNames) {
-    //     	sd.setType(kneadingMachineName);
-    //         template.addServices(sd);
-    //
-    //         try {
-    //             DFAgentDescription [] result = DFService.search(this, template);
-    //             System.out.println(getAID().getLocalName() + " Found the following Kneading-machine agents:");
-    //
-    //             for (int i = 0; i < result.length; ++i) {
-    //                 kneadingMachineAgents[j] = result[i].getName();
-    //                 System.out.println("------->" + kneadingMachineAgents[j].getName());
-    //             }
-    //
-    //         }
-    //         catch (FIPAException fe) {
-    //             System.out.println("NOT FOUND " + kneadingMachineName);
-    //             fe.printStackTrace();
-    //         }
-    //         j ++;
-    //     }
-    //
-    // }
-
-    // public void getPreparationTableAIDS() {
-    //     DFAgentDescription template = new DFAgentDescription();
-    //     ServiceDescription sd = new ServiceDescription();
-    //
-    //     preparationTableAgents = new AID [doughPrepTableNames.size()];
-    //
-    //     int j = 0;
-    //
-    //     for(String doughPrepTableName : doughPrepTableNames) {
-    //     	sd.setType(doughPrepTableName);
-    //         template.addServices(sd);
-    //
-    //         try {
-    //             DFAgentDescription [] result = DFService.search(this, template);
-    //             //System.out.println(getAID().getLocalName() + " Found the following doughPrepTable agents:");
-    //
-    //             for (int i = 0; i < result.length; ++i) {
-    //                 preparationTableAgents[j] = result[i].getName();
-    //                 //System.out.println(preparationTableAgents[j].getName());
-    //             }
-    //
-    //         }
-    //         catch (FIPAException fe) {
-    //             System.out.println("NOT FOUND " + doughPrepTableName);
-    //             fe.printStackTrace();
-    //         }
-    //         j ++;
-    //     }
-    // }
-
-
 
     public void queueOrder(OrderMas order) {
         // Add productStatus to the needsKneading WorkQueue
@@ -303,13 +261,14 @@ public class DoughManager extends BaseAgent {
 
                 needsKneading.addProduct(productStatus);
 
-                KneadingRequest kneadingRequestMessage = createKneadingRequestMessage();
+                // KneadingRequest kneadingRequestMessage = createKneadingRequestMessage();
+                //
+                // String productType = kneadingRequestMessage.getProductType();
+                //
+			    // // Convert the kneadingRequest object to a String.
+                // Gson gson = new Gson();
+                // String kneadingRequestString = gson.toJson(kneadingRequestMessage);
 
-			    // Convert the kneadingRequest object to a String.
-                Gson gson = new Gson();
-                String kneadingRequestString = gson.toJson(kneadingRequestMessage);
-                // Add behavior to send the kneadingRequest to the Kneading Agents
-                addBehaviour(new RequestKneading(kneadingRequestString));
             }
         }
     }
@@ -435,9 +394,6 @@ public class DoughManager extends BaseAgent {
 
     }
 
-
-
-
     /* This is the behavior used for receiving orders */
     private class ReceiveOrders extends CyclicBehaviour {
         public void action() {
@@ -460,7 +416,7 @@ public class DoughManager extends BaseAgent {
 
                 orders.put(order.getGuid(), order);
                 queueOrder(order);
-                // TODO Trigger the doughPreparation (send Kneading request, etc)
+
                 messageProcessing.decrementAndGet();
             }
             else {
@@ -577,14 +533,17 @@ public class DoughManager extends BaseAgent {
     //This is the behaviour used for sensing a KneadingRequest
     private class RequestKneading extends Behaviour{
         private String kneadingRequest;
-        private MessageTemplate mt;;
+        private Vector <ProductStatus> batch;
+        private MessageTemplate mt;
         private ArrayList<AID> kneadingMachinesAvailable;
         private AID kneadingMachine; // The kneadingMachineAgent that will perform kneading
         private int repliesCnt = 0;
         private int option = 0;
 
-        public RequestKneading(String kneadingRequest){
+        public RequestKneading(String kneadingRequest, Vector <ProductStatus> batch){
             this.kneadingRequest = kneadingRequest;
+            // Batch of products used for creating the kneadingRequest
+            this.batch = batch;
         }
 
         public void action(){
@@ -604,9 +563,9 @@ public class DoughManager extends BaseAgent {
                     cfp.setConversationId("kneading-request");
                     cfp.setReplyWith("cfp" + System.currentTimeMillis());
 
-                    // System.out.println("======================================");
+                    //System.out.println("======================================");
                     // System.out.println(" << << CFP for: " + kneadingRequest);
-                    // System.out.println("======================================");
+                    //System.out.println("======================================");
 
                     baseAgent.sendMessage(cfp);
 
@@ -624,27 +583,25 @@ public class DoughManager extends BaseAgent {
                     ACLMessage reply = baseAgent.receive(mt);
                     if (reply != null) {
                         repliesCnt++;
-                        // System.out.println(">> << " + reply.getSender().getName()
-                        // + " for: " + reply.getContent());
+
                         // The kneadingMachine that replies first gets the job
                         if (reply.getPerformative() == ACLMessage.PROPOSE) {
                             kneadingMachinesAvailable.add(reply.getSender());
+
                             // System.out.println(getAID().getLocalName() +
                             // " received a proposal from " + reply.getSender().getName()
                             // + " for: " + kneadingRequest);
                         }
                         // All kneadingMachines replied
                         if (repliesCnt >= kneadingMachineAgents.size()) {
-                            // Reset reply counter
-                            repliesCnt = 0;
-                            //System.out.println("*** Going to option 2 for " + kneadingRequest);
-                        	option = 2;
-
-                            // No kneading KneadingMachines available
-                            if (kneadingMachinesAvailable.isEmpty()){
-                                option = 0; // Create a new CFP
+                            if (!kneadingMachinesAvailable.isEmpty()){
+                                kneadingMachine = kneadingMachinesAvailable.get(0);
+                                kneadingMachinesAvailable.remove(0);
                             }
-    					}
+
+                            option = 2;
+
+                        }
                         messageProcessing.decrementAndGet();
                     }
 
@@ -655,50 +612,44 @@ public class DoughManager extends BaseAgent {
                     break;
 
                 case 2:
-                    // if (!kneadingMachinesAvailable.isEmpty()){
-                        // Accept proposal from the kneading machine that replied first
-                        ACLMessage msg = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
-                        kneadingMachine = kneadingMachinesAvailable.get(0);
-                        kneadingMachinesAvailable.remove(0); //Remove kneadingMachine from list
-                        msg.addReceiver(kneadingMachine);
+                    // Accept proposal from the kneading machine that replied first
+                    ACLMessage msg = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
 
-                        // System.out.println(">>>>> " + getAID().getLocalName() + " Accepting proposal from "
-                        //     + kneadingMachine.getName() + " for: " + kneadingRequest);
+                    msg.addReceiver(kneadingMachine);
 
-                        msg.setContent(kneadingRequest);
-                        msg.setConversationId("kneading-request");
-                        //msg.setReplyWith("msg" + System.currentTimeMillis());
-                        baseAgent.sendMessage(msg);
+                    // System.out.println(">>>>> " + getAID().getLocalName() + " Accepting proposal from "
+                    //     + kneadingMachine.getName() + " for: " + kneadingRequest);
 
-                        // Prepare the template to get the msg reply
-                        // Match sender instead of currentTimeMillis
-                        mt = MessageTemplate.and(MessageTemplate.MatchConversationId("kneading-request"), MessageTemplate.MatchSender(kneadingMachine));
-                    		  //MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
+                    msg.setContent(kneadingRequest);
+                    msg.setConversationId("kneading-request");
+                    msg.setReplyWith(kneadingRequest + System.currentTimeMillis());
+                    baseAgent.sendMessage(msg);
 
-                        option = 3;
-                        messageProcessing.decrementAndGet();
-                    // }
+                    // Prepare the template to get the msg reply
+                    mt = MessageTemplate.and(MessageTemplate.MatchConversationId("kneading-request"),     MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
+
+                    option = 3;
+                    messageProcessing.decrementAndGet();
                     break;
 
                 case 3:
                     // Receive the confirmation from the kneadingMachine
                     reply = baseAgent.receive(mt);
                     if (reply != null) {
-                        if (reply.getPerformative() == ACLMessage.CONFIRM) {
+                        if (reply.getPerformative() == ACLMessage.INFORM) {
                         	System.out.println("-----> " + getAID().getLocalName()+ " confirmation received from -> "
                                 + reply.getSender().getLocalName() + " for: " + reply.getContent());
-                            option = 4;
                         }
-
                         else {
-                            System.out.println(getAID().getLocalName() + " rejection received from -> "
-                                + reply.getSender().getLocalName() + " for: " + kneadingRequest);
-                            if (!kneadingMachinesAvailable.isEmpty()){
-                                option = 2;
-                            }else{
-                                option = 0;
+                            // System.out.println(getAID().getLocalName() + " rejection received from -> "
+                            //     + reply.getSender().getLocalName() + " for: " + kneadingRequest + "Adding request to the needsKneading queue");
+
+                            //Add the batch to the needsKneading queue
+                            for (ProductStatus productStatus : batch){
+                                needsKneading.addProduct(productStatus);
                             }
                         }
+                        option = 4;
                         messageProcessing.decrementAndGet();
                     }
                     else {
@@ -713,10 +664,16 @@ public class DoughManager extends BaseAgent {
             }
         }
         public boolean done(){
-            if (option == 4){
-                return true;
-            }
-            return false;
+
+            if (option == 2 && kneadingMachine == null) {
+                    // System.out.println("++++++Attempt failed for " + kneadingRequest + "Adding request to the needsKneading queue");
+                    //Add the batch to the needsKneading queue
+                    for (ProductStatus productStatus : batch){
+                        needsKneading.addProduct(productStatus);
+                    }
+                }
+                return ((option == 2 && kneadingMachine == null) || option == 4);
+
         }
     }
 
