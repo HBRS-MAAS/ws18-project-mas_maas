@@ -118,8 +118,7 @@ public class PreparationTableAgent extends BaseAgent {
 
             MessageTemplate mt = MessageTemplate.and(
                 MessageTemplate.MatchPerformative(ACLMessage.CFP),
-                MessageTemplate.MatchSender(doughManagerAgent));
-                // MessageTemplate.MatchConversationId("preparation-request"));
+                MessageTemplate.MatchConversationId("preparation-request")); //MessageTemplate.MatchConversationId("preparation-request"));
 
             ACLMessage msg = baseAgent.receive(mt);
 
@@ -132,11 +131,11 @@ public class PreparationTableAgent extends BaseAgent {
                 	// System.out.println(getAID().getLocalName() + " is available");
                     // fullPrepDone.set(false);
                     reply.setPerformative(ACLMessage.PROPOSE);
-                    reply.setContent("Hey I am free, do you wanna use me ;)?");
+                    reply.setContent("Hey I am free, do you wanna use me ;)?" + content);
                 }else{
                 	// System.out.println(getAID().getLocalName() + " is unavailable");
                     reply.setPerformative(ACLMessage.REFUSE);
-                    reply.setContent("Sorry, I am married potato :c");
+                    reply.setContent("Sorry, I am married potato :c" + content);
                 }
                 baseAgent.sendMessage(reply);
                 messageProcessing.decrementAndGet();
@@ -154,52 +153,45 @@ public class PreparationTableAgent extends BaseAgent {
         public void action() {
             messageProcessing.incrementAndGet();
 
-            MessageTemplate mt = MessageTemplate.and(
-            MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL),
-            MessageTemplate.MatchSender(doughManagerAgent));
+            MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL);
                 // MessageTemplate.MatchConversationId("preparation-request"));
 
             ACLMessage msg = baseAgent.receive(mt);
 
             if (msg != null) {
+                ACLMessage reply = msg.createReply();
 
                 if (!doughPrepTable.isAvailable()){
 
                     // System.out.println(getAID().getLocalName()  + " is already taken");
-
-                    ACLMessage reply = msg.createReply();
                     reply.setPerformative(ACLMessage.FAILURE);
                     reply.setContent("doughPrepTable is taken");
-                    reply.setConversationId("preparation-request");
-                    baseAgent.sendMessage(reply);
+                    //reply.setConversationId("preparation-request");
+                    //baseAgent.sendMessage(reply);
                     // System.out.println(getAID().getLocalName() + " failed preparation of " + msg.getContent());
-
-
                 }
                 else{
-                    //doughPrepTable.setAvailable(false);
-
+                    doughPrepTable.setAvailable(false);
                     String content = msg.getContent();
                     System.out.println("***** > " + getAID().getLocalName() + " WILL perform preparation for " + msg.getSender() + "Preparation information -> " + content);
 
                     PreparationRequest preparationRequest = JSONConverter.parsePreparationRequest(content);
 
-                    ACLMessage reply = msg.createReply();
-                    reply.setPerformative(ACLMessage.CONFIRM);
+                    reply.setPerformative(ACLMessage.INFORM);
                     reply.setContent("Preparation request was received " + content);
-                    reply.setConversationId("preparation-request");
-                    baseAgent.sendMessage(reply);
+                    //reply.setConversationId("preparation-request");
+                    //baseAgent.sendMessage(reply);
 
                     guids = preparationRequest.getGuids();
                     productType = preparationRequest.getProductType();
                     steps = preparationRequest.getSteps();
-                    System.out.println(getAID().getLocalName() + " WILL do the following actions " + steps);
                     productQuantities = preparationRequest.getProductQuantities();
 
+                    System.out.println(getAID().getLocalName() + " WILL do the following actions " + steps);
+
                     addBehaviour(new Preparation());
-
-
                 }
+                baseAgent.sendMessage(reply);
                 messageProcessing.decrementAndGet();
 
             }else {

@@ -104,39 +104,8 @@ public class DoughManager extends BaseAgent {
         addBehaviour(new ReceivePreparationNotification());
 
         addBehaviour(new checkingKneadingWorkqueue());
+        addBehaviour(new checkingPreparationWorkqueue());
 
-    }
-
-    // Behaviour that checks the needsKneading workqueue and activates CFP for requesting kneading
-    private class checkingKneadingWorkqueue extends CyclicBehaviour{
-        public void action(){
-            messageProcessing.incrementAndGet();
-
-            if (needsKneading.hasProducts()){
-
-                // Creates a kneadingRequestMessage for the first product in the workqueue
-                KneadingRequest kneadingRequestMessage = createKneadingRequestMessage();
-
-                String productType = kneadingRequestMessage.getProductType();
-
-                //Batch of ProductStatuses used for creating the kneadingRequest
-                Vector <ProductStatus> batch = needsKneading.findProductStatus(productType);
-
-                //Remove the product from the needsKneading workQueue
-                needsKneading.removeProductStatus(productType);
-
-                // Convert the kneadingRequest object to a String.
-                Gson gson = new Gson();
-                String kneadingRequestString = gson.toJson(kneadingRequestMessage);
-
-                // System.out.println("KneadingRequest: " + kneadingRequestString);
-
-                // Add behavior to send a CFP for this kneadingRequest
-                addBehaviour(new RequestKneading(kneadingRequestString, batch));
-            }
-            messageProcessing.decrementAndGet();
-
-        }
     }
 
     private class timeTracker extends CyclicBehaviour {
@@ -206,7 +175,6 @@ public class DoughManager extends BaseAgent {
                 }
             }
 
-
             //Create DougPrepTable agents for this bakery
             if (equipment.get(i) instanceof DoughPrepTable){
 
@@ -245,6 +213,72 @@ public class DoughManager extends BaseAgent {
     public void getProoferAID() {
         String prooferAgentName = "Proofer_" + bakeryId;
         prooferAgent = new AID(prooferAgentName, AID.ISLOCALNAME);
+    }
+
+    // Behaviour that checks the needsKneading workqueue and activates CFP for requesting kneading
+    private class checkingKneadingWorkqueue extends CyclicBehaviour{
+        public void action(){
+            messageProcessing.incrementAndGet();
+
+            if (needsKneading.hasProducts()){
+
+                // Creates a kneadingRequestMessage for the first product in the workqueue
+                KneadingRequest kneadingRequestMessage = createKneadingRequestMessage();
+
+                String productType = kneadingRequestMessage.getProductType();
+
+                //Batch of ProductStatuses used for creating the kneadingRequest
+                Vector <ProductStatus> batch = needsKneading.findProductStatus(productType);
+
+                //Remove the product from the needsKneading workQueue
+                needsKneading.removeProductStatus(productType);
+
+                // Convert the kneadingRequest object to a String.
+                Gson gson = new Gson();
+                String kneadingRequestString = gson.toJson(kneadingRequestMessage);
+
+                // System.out.println("KneadingRequest: " + kneadingRequestString);
+
+                // Add behavior to send a CFP for this kneadingRequest
+                addBehaviour(new RequestKneading(kneadingRequestString, batch));
+            }
+            messageProcessing.decrementAndGet();
+
+        }
+    }
+
+    // Behaviour that checks the needsKneading workqueue and activates CFP for requesting kneading
+    private class checkingPreparationWorkqueue extends CyclicBehaviour{
+        public void action(){
+            messageProcessing.incrementAndGet();
+
+            if (needsPreparation.hasProducts()){
+
+                // Creates a preparationRequestMessage for the first product in the workqueue
+                PreparationRequest preparationRequestMessage = createPreparationRequestMessage();
+
+                //System.out.println("preparationRequestMessage" + preparationRequestMessage);
+
+                String productType = preparationRequestMessage.getProductType();
+
+                //Batch of ProductStatuses used for creating the preparationRequest
+                Vector <ProductStatus> batch = needsPreparation.findProductStatus(productType);
+
+                //Remove the product from the needsKneading workQueue
+                needsPreparation.removeProductStatus(productType);
+
+                // Convert the kneadingRequest object to a String.
+                Gson gson = new Gson();
+                String preparationRequestString = gson.toJson(preparationRequestMessage);
+
+                // System.out.println("preparationRequest: " + preparationRequestString);
+
+                // Add behavior to send a CFP for this preparationRequest
+                addBehaviour(new RequestPreparation(preparationRequestString, batch));
+            }
+            messageProcessing.decrementAndGet();
+
+        }
     }
 
     public void queueOrder(OrderMas order) {
@@ -461,13 +495,13 @@ public class DoughManager extends BaseAgent {
                 // Add guids with this productType to the queuePreparation
                 queuePreparation(productType, guids);
 
-                // Create preparationRequestMessage with the information in the queuePreparation
-                PreparationRequest preparationRequestMessage = createPreparationRequestMessage();
-
-                // Convert preparationRequestMessage to String
-                Gson gson = new Gson();
-
-                String preparationRequestString = gson.toJson(preparationRequestMessage);
+                // // Create preparationRequestMessage with the information in the queuePreparation
+                // PreparationRequest preparationRequestMessage = createPreparationRequestMessage();
+                //
+                // // Convert preparationRequestMessage to String
+                // Gson gson = new Gson();
+                //
+                // String preparationRequestString = gson.toJson(preparationRequestMessage);
 
                 // Send preparationRequestMessage
                 //addBehaviour(new RequestPreparation(preparationRequestString));
@@ -578,7 +612,6 @@ public class DoughManager extends BaseAgent {
                     break;
 
                 case 1:
-
                     // Receive proposals/refusals
                     ACLMessage reply = baseAgent.receive(mt);
                     if (reply != null) {
@@ -637,7 +670,7 @@ public class DoughManager extends BaseAgent {
                     reply = baseAgent.receive(mt);
                     if (reply != null) {
                         if (reply.getPerformative() == ACLMessage.INFORM) {
-                        	System.out.println("-----> " + getAID().getLocalName()+ " confirmation received from -> "
+                            System.out.println("-----> " + getAID().getLocalName()+ " confirmation received from -> "
                                 + reply.getSender().getLocalName() + " for: " + reply.getContent());
                         }
                         else {
@@ -666,28 +699,30 @@ public class DoughManager extends BaseAgent {
         public boolean done(){
 
             if (option == 2 && kneadingMachine == null) {
-                    // System.out.println("++++++Attempt failed for " + kneadingRequest + "Adding request to the needsKneading queue");
-                    //Add the batch to the needsKneading queue
-                    for (ProductStatus productStatus : batch){
-                        needsKneading.addProduct(productStatus);
-                    }
+                // System.out.println("++++++Attempt failed for " + kneadingRequest + "Adding request to the needsKneading queue");
+                //Add the batch to the needsKneading queue
+                for (ProductStatus productStatus : batch){
+                    needsKneading.addProduct(productStatus);
                 }
-                return ((option == 2 && kneadingMachine == null) || option == 4);
-
+            }
+            return ((option == 2 && kneadingMachine == null) || option == 4);
         }
     }
 
     //This is the behaviour used for sending a PreparationRequest
     private class RequestPreparation extends Behaviour{
         private String preparationRequest;
+        private Vector <ProductStatus> batch;
         private MessageTemplate mt;
         private ArrayList<AID> preparationTablesAvailable;
         private AID preparationTable; // The preparationTable that will perform the preparation steps
         private int repliesCnt = 0;
         private int option = 0;
 
-        public RequestPreparation(String preparationRequest){
+        public RequestPreparation(String preparationRequest, Vector <ProductStatus> batch){
             this.preparationRequest = preparationRequest;
+            // Batch of products used for creating the kneadingRequest
+            this.batch = batch;
         }
         public void action(){
             // insure we don't allow a time step until we are done processing this message
@@ -722,76 +757,72 @@ public class DoughManager extends BaseAgent {
                     break;
 
                 case 1:
-                ACLMessage reply = baseAgent.receive(mt);
-                if (reply != null) {
-                    repliesCnt++;
-                    // The doughPrepTable that replies first gets the job
-                    if (reply.getPerformative() == ACLMessage.PROPOSE) {
-                        preparationTablesAvailable.add(reply.getSender());
-                        // System.out.println(getAID().getLocalName() + " received a proposal from " + reply.getSender().getName() + " for: " + preparationRequest);
-                    }
-                    // We received all replies
-                    if (repliesCnt >= preparationTableAgents.size()) {
-                        repliesCnt = 0;
-                        option = 2;
-
-                        // No kneading KneadingMachines available
-                        if (preparationTablesAvailable.isEmpty()){
-                            option = 0; // Create a new CFP
+                    // Receive proposals/refusals
+                    ACLMessage reply = baseAgent.receive(mt);
+                    if (reply != null) {
+                        repliesCnt++;
+                        // The doughPrepTable that replies first gets the job
+                        if (reply.getPerformative() == ACLMessage.PROPOSE) {
+                            preparationTablesAvailable.add(reply.getSender());
+                            // System.out.println(getAID().getLocalName() + " received a proposal from " + reply.getSender().getName() + " for: " + preparationRequest);
                         }
-                    }
-                    messageProcessing.decrementAndGet();
-                }
+                        // We received all replies
+                        if (repliesCnt >= preparationTableAgents.size()) {
 
-                else {
-                    messageProcessing.decrementAndGet();
-                    block();
-                }
-                break;
+                            if (!preparationTablesAvailable.isEmpty()){
+                                preparationTable = preparationTablesAvailable.get(0);
+                                preparationTablesAvailable.remove(0);
+                            }
+                            option = 2;
+                        }
+                        messageProcessing.decrementAndGet();
+                    }
+
+                    else {
+                        messageProcessing.decrementAndGet();
+                        block();
+                    }
+                    break;
 
             case 2:
-                // if (!preparationTablesAvailable.isEmpty()){
-                    // Accept proposal from the preparationTable that replied first
                     ACLMessage msg = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
-                    preparationTable = preparationTablesAvailable.get(0);
-                    preparationTablesAvailable.remove(0);
-                    msg.addReceiver(preparationTable);
 
+                    msg.addReceiver(preparationTable);
 
                     // System.out.println(getAID().getLocalName() + " Accepting proposal from "
                     //     + preparationTable.getName() + " for: " + preparationRequest);
 
                     msg.setContent(preparationRequest);
                     msg.setConversationId("preparation-request");
-                    //msg.setReplyWith("msg"+System.currentTimeMillis());
+                    msg.setReplyWith(preparationRequest + System.currentTimeMillis());
                     baseAgent.sendMessage(msg);
+
                     // Prepare the template to get the msg reply
-                    mt = MessageTemplate.and(MessageTemplate.MatchConversationId("preparation-request"), MessageTemplate.MatchSender(preparationTable));
-                        //  MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
+                    mt = MessageTemplate.and(MessageTemplate.MatchConversationId("preparation-request"), MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
+
                     option = 3;
                     messageProcessing.decrementAndGet();
-                // }
-                break;
+                    break;
 
             case 3:
-                // Receive the confirmation from the prepTable
+                // Receive the confirmation from the preparationTable
                 reply = baseAgent.receive(mt);
                 if (reply != null) {
-                    if (reply.getPerformative() == ACLMessage.CONFIRM) {
+                    if (reply.getPerformative() == ACLMessage.INFORM) {
                         System.out.println("----> " + getAID().getLocalName()+ " confirmation received from -> "
-                            +reply.getSender().getLocalName() + " for: " + preparationRequest);
-                        option = 4;
-                    }
-                    else if (reply.getPerformative() == ACLMessage.FAILURE){
-                        // System.out.println(getAID().getLocalName() + " rejection received from -> "
-                        //     +reply.getSender().getLocalName() + " for: " + preparationRequest);
-                        if (!preparationTablesAvailable.isEmpty()){
-                            option = 2;
-                        }else{
-                            option = 0;
+                            +reply.getSender().getLocalName() + " for: " + reply.getContent());
                         }
-                    }
-                    messageProcessing.decrementAndGet();
+                        else{
+                            // System.out.println(getAID().getLocalName() + " rejection received from -> "
+                            //     +reply.getSender().getLocalName() + " for: " + preparationRequest);
+
+                            //Add the batch to the needsPreparation queue
+                            for (ProductStatus productStatus : batch){
+                                needsPreparation.addProduct(productStatus);
+                            }
+                        }
+                        option = 4;
+                        messageProcessing.decrementAndGet();
                 }
                 else {
                     messageProcessing.decrementAndGet();
@@ -805,10 +836,14 @@ public class DoughManager extends BaseAgent {
             }
         }
         public boolean done(){
-            if (option == 4){
-                return true;
+            if (option == 2 && preparationTable == null) {
+                // System.out.println("++++++Attempt failed for " + preparationRequest + "Adding request to the needsPreparation queue");
+                //Add the batch to the needsKneading queue
+                for (ProductStatus productStatus : batch){
+                    needsPreparation.addProduct(productStatus);
+                }
             }
-            return false;
+            return ((option == 2 && needsPreparation == null) || option == 4);
         }
     }
 
