@@ -153,8 +153,9 @@ public class Proofer extends BaseAgent {
         public void action() {
 
             messageProcessing.getAndIncrement();
-            MessageTemplate mt = MessageTemplate.and(
-                MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL), MessageTemplate.MatchSender(doughManager));
+            MessageTemplate mt =
+                MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL);
+                // MessageTemplate.MatchSender(doughManager));
                 //MessageTemplate.MatchConversationId("proofing-request"));
             ACLMessage msg = baseAgent.receive(mt);
 
@@ -166,14 +167,14 @@ public class Proofer extends BaseAgent {
 
                     reply.setPerformative(ACLMessage.FAILURE);
                     reply.setContent("Proofer is taken");
-                    reply.setConversationId("proofing-request");
+                    //reply.setConversationId("proofing-request");
                     //baseAgent.sendMessage(reply);
-                    System.out.println(getAID().getLocalName() + " failed proofing of " + msg.getContent());
+                    //System.out.println(getAID().getLocalName() + " failed proofing of " + msg.getContent());
 
                 }
                 else{
 
-                    //isAvailable = false;
+                    isAvailable = false;
 
                     String content = msg.getContent();
                     System.out.println(getAID().getLocalName() + " WILL perform Proofing for " + msg.getSender() + "Proofing information -> " + content);
@@ -181,9 +182,9 @@ public class Proofer extends BaseAgent {
                     ProofingRequest proofingRequest = JSONConverter.parseProofingRequest(content);
 
                     //ACLMessage reply = msg.createReply();
-                    reply.setPerformative(ACLMessage.CONFIRM);
+                    reply.setPerformative(ACLMessage.INFORM);
                     reply.setContent("Proofing request was received");
-                    reply.setConversationId("proofing-request");
+                    //reply.setConversationId("proofing-request");
                     //baseAgent.sendMessage(reply);
 
                     proofingTime = proofingRequest.getProofingTime();
@@ -224,9 +225,9 @@ public class Proofer extends BaseAgent {
                 proofingInProcess.set(false);
                 isAvailable = true;
                 proofingCounter.set(0);
-                System.out.println("*******************************************");
+                System.out.println("======================================");
                 System.out.println(getAID().getLocalName() + " Finishing proofing " + productType);
-                System.out.println("*******************************************");
+                System.out.println("======================================");
                 // System.out.println("----> " + guidAvailable + " finished Kneading");
                 // addBehaviour(new SendDoughNotification());
             }
