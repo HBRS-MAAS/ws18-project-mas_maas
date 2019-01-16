@@ -10,7 +10,6 @@ import org.maas.Objects.Bakery;
 import org.maas.Objects.DoughPrepTable;
 import org.maas.Objects.Equipment;
 import org.maas.Objects.KneadingMachine;
-import org.maas.Objects.Oven;
 
 public class DoughPrepStageInitializer extends Initializer {
 	private String scenarioPath;

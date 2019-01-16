@@ -15,6 +15,7 @@ public class Start {
     private static boolean customerStage = false;
     private static boolean orderProcessingStage = false;
     private static boolean doughPrepStage = false;
+    private static boolean bakingMasMaas = false;
     private static boolean bakingStage = false;
     private static boolean packagingStage = false;
     private static boolean deliveryStage = false;
@@ -63,6 +64,13 @@ public class Start {
         }
         if(doughPrepStage) {
             Initializer init = new DoughPrepStageInitializer();
+            sb.append(init.initialize(scenarioDirectory));
+            endTime = "002.06.00";
+        }
+        if(bakingMasMaas) {
+            // Initializer init = new DoughPrepStageInitializer();
+            // sb.append(init.initialize(scenarioDirectory));
+			Initializer init = new BakingMasMaasInitializer();
             sb.append(init.initialize(scenarioDirectory));
             endTime = "002.06.00";
         }
@@ -120,6 +128,10 @@ public class Start {
             }
             if (args[i].equals("-doughPrep")) {
                 doughPrepStage = true;
+                noAgentStarting = false;
+            }
+            if (args[i].equals("-bakingMasMaas")) {
+                bakingMasMaas = true;
                 noAgentStarting = false;
             }
             if (args[i].equals("-baking")) {

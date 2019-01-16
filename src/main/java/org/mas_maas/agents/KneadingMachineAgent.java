@@ -73,7 +73,7 @@ public class KneadingMachineAgent extends BaseAgent {
         // Get KneadingMachines
         // this.getKneadingMachines();
 
-        kneadingCounter.set(0);
+        // kneadingCounter.set(0);
         // Time tracker behavior
         addBehaviour(new timeTracker());
         addBehaviour(new ReceiveProposalRequests());
@@ -157,7 +157,7 @@ public class KneadingMachineAgent extends BaseAgent {
             messageProcessing.incrementAndGet();
 
             MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL);
-            ACLMessage msg = myAgent.receive(mt);
+            ACLMessage msg = baseAgent.receive(mt);
 
 
                 //MessageTemplate.MatchSender(doughManagerAgent));
@@ -271,6 +271,7 @@ public class KneadingMachineAgent extends BaseAgent {
                     }
                     else {
                         // messageInProcress.set(false);
+                        messageProcessing.decrementAndGet();
                         block();
                     }
                     messageProcessing.decrementAndGet();
@@ -287,7 +288,7 @@ public class KneadingMachineAgent extends BaseAgent {
             return option == 2;
         }
 
-       
+
     }
 
 }

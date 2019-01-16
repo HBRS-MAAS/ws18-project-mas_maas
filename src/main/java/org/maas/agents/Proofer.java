@@ -20,15 +20,18 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import jade.wrapper.*;
 
 // This agent receives a ProofingRequest, executes it ands sends a DoughNotification to the interface agent of the Baking Stage.
 
 public class Proofer extends BaseAgent {
-    private AID [] bakingInterfaceAgents;
+    private AID bakingInterfaceAgent;
 
     private AtomicBoolean proofingInProcess = new AtomicBoolean(false);
     private AtomicInteger messageProcessing = new AtomicInteger(0);
     private AtomicInteger proofingCounter = new AtomicInteger(0);
+
+    private AgentContainer container = null;
 
     private Vector<String> guids;
     private String productType;
@@ -37,6 +40,7 @@ public class Proofer extends BaseAgent {
     private AID doughManager;
     private String bakeryId;
     private String doughManagerAgentName;
+    private String bakingInterfaceAgentName;
 
     private boolean isAvailable = true;
     private Float proofingTime;
@@ -50,16 +54,16 @@ public class Proofer extends BaseAgent {
             this.bakeryId = (String) args[0];
         }
 
-        // Name of the doughManager the Proofer communicates with
-        doughManagerAgentName = "DoughManager_" + bakeryId;
-        AID doughManager = new AID(doughManagerAgentName, AID.ISLOCALNAME);
+
 
         this.register("Proofer_" + bakeryId, "JADE-bakery");
+        container = (AgentContainer)getContainerController();
+        System.out.println("-------> Container proofer" + container);
 
         System.out.println("Hello! " + getAID().getLocalName() + " is ready.");
 
-        // Get Agents AIDS
-        this.getBakingInterfaceAIDs();
+        getBakingInterfaceAID();
+        getDoughManagerAID();
 
         proofingCounter.set(0);
         addBehaviour(new timeTracker());
@@ -72,28 +76,18 @@ public class Proofer extends BaseAgent {
         baseAgent.deRegister();
     }
 
-
-    public void getBakingInterfaceAIDs() {
-        DFAgentDescription template = new DFAgentDescription();
-        ServiceDescription sd = new ServiceDescription();
-
-        sd.setType("Baking-interface");
-        template.addServices(sd);
-        try {
-            DFAgentDescription [] result = DFService.search(this, template);
-            System.out.println(getAID().getLocalName() + " Found the following Baking-interface agents:");
-            bakingInterfaceAgents = new AID [result.length];
-
-            for (int i = 0; i < result.length; ++i) {
-                bakingInterfaceAgents[i] = result[i].getName();
-                System.out.println(bakingInterfaceAgents[i].getName());
-            }
-
-        }
-        catch (FIPAException fe) {
-            fe.printStackTrace();
-        }
+    public void getBakingInterfaceAID() {
+        bakingInterfaceAgentName = "BakingInterface_" + bakeryId;
+        bakingInterfaceAgent = new AID(bakingInterfaceAgentName, AID.ISLOCALNAME);
+        System.out.println(" ----> BakingInterfaceAgent " + bakingInterfaceAgent.getName());
     }
+
+    public void getDoughManagerAID() {
+        // Name of the doughManager the Proofer communicates with
+        doughManagerAgentName = "DoughManager_" + bakeryId;
+        doughManager = new AID(doughManagerAgentName, AID.ISLOCALNAME);
+    }
+
 
    private class timeTracker extends CyclicBehaviour {
        public void action() {
@@ -229,7 +223,7 @@ public class Proofer extends BaseAgent {
                 System.out.println(getAID().getLocalName() + " Finishing proofing " + productType);
                 System.out.println("======================================");
                 // System.out.println("----> " + guidAvailable + " finished Kneading");
-                // addBehaviour(new SendDoughNotification());
+                addBehaviour(new SendDoughNotification());
             }
         }
     }
@@ -237,15 +231,11 @@ public class Proofer extends BaseAgent {
 
     // This is the behaviour used for sending a doughNotification msg to the BakingInterface agent
     private class SendDoughNotification extends Behaviour {
-        private AID [] bakingInterfaceAgents;
         private MessageTemplate mt;
         private int option = 0;
         private Gson gson = new Gson();
         private DoughNotification doughNotification = new DoughNotification(guids, productType, productQuantities);
         private String doughNotificationString = gson.toJson(doughNotification);
-
-        //TODO remove me when debugging is done
-        private boolean killMessageSent = false;
 
         public void action() {
 
@@ -256,44 +246,33 @@ public class Proofer extends BaseAgent {
                     ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
 
                     msg.setContent(doughNotificationString);
-
                     msg.setConversationId("dough-Notification");
-
-                    // Send doughNotification msg to bakingInterfaceAgents
-                    for (int i=0; i<bakingInterfaceAgents.length; i++){
-                        msg.addReceiver(bakingInterfaceAgents[i]);
-                    }
-
-                    msg.setReplyWith("msg" + System.currentTimeMillis());
+                    msg.addReceiver(bakingInterfaceAgent);
 
                     baseAgent.sendMessage(msg);  // calling sendMessage instead of send
 
-                    option = 1;
-                    System.out.println(getAID().getLocalName() + " Sent doughNotification");
+                    System.out.println("----> " + getAID().getLocalName() + " Sent dough Notification to " + bakingInterfaceAgent);
                     messageProcessing.getAndDecrement();
+                    option = 1;
                     break;
 
                 case 1:
                     // MatchConversationId dough-Notification
                     mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.CONFIRM),
-                           MessageTemplate.MatchConversationId("dough-notification-reply"));
+                           MessageTemplate.MatchConversationId("dough-Notification-reply"));
 
                     ACLMessage reply = baseAgent.receive(mt);
 
                     if (reply != null) {
-                        System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
+                        // System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
                         option = 2;
-                        messageProcessing.getAndDecrement();
+                        // messageProcessing.getAndDecrement();
                     }
                     else {
-                        if (!killMessageSent)
-                        {
-                            System.out.println("Waiting for reply. Kill me!");
-                            killMessageSent = true;
-                        }
                         messageProcessing.getAndDecrement();
                         block();
                     }
+                    messageProcessing.decrementAndGet();
                     break;
 
                 default:
@@ -303,7 +282,7 @@ public class Proofer extends BaseAgent {
             }
 
         public boolean done() {
-            return option == 2; 
+            return option == 2;
         }
     }
 }
