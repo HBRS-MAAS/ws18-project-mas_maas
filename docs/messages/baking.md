@@ -7,7 +7,8 @@
 ```
 {
     "productType": String,
-    "guids": Vector<String>
+    "guids": Vector<String>,
+    "productQuantities": Vector <int>
 }
 ```
 
@@ -20,9 +21,9 @@
     "bakingTemp": int,
     "bakingTime": float,
     "productType": String,
-    "guids": Vector<String>
+    "guids": Vector<String>,
+    "productQuantities": Vector <int>
 }
-
 ```
 
 ## Baking Notification
@@ -32,23 +33,48 @@
 ```
 {
     "productType": String,
+    "guids": Vector<String>,
+    "productQuantities": Vector <int>
+}
+```
+
+## Preparation Request
+```
+{
+    "productQuantities": Vector <int>,
+    "steps": Array JSON Objects,
+    "productType": String,
     "guids": Vector<String>
 }
-
-
 ```
+Step
+```
+{
+    "action": String,
+    "duration": float
+}
+```
+
+## Preparation Notification
+```
+{
+    "guids": Vector<String>
+    "productType": String,
+}
+```  
 
 ## Cooling Request
 
 #### Content
-```
-{
-    "productName": String,
-    "coolingRate": int,
-    "quantity": int,
-    "boxingTemperature": int
-}
 
+```
+[
+    {
+        guid: String("product_name"),
+        quantity: int(quantity),
+        coolingDuration: int(cooling_duration)
+    }
+]
 ```
 
 ## Loading Bay Message

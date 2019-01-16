@@ -1,0 +1,16 @@
+{
+    "productQuantities":[10,20],
+    "steps":[
+        {
+        "action":"doSomething",
+        "duration":2.0
+        },
+
+        {
+        "action":"doSomethingElse",
+        "duration":3.0
+        }
+    ],
+    "productType":"a product type",
+    "guids":["GUID1","GUID2"]
+}

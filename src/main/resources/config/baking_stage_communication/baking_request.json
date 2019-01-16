@@ -2,5 +2,6 @@
     "bakingTemp": 195,
     "bakingTime": 13,
     "productType": "Berliner",
-    "guids": ["order-001","order-002"]
+    "guids": ["order-001","order-002"],
+    "productQuantities":[10,20]
 }
