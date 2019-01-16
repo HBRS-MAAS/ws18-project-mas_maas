@@ -43,7 +43,7 @@ import jade.wrapper.*;
 import org.maas.agents.BaseAgent;
 
 public class DoughManager extends BaseAgent {
-    private AID dummyOrderProcesserAgent;
+    // private AID dummyOrderProcesserAgent;
     private AID prooferAgent;
 
     private ArrayList<AID> preparationTableAgents = new ArrayList<AID>();
@@ -100,7 +100,6 @@ public class DoughManager extends BaseAgent {
         // Create an agent for each equipment
         createEquipmentAgents();
 
-        getDummyOrderProcesserAID();
         getProoferAID();
 
         addBehaviour(new timeTracker());
@@ -209,11 +208,6 @@ public class DoughManager extends BaseAgent {
 
         }
 
-    }
-
-    public void getDummyOrderProcesserAID() {
-        String dummyOrderProcesserAgentName = "DummyOrderProcesser";
-        dummyOrderProcesserAgent = new AID(dummyOrderProcesserAgentName, AID.ISLOCALNAME);
     }
 
     public void getProoferAID() {

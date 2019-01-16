@@ -24,6 +24,7 @@ import jade.lang.acl.MessageTemplate;
 
 public class DummyOrderProcesser extends BaseAgent {
     private ArrayList<AID> doughManagerAgents = new ArrayList<AID>();
+    private ArrayList<AID> bakingInterfaceAgents = new ArrayList<AID>();
     private Vector<Bakery> bakeries;
     private String scenarioPath;
     private Vector<OrderMas> orders = new Vector<OrderMas>();
@@ -43,6 +44,7 @@ public class DummyOrderProcesser extends BaseAgent {
         getBakeries(this.scenarioPath);
 
         getDoughManagerAIDs();
+        getBakingInterfaceAIDs();
         try {
             //Read the orders from the scenarioPath
             getOrderInfo();
@@ -99,6 +101,15 @@ public class DummyOrderProcesser extends BaseAgent {
         Bakery bakery = bakeries.get(0);
             String doughManagerAgentName = "DoughManager_" + bakery.getGuid();
             doughManagerAgents.add(new AID (doughManagerAgentName, AID.ISLOCALNAME));
+        //}
+    }
+
+    public void getBakingInterfaceAIDs(){
+        // For now get just the first one to test
+        //for (Bakery bakery : bakeries) {
+        Bakery bakery = bakeries.get(0);
+            String bakingInterfaceAgentName = "BakingInterface_" + bakery.getGuid();
+            bakingInterfaceAgents.add(new AID (bakingInterfaceAgentName, AID.ISLOCALNAME));
         //}
     }
 
@@ -160,6 +171,8 @@ public class DummyOrderProcesser extends BaseAgent {
                 //     }
                 // }
                 msg.addReceiver(doughManagerAgent);
+                msg.addReceiver(bakingInterfaceAgents.get(0));
+
                 baseAgent.sendMessage(msg);
 
                 option = 1;

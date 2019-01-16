@@ -40,7 +40,7 @@ import jade.wrapper.*;
 import org.maas.agents.BaseAgent;
 
 public class BakingManager extends BaseAgent {
-
+    // private AID dummyOrderProcesserAgent;
     private AID prooferAgent;
     private AID coolingRackAgent;
     private AID bakingPreparationAgent;
@@ -99,13 +99,13 @@ public class BakingManager extends BaseAgent {
         createEquipmentAgents();
         // createBakingPreparationAgent();
 
-        // getDummyOrderProcesserAID();
+        getDummyOrderProcesserAID();
         getProoferAID();
         // getCoolingRackAID();
         getBakingPreparationAID();
 
         addBehaviour(new timeTracker());
-        // addBehaviour(new ReceiveOrders());
+        addBehaviour(new ReceiveOrders());
         addBehaviour(new ReceiveDoughNotification());
         // addBehaviour(new ReceiveBakingNotification());
         // addBehaviour(new ReceivePreparationNotification());
@@ -200,10 +200,10 @@ public class BakingManager extends BaseAgent {
         }
     }
 
-    // public void getDummyOrderProcesserAID() {
-    //     String dummyOrderProcesserAgentName = "DummyOrderProcesser";
-    //     dummyOrderProcesserAgent = new AID(dummyOrderProcesserAgentName, AID.ISLOCALNAME);
-    // }
+    public void getDummyOrderProcesserAID() {
+        String dummyOrderProcesserName = "DummyOrderProcesser";
+        dummyOrderProcesser = new AID(dummyOrderProcesserName, AID.ISLOCALNAME);
+    }
 
     public void getBakingPreparationAID() {
         String bakingPreparationAgentName = "BakingPreparationAgent_" +  bakeryId;
@@ -218,6 +218,37 @@ public class BakingManager extends BaseAgent {
     public void getCoolingRackAID() {
         String coolingRackAgentName = "CoolingRack_" + bakeryId;
         coolingRackAgent = new AID(coolingRackAgentName, AID.ISLOCALNAME);
+    }
+
+    private class ReceiveOrders extends CyclicBehaviour {
+        public void action() {
+
+            // insure we don't allow a time step until we are done processing this message
+            messageProcessing.incrementAndGet();
+            MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
+                    MessageTemplate.MatchSender(dummyOrderProcesser));
+            ACLMessage msg = myAgent.receive(mt);
+            if (msg != null) {
+                String content = msg.getContent();
+                System.out.println(getAID().getLocalName() + " received order " + content + " from " + msg.getSender().getName());
+                OrderMas order = JSONConverter.parseOrder(content);
+
+                ACLMessage reply = msg.createReply();
+                reply.setPerformative(ACLMessage.CONFIRM);
+                reply.setContent("Order was received");
+                reply.setConversationId("reply-Order");
+                baseAgent.sendMessage(reply);
+
+                orders.put(order.getGuid(), order);
+                // queueOrder(order);
+
+                messageProcessing.decrementAndGet();
+            }
+            else {
+                messageProcessing.decrementAndGet();
+                block();
+            }
+        }
     }
 
     // Behaviour that checks the needsKneading workqueue and activates CFP for requesting kneading
@@ -242,7 +273,7 @@ public class BakingManager extends BaseAgent {
                 Gson gson = new Gson();
                 String bakingRequestString = gson.toJson(bakingRequestMessage);
 
-                // System.out.println("BakingRequest: " + bakingRequestString);
+                System.out.println("----> BakingRequest: " + bakingRequestString);
 
                 // Add behavior to send a CFP for this bakingRequest
                 addBehaviour(new RequestBaking(bakingRequestString, batch));
@@ -487,23 +518,23 @@ public class BakingManager extends BaseAgent {
                 System.out.println(getAID().getLocalName()+" Received dough Notification from " + msg.getSender()
                     + " for: " + msg.getContent());
                 System.out.println("================================================================================");
-                // String doughNotificationString = msg.getContent();
-                // // System.out.println("Dough notification contains -> " +doughNotificationString);
+                String doughNotificationString = msg.getContent();
+                // System.out.println("Dough notification contains -> " +doughNotificationString);
+
+                ACLMessage reply = msg.createReply();
+                reply.setPerformative(ACLMessage.CONFIRM);
+                reply.setContent("Dough Notification was received");
+                reply.setConversationId("dough-Notification-reply");
+                baseAgent.sendMessage(reply);
                 //
-                // ACLMessage reply = msg.createReply();
-                // reply.setPerformative(ACLMessage.CONFIRM);
-                // reply.setContent("Dough Notification was received");
-                // reply.setConversationId("dough-Notification-reply");
-                // baseAgent.sendMessage(reply);
                 //
-                //
-                // DoughNotification doughNotification = JSONConverter.parseDoughNotification(doughNotificationString);
-                // String productType = doughNotification.getProductType();
-                // Vector<String> guids = doughNotification.getGuids();
-                // Vector<Integer> productQuantities = doughNotification.getProductQuantities();
+                DoughNotification doughNotification = JSONConverter.parseDoughNotification(doughNotificationString);
+                String productType = doughNotification.getProductType();
+                Vector<String> guids = doughNotification.getGuids();
+                Vector<Integer> productQuantities = doughNotification.getProductQuantities();
                 //
                 // //Add the new request to the needsBaking workqueue
-                // queueBaking(productType, guids, productQuantities);
+                queueBaking(productType, guids, productQuantities);
                 messageProcessing.getAndDecrement();
             }
             else {
