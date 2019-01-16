@@ -6,20 +6,20 @@ import java.util.Scanner;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.mas_maas.JSONConverter;
-import org.mas_maas.messages.BakingNotification;
-import org.mas_maas.messages.BakingRequest;
-import org.mas_maas.messages.CoolingRequest;
-import org.mas_maas.messages.DoughNotification;
-import org.mas_maas.messages.PreparationNotification;
-import org.mas_maas.messages.PreparationRequest;
-import org.mas_maas.objects.BakedGood;
-import org.mas_maas.objects.Bakery;
-import org.mas_maas.objects.Order;
-import org.mas_maas.objects.Product;
-import org.mas_maas.objects.ProductStatus;
-import org.mas_maas.objects.Step;
-import org.mas_maas.objects.WorkQueue;
+import org.maas.JSONConverter;
+import org.maas.messages.BakingNotification;
+import org.maas.messages.BakingRequest;
+import org.maas.messages.CoolingRequest;
+import org.maas.messages.DoughNotification;
+import org.maas.messages.PreparationNotification;
+import org.maas.messages.PreparationRequest;
+import org.maas.Objects.BakedGood;
+import org.maas.Objects.Bakery;
+import org.maas.Objects.OrderMas;
+import org.maas.Objects.ProductMas;
+import org.maas.Objects.ProductStatus;
+import org.maas.Objects.Step;
+import org.maas.Objects.WorkQueue;
 
 import com.google.gson.Gson;
 
@@ -33,9 +33,11 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
+import org.maas.agents.BaseAgent;
+
 public class BakingManager extends BaseAgent {
     private Bakery bakery;
-    private HashMap<String, Order> orders = new HashMap<String, Order>();
+    private HashMap<String, OrderMas> orders = new HashMap<String, OrderMas>();
 
     private AID [] prooferAgents;
     private AID [] ovenAgents;
@@ -93,7 +95,7 @@ public class BakingManager extends BaseAgent {
         int deliveryHour = 4;
         Vector<BakedGood> bakedGoods = new Vector<BakedGood>();
         bakedGoods.add(bakedGood);
-        Order order = new Order(customerId, guid, orderDay, orderHour, deliveryDate, deliveryHour, bakedGoods);
+        OrderMas order = new OrderMas(customerId, guid, orderDay, orderHour, deliveryDate, deliveryHour, bakedGoods);
 
         System.out.println(getAID().getName() + " received the order " + order);
 
@@ -240,8 +242,8 @@ public class BakingManager extends BaseAgent {
 
             int amount = -1;
             String status = NEEDS_BAKING;
-            Product product = bakery.findProduct(productType);
-            Order order = orders.get(guid);
+            ProductMas product = bakery.findProduct(productType);
+            OrderMas order = orders.get(guid);
 
             for(BakedGood bakedGood : order.getBakedGoods()) {
                 if (bakedGood.getName().equals(productType)) {
@@ -261,8 +263,8 @@ public class BakingManager extends BaseAgent {
 
             int amount = -1;
             String status = NEEDS_PREPARATION;
-            Product product = bakery.findProduct(productType);
-            Order order = orders.get(guid);
+            ProductMas product = bakery.findProduct(productType);
+            OrderMas order = orders.get(guid);
 
             for(BakedGood bakedGood : order.getBakedGoods()) {
                 if (bakedGood.getName().equals(productType)) {
@@ -282,8 +284,8 @@ public class BakingManager extends BaseAgent {
 
             int amount = -1;
             String status = NEEDS_COOLING;
-            Product product = bakery.findProduct(productType);
-            Order order = orders.get(guid);
+            ProductMas product = bakery.findProduct(productType);
+            OrderMas order = orders.get(guid);
 
             for(BakedGood bakedGood : order.getBakedGoods()) {
                 if (bakedGood.getName().equals(productType)) {

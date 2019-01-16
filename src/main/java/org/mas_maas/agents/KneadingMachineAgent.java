@@ -5,59 +5,78 @@ import java.io.FileNotFoundException;
 import java.util.Scanner;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import org.mas_maas.JSONConverter;
-import org.mas_maas.messages.KneadingNotification;
-import org.mas_maas.messages.KneadingRequest;
-import org.mas_maas.objects.Bakery;
-import org.mas_maas.objects.Equipment;
-import org.mas_maas.objects.KneadingMachine;
+import org.maas.JSONConverter;
+import org.maas.messages.KneadingNotification;
+import org.maas.messages.KneadingRequest;
+// import org.mas_maas.objects.Bakery;
+import org.maas.Objects.Equipment;
+import org.maas.Objects.KneadingMachine;
 
 import com.google.gson.Gson;
 
 import jade.core.AID;
-import jade.core.behaviours.Behaviour;
-import jade.core.behaviours.CyclicBehaviour;
+import jade.core.behaviours.*;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+
+import org.maas.agents.BaseAgent;
 public class KneadingMachineAgent extends BaseAgent {
-    private AID [] doughManagerAgents;
+    private AID doughManagerAgent;
 
     private AtomicBoolean kneadingInProcess = new AtomicBoolean(false);
+    // private AtomicBoolean messageInProcress = new AtomicBoolean(false);
+    private AtomicInteger messageProcessing = new AtomicInteger(0);
+    private AtomicInteger kneadingCounter = new AtomicInteger(0);
 
-    private Bakery bakery;
-    private Vector<KneadingMachine> kneadingMachines = new Vector<KneadingMachine> ();
-    private Vector<Equipment> equipment;
+    // private Bakery bakery;
+    // private Vector<KneadingMachine> kneadingMachines = new Vector<KneadingMachine> ();
+    // private Vector<Equipment> equipment;
+    private KneadingMachine kneadingMachine;
 
     private Vector<String> guids;
     private String productType;
 
-    private int kneadingCounter;
+    private String kneadingMachineName;
+    private String doughManagerName;
+
+    private Float kneadingTime;
 
     protected void setup() {
         super.setup();
 
-        System.out.println(getAID().getLocalName() + " is ready.");
+        Object[] args = getArguments();
 
-        // Register KneadingMachine Agent to the yellow Pages
-        this.register("Kneading-machine", "JADE-bakery");
+        if(args != null && args.length > 0){
+            this.kneadingMachine = (KneadingMachine) args[0];
+            this.kneadingMachineName = (String) args[1];
+            this.doughManagerName = (String) args[2];
+        }
 
-        // Get Agents AIDS
-        this.getDoughManagerAIDs();
+        this.getDoughManagerAID();
+
+        System.out.println("Hello! " + getAID().getLocalName() + " is ready." + "its DougManager is: " + doughManagerName);
+
+        this.register(this.kneadingMachineName, "JADE-bakery");
+
+        kneadingMachine.setAvailable(true);
+
 
         // Load bakery information (includes recipes for each product)
-        getbakery();
+        // getbakery();
 
         // Get KneadingMachines
-        this.getKneadingMachines();
+        // this.getKneadingMachines();
 
-        kneadingCounter = 0;
+        kneadingCounter.set(0);
         // Time tracker behavior
         addBehaviour(new timeTracker());
+        addBehaviour(new ReceiveProposalRequests());
         // Creating receive kneading requests behaviour
         addBehaviour(new ReceiveKneadingRequests());
 
@@ -69,60 +88,8 @@ public class KneadingMachineAgent extends BaseAgent {
         this.deRegister();
     }
 
-    public void getDoughManagerAIDs() {
-        /*
-        Object the AID of all the dough-manager agents found
-        */
-        DFAgentDescription template = new DFAgentDescription();
-        ServiceDescription sd = new ServiceDescription();
-
-        sd.setType("Dough-manager");
-        template.addServices(sd);
-        try {
-            DFAgentDescription [] result = DFService.search(this, template);
-            System.out.println(getAID().getLocalName() + "Found the following Dough-manager agents:");
-            doughManagerAgents = new AID [result.length];
-
-            for (int i = 0; i < result.length; ++i) {
-                doughManagerAgents[i] = result[i].getName();
-                System.out.println(doughManagerAgents[i].getName());
-            }
-
-        }
-        catch (FIPAException fe) {
-            fe.printStackTrace();
-        }
-    }
-
-    public void getbakery(){
-
-        String jsonDir = "src/main/resources/config/shared_stage_communication/";
-        try {
-            // System.out.println("Working Directory = " + System.getProperty("user.dir"));
-            String bakeryFile = new Scanner(new File(jsonDir + "bakery.json")).useDelimiter("\\Z").next();
-            Vector<Bakery> bakeries = JSONConverter.parseBakeries(bakeryFile);
-            for (Bakery bakery : bakeries)
-            {
-                this.bakery = bakery;
-            }
-        } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-    }
-
-    public void getKneadingMachines(){
-        equipment = bakery.getEquipment();
-        System.out.println("Bakery name " + bakery.getName());
-
-        for (int i = 0; i < equipment.size(); i++){
-            if (equipment.get(i) instanceof KneadingMachine){
-                // System.out.println("Kneading machines found " + equipment.get(i));
-                kneadingMachines.add( (KneadingMachine) equipment.get(i));
-            }
-        }
-
-        System.out.println("Kneading machines found " + kneadingMachines.size());
+    public void getDoughManagerAID() {
+        doughManagerAgent = new AID (doughManagerName, AID.ISLOCALNAME);
 
     }
 
@@ -132,106 +99,134 @@ public class KneadingMachineAgent extends BaseAgent {
                 return;
             }else{
                 if (kneadingInProcess.get()){
-                    kneadingCounter++;
-                    System.out.println("-------> Kneading Clock-> " + baseAgent.getCurrentHour());
-                    System.out.println("-------> Kneading Counter -> " + kneadingCounter);
+                    int curCount = kneadingCounter.incrementAndGet();
+                    System.out.println(">>>>> Kneading Counter -> " + getAID().getLocalName() + " " + kneadingCounter + " <<<<<");
+                    addBehaviour(new Kneading());
                 }
             }
-            baseAgent.finished();
+            // if (!messageInProcress.get()){
+            //     baseAgent.finished();
+            // }
+            if (messageProcessing.get() <= 0)
+            {
+                baseAgent.finished();
+            }
+        }
+    }
+
+    private class ReceiveProposalRequests extends CyclicBehaviour{
+        public void action(){
+            messageProcessing.incrementAndGet();
+
+            MessageTemplate mt = MessageTemplate.and(
+                MessageTemplate.MatchPerformative(ACLMessage.CFP),
+                MessageTemplate.MatchConversationId("kneading-request"));
+                //MessageTemplate.MatchSender(doughManagerAgent));
+
+            ACLMessage msg = baseAgent.receive(mt);
+
+            if (msg != null){
+                String content = msg.getContent();
+                // System.out.println(" << << " + getAID().getLocalName() + " has received a CFP from "
+                    // + msg.getSender().getName() + " for " + content);
+
+                ACLMessage reply = msg.createReply();
+                if (kneadingMachine.isAvailable()){
+                	//System.out.println(getAID().getLocalName() + " is available");
+                    reply.setPerformative(ACLMessage.PROPOSE);
+                    reply.setContent("Hey I am free, do you wanna use me ;)? " + content);
+                }else{
+                	// System.out.println(getAID().getLocalName() + " is unavailable");
+                    reply.setPerformative(ACLMessage.REFUSE);
+                    reply.setContent("Sorry, I am married potato :c " + content);
+                }
+                baseAgent.sendMessage(reply);
+                messageProcessing.decrementAndGet();
+            }
+
+            else{
+                messageProcessing.decrementAndGet();
+                block();
+            }
         }
     }
 
     // Receiving Kneading requests behavior
     private class ReceiveKneadingRequests extends CyclicBehaviour {
         public void action() {
+            messageProcessing.incrementAndGet();
 
-            MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
-                MessageTemplate.MatchConversationId("kneading-request"));
-
+            MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL);
             ACLMessage msg = myAgent.receive(mt);
 
+
+                //MessageTemplate.MatchSender(doughManagerAgent));
+                // MessageTemplate.MatchConversationId("kneading-request"));
+
             if (msg != null) {
-
-                System.out.println(getAID().getLocalName() + " received kneading requests from " + msg.getSender());
-                String content = msg.getContent();
-                System.out.println("Kneading request contains -> " + content);
-                KneadingRequest kneadingRequest = JSONConverter.parseKneadingRequest(content);
-
                 ACLMessage reply = msg.createReply();
-                reply.setPerformative(ACLMessage.CONFIRM);
-                reply.setContent("Kneading request was received");
-                reply.setConversationId("kneading-request-reply");
+
+                if (!kneadingMachine.isAvailable()){
+                    //Check if the kneadingMachine is busy performing the kneading for this kneading request
+                    // System.out.println(getAID().getLocalName()  + " is already taken");
+
+                    reply.setPerformative(ACLMessage.FAILURE);
+                    reply.setContent("KneadingMachine is taken");
+                    //reply.setConversationId("kneading-request");
+                    //baseAgent.sendMessage(reply);
+                    // System.out.println("****************************");
+                    // System.out.println(getAID().getLocalName() + " failed kneading of " + msg.getContent());
+                    // System.out.println("****************************");
+                }
+                else{
+                    kneadingMachine.setAvailable(false);
+                    String content = msg.getContent();
+                    System.out.println("***** > " + getAID().getLocalName() + " WILL perform Kneading for "
+                        + msg.getSender() + "Kneading information -> " + content);
+
+                    KneadingRequest kneadingRequest = JSONConverter.parseKneadingRequest(content);
+
+                    reply.setPerformative(ACLMessage.INFORM);
+                    reply.setContent("Kneading request was received " + content);
+                    //reply.setConversationId("kneading-request");
+                    //baseAgent.sendMessage(reply);
+
+                    kneadingTime = kneadingRequest.getKneadingTime();
+                    guids = kneadingRequest.getGuids();
+                    productType = kneadingRequest.getProductType();
+
+                    // messageInProcress.set(false);
+                    addBehaviour(new Kneading());
+                }
+
                 baseAgent.sendMessage(reply);
-
-                Float kneadingTime = kneadingRequest.getKneadingTime();
-                guids = kneadingRequest.getGuids();
-                productType = kneadingRequest.getProductType();
-
-                addBehaviour(new Kneading(kneadingTime));
+                messageProcessing.decrementAndGet();
 
             }else {
+                messageProcessing.decrementAndGet();
                 block();
             }
         }
     }
 
     // performs Kneading process
-    private class Kneading extends Behaviour {
-        private Float kneadingTime;
-        private int option = 0;
-        private String guidAvailable;
-
-        public Kneading(Float kneadingTime){
-            this.kneadingTime = kneadingTime;
-            System.out.println("----> "+ getAID().getLocalName() + " Kneading for " + kneadingTime);
-        }
-
-        public String findAvailableMachines(){
-            for (KneadingMachine kneadingMachine : kneadingMachines) {
-                if (kneadingMachine.isAvailable()){
-                    kneadingMachine.setAvailable(false);
-                    kneadingInProcess.set(true);
-                    return kneadingMachine.getGuid();
-                }
-            }
-            return "NOT_AVAILABLE";
-        }
-
-        public void releaseUsedMachine(String guid){
-            for (KneadingMachine kneadingMachine : kneadingMachines) {
-                if (kneadingMachine.getGuid().equals(guid)){
-                    kneadingMachine.setAvailable(true);
-                }
-            }
-        }
-
+    private class Kneading extends OneShotBehaviour {
         public void action(){
-            // System.out.println("-------> I am alive!");
-            if (kneadingCounter < kneadingTime){
+            if (kneadingCounter.get() < kneadingTime){
                 if (!kneadingInProcess.get()){
-                    guidAvailable = findAvailableMachines();
-                    if (guidAvailable != "NOT_AVAILABLE"){
-                        System.out.println("----> Using kneading machine " + guidAvailable);
-                    }else{
-                        System.out.println("----> No kneading machine currently available");
-                    }
+                    System.out.println(getAID().getLocalName() + " Kneading for " + kneadingTime + " " + productType);
+                    kneadingInProcess.set(true);
+                    kneadingMachine.setAvailable(false);
                 }
 
             }else{
                 kneadingInProcess.set(false);
-                releaseUsedMachine(guidAvailable);
-                kneadingCounter = 0;
+                kneadingMachine.setAvailable(true);
+                kneadingCounter.set(0);
+                System.out.println(getAID().getLocalName() + " Finishing kneading " + productType);
+                // System.out.println("----> " + guidAvailable + " finished Kneading");
                 addBehaviour(new SendKneadingNotification());
-                // this.done();
             }
-        }
-        public boolean done(){
-            if (kneadingInProcess.get()){
-                return false;
-            }else{
-                return true;
-            }
-            // baseAgent.finished();
         }
     }
 
@@ -244,6 +239,8 @@ public class KneadingMachineAgent extends BaseAgent {
         private String kneadingNotificationString = gson.toJson(kneadingNotification);
 
         public void action() {
+            messageProcessing.incrementAndGet();
+            // messageInProcress.set(true);
             switch (option) {
                 case 0:
 
@@ -252,19 +249,14 @@ public class KneadingMachineAgent extends BaseAgent {
                     msg.setContent(kneadingNotificationString);
                     msg.setConversationId("kneading-notification");
 
-                    // Send kneadingNotification msg to doughManagerAgents
-                    for (int i = 0; i < doughManagerAgents.length; i++){
-                        msg.addReceiver(doughManagerAgents[i]);
-                    }
+                    msg.addReceiver(doughManagerAgent);
 
                     baseAgent.sendMessage(msg);
 
+                    // System.out.println(getAID().getLocalName() + " Sent kneadingNotification");
+                    messageProcessing.decrementAndGet();
                     option = 1;
-                    System.out.println(getAID().getLocalName() + " Sent kneadingNotification");
                     break;
-
-
-
 
                 case 1:
                     mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.CONFIRM),
@@ -273,29 +265,29 @@ public class KneadingMachineAgent extends BaseAgent {
                     ACLMessage reply = baseAgent.receive(mt);
 
                     if (reply != null) {
-                        System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
+                        // System.out.println(getAID().getLocalName() + " Received kneading notification confirmation from " + reply.getSender());
                         option = 2;
+                        // messageInProcress.set(false);
                     }
                     else {
+                        // messageInProcress.set(false);
                         block();
                     }
+                    messageProcessing.decrementAndGet();
                     break;
 
                 default:
+                    // messageInProcress.set(false);
+                    messageProcessing.decrementAndGet();
                     break;
             }
         }
 
         public boolean done() {
-            if (option == 2) {
-                System.out.println(getAID().getLocalName() + " My life is over ");
-                baseAgent.finished();
-                //myAgent.doDelete();
-                return true;
-            }
+            return option == 2;
+        }
 
-           return false;
-       }
+       
     }
 
 }
