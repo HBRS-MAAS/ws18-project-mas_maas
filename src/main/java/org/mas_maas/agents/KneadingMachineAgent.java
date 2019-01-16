@@ -284,12 +284,10 @@ public class KneadingMachineAgent extends BaseAgent {
         }
 
         public boolean done() {
-            if (option == 2) {
-                return true;
-            }
+            return option == 2;
+        }
 
-           return false;
-       }
+       
     }
 
 }

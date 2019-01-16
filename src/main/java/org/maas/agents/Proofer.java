@@ -303,12 +303,7 @@ public class Proofer extends BaseAgent {
             }
 
         public boolean done() {
-            if (option == 2) {
-                //baseAgent.finished();
-                //myAgent.doDelete();
-                return true;
-            }
-            return false;
+            return option == 2; 
         }
     }
 }

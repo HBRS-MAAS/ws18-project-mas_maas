@@ -35,7 +35,6 @@ public class PreparationTableAgent extends BaseAgent {
 
     //private AtomicBoolean processingMessage = new AtomicBoolean(false);
     private AtomicBoolean preparationInProcess = new AtomicBoolean(false);
-    private AtomicBoolean fullPrepDone = new AtomicBoolean(false);
     private AtomicInteger stepCounter = new AtomicInteger(0);
 
     private AtomicInteger messageProcessing = new AtomicInteger(0);
@@ -295,11 +294,8 @@ public class PreparationTableAgent extends BaseAgent {
        }
 
        public boolean done() {
-           if (option == 2) {
-               return true;
-           }
 
-           return false;
+    	   return (option == 2);
        }
    }
 
