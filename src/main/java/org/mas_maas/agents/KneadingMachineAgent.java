@@ -182,7 +182,7 @@ public class KneadingMachineAgent extends BaseAgent {
                     kneadingMachine.setAvailable(false);
                     String content = msg.getContent();
                     System.out.println("***** > " + getAID().getLocalName() + " WILL perform Kneading for "
-                        + msg.getSender() + "Kneading information -> " + content);
+                        + msg.getSender().getLocalName() + ": " + content);
 
                     KneadingRequest kneadingRequest = JSONConverter.parseKneadingRequest(content);
 

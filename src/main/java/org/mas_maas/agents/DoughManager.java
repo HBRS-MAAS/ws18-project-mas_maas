@@ -84,7 +84,7 @@ public class DoughManager extends BaseAgent {
 
         //Get the container of this agent
         container = (AgentContainer)getContainerController();
-        System.out.println("-------> Container Dough" + container);
+        //System.out.println("-------> Container Dough" + container);
         doughManagerAgentName = "DoughManager_" + bakeryId;
 
         // Register the Dough-manager in the yellow pages
@@ -287,7 +287,6 @@ public class DoughManager extends BaseAgent {
             messageProcessing.incrementAndGet();
 
             if (needsProofing.hasProducts()){
-                System.out.println("In checkingProofingWorkqueue");
                 // Creates a proofingRequestMessage for the first product in the workqueue
                 ProofingRequest proofingRequestMessage = createProofingRequestMessage();
 
@@ -678,8 +677,8 @@ public class DoughManager extends BaseAgent {
                     reply = baseAgent.receive(mt);
                     if (reply != null) {
                         if (reply.getPerformative() == ACLMessage.INFORM) {
-                            System.out.println("-----> " + getAID().getLocalName()+ " confirmation received from -> "
-                                + reply.getSender().getLocalName() + " for: " + reply.getContent());
+                            // System.out.println("-----> " + getAID().getLocalName()+ " confirmation received from -> "
+                            //     + reply.getSender().getLocalName() + " for: " + reply.getContent());
                         }
                         else {
                             // System.out.println(getAID().getLocalName() + " rejection received from -> "
@@ -817,8 +816,8 @@ public class DoughManager extends BaseAgent {
                 reply = baseAgent.receive(mt);
                 if (reply != null) {
                     if (reply.getPerformative() == ACLMessage.INFORM) {
-                        System.out.println("----> " + getAID().getLocalName()+ " confirmation received from -> "
-                            +reply.getSender().getLocalName() + " for: " + reply.getContent());
+                        // System.out.println("----> " + getAID().getLocalName()+ " confirmation received from -> "
+                        //     +reply.getSender().getLocalName() + " for: " + reply.getContent());
                         }
                         else{
                             // System.out.println(getAID().getLocalName() + " rejection received from -> "
@@ -948,12 +947,12 @@ public class DoughManager extends BaseAgent {
                     reply = baseAgent.receive(mt);
                     if (reply != null) {
                         if (reply.getPerformative() == ACLMessage.INFORM) {
-                            System.out.println("-----> " + getAID().getLocalName()+ " confirmation received from -> "
-                                +reply.getSender().getLocalName() + " for: " + reply.getContent());
+                            // System.out.println("-----> " + getAID().getLocalName()+ " confirmation received from -> "
+                            //     +reply.getSender().getLocalName() + " for: " + reply.getContent());
 
                         }else {
-                            System.out.println(getAID().getLocalName() + " rejection received from -> "
-                                +reply.getSender().getLocalName() + " for: " + proofingRequest + "Adding it back to the queue");
+                            // System.out.println(getAID().getLocalName() + " rejection received from -> "
+                            //     +reply.getSender().getLocalName() + " for: " + proofingRequest + "Adding it back to the queue");
 
                                 //Add the batch to the needsProofing queue
                                 for (ProductStatus productStatus : batch){
@@ -976,7 +975,7 @@ public class DoughManager extends BaseAgent {
         }
         public boolean done(){
             if (option == 2 && proofer == null) {
-                System.out.println("++++++Attempt failed for " + proofingRequest + "Adding request to the needsProofing queue");
+                // System.out.println("++++++Attempt failed for " + proofingRequest + "Adding request to the needsProofing queue");
 
                 for (ProductStatus productStatus : batch){
                     needsProofing.addProduct(productStatus);

@@ -20,7 +20,6 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-import jade.wrapper.*;
 
 // This agent receives a ProofingRequest, executes it ands sends a DoughNotification to the interface agent of the Baking Stage.
 
@@ -30,8 +29,6 @@ public class Proofer extends BaseAgent {
     private AtomicBoolean proofingInProcess = new AtomicBoolean(false);
     private AtomicInteger messageProcessing = new AtomicInteger(0);
     private AtomicInteger proofingCounter = new AtomicInteger(0);
-
-    private AgentContainer container = null;
 
     private Vector<String> guids;
     private String productType;
@@ -54,11 +51,7 @@ public class Proofer extends BaseAgent {
             this.bakeryId = (String) args[0];
         }
 
-
-
         this.register("Proofer_" + bakeryId, "JADE-bakery");
-        container = (AgentContainer)getContainerController();
-        System.out.println("-------> Container proofer" + container);
 
         System.out.println("Hello! " + getAID().getLocalName() + " is ready.");
 
@@ -79,7 +72,6 @@ public class Proofer extends BaseAgent {
     public void getBakingInterfaceAID() {
         bakingInterfaceAgentName = "BakingInterface_" + bakeryId;
         bakingInterfaceAgent = new AID(bakingInterfaceAgentName, AID.ISLOCALNAME);
-        System.out.println(" ----> BakingInterfaceAgent " + bakingInterfaceAgent.getName());
     }
 
     public void getDoughManagerAID() {
@@ -171,7 +163,7 @@ public class Proofer extends BaseAgent {
                     isAvailable = false;
 
                     String content = msg.getContent();
-                    System.out.println(getAID().getLocalName() + " WILL perform Proofing for " + msg.getSender() + "Proofing information -> " + content);
+                    System.out.println(getAID().getLocalName() + " WILL perform Proofing for " + msg.getSender().getLocalName() + ": " + content);
 
                     ProofingRequest proofingRequest = JSONConverter.parseProofingRequest(content);
 
@@ -209,7 +201,7 @@ public class Proofer extends BaseAgent {
             if (proofingCounter.get() < proofingTime){
                 if (!proofingInProcess.get()){
                     // System.out.println("======================================");
-                    System.out.println("----> " + getAID().getLocalName() + " Proofing for " + proofingTime + " " + productType);
+                    // System.out.println("----> " + getAID().getLocalName() + " Proofing for " + proofingTime + " " + productType);
                     // System.out.println("======================================");
                     proofingInProcess.set(true);
                     isAvailable = false;
@@ -220,10 +212,10 @@ public class Proofer extends BaseAgent {
                 isAvailable = true;
                 proofingCounter.set(0);
                 System.out.println("======================================");
-                System.out.println(getAID().getLocalName() + " Finishing proofing " + productType);
+                System.out.println(getAID().getLocalName() + " Finishing proofing " + productType + guids);
                 System.out.println("======================================");
-                // System.out.println("----> " + guidAvailable + " finished Kneading");
-                addBehaviour(new SendDoughNotification());
+
+                //addBehaviour(new SendDoughNotification());
             }
         }
     }

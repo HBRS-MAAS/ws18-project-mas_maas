@@ -172,7 +172,7 @@ public class PreparationTableAgent extends BaseAgent {
                 else{
                     doughPrepTable.setAvailable(false);
                     String content = msg.getContent();
-                    System.out.println("***** > " + getAID().getLocalName() + " WILL perform preparation for " + msg.getSender() + "Preparation information -> " + content);
+                    System.out.println("***** > " + getAID().getLocalName() + " WILL perform preparation for " + msg.getSender().getLocalName() + ": " + content);
 
                     PreparationRequest preparationRequest = JSONConverter.parsePreparationRequest(content);
 
@@ -186,7 +186,7 @@ public class PreparationTableAgent extends BaseAgent {
                     steps = preparationRequest.getSteps();
                     productQuantities = preparationRequest.getProductQuantities();
 
-                    System.out.println(getAID().getLocalName() + " WILL do the following actions " + steps);
+                    // System.out.println(getAID().getLocalName() + " WILL do the following actions " + steps);
 
                     addBehaviour(new Preparation());
                 }
