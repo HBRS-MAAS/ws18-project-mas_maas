@@ -3,6 +3,7 @@ package org.maas.agents;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.maas.utils.Time;
 
 import org.maas.JSONConverter;
 import org.maas.messages.DoughNotification;
@@ -41,6 +42,7 @@ public class Proofer extends BaseAgent {
 
     private boolean isAvailable = true;
     private Float proofingTime;
+    private AtomicBoolean isInProductionTime = new AtomicBoolean (false);
 
     protected void setup() {
         super.setup();
@@ -86,7 +88,7 @@ public class Proofer extends BaseAgent {
            if (!baseAgent.getAllowAction()) {
                return;
            }else{
-               if (proofingInProcess.get()){
+               if (proofingInProcess.get() && isInProductionTime.get()){
                    int curCount = proofingCounter.incrementAndGet();
                    System.out.println(">>>>> Proofing Counter -> " + getAID().getLocalName() + " " + proofingCounter + " <<<<<");
                    addBehaviour(new Proofing());
@@ -94,6 +96,21 @@ public class Proofer extends BaseAgent {
            }
            if (messageProcessing.get() <= 0)
            {
+               // Production time is from midnight to lunch (from 00.00 hrs to 12 hrs)
+               if ((baseAgent.getCurrentTime().greaterThan(new Time(baseAgent.getCurrentDay(), 0, 0)) ||
+
+                       baseAgent.getCurrentTime().equals(new Time(baseAgent.getCurrentDay(), 0, 0))) &&
+
+                       baseAgent.getCurrentTime().lessThan(new Time(baseAgent.getCurrentDay(), 12, 0)))
+                {
+
+                   isInProductionTime.set(true);
+                }
+                else{
+
+                    isInProductionTime.set(false);
+                }
+
                baseAgent.finished();
            }
        }

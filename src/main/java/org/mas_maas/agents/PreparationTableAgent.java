@@ -6,6 +6,7 @@ import java.util.Scanner;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.maas.utils.Time;
 
 import org.maas.JSONConverter;
 import org.maas.messages.PreparationNotification;
@@ -53,6 +54,8 @@ public class PreparationTableAgent extends BaseAgent {
     private String stepAction;
     private int productIndex = 0;
 
+    private AtomicBoolean isInProductionTime = new AtomicBoolean(false);
+
     protected void setup() {
         super.setup();
 
@@ -97,8 +100,8 @@ public class PreparationTableAgent extends BaseAgent {
             if (!baseAgent.getAllowAction()) {
                 return;
             }else{
-                // if (preparationInProcess.get() && !fullPrepDone.get()){
-                if (preparationInProcess.get()){
+
+                if (preparationInProcess.get() && isInProductionTime.get()){
                     int curCount = stepCounter.incrementAndGet();
                     System.out.println(">>>>> DoughPrep Counter -> " + getAID().getLocalName() + " " + stepCounter + " <<<<<");
                     addBehaviour(new Preparation());
@@ -106,6 +109,21 @@ public class PreparationTableAgent extends BaseAgent {
             }
             if (messageProcessing.get() <= 0)
             {
+                // Production time is from midnight to lunch (from 00.00 hrs to 12 hrs)
+                if ((baseAgent.getCurrentTime().greaterThan(new Time(baseAgent.getCurrentDay(), 0, 0)) ||
+
+                        baseAgent.getCurrentTime().equals(new Time(baseAgent.getCurrentDay(), 0, 0))) &&
+
+                        baseAgent.getCurrentTime().lessThan(new Time(baseAgent.getCurrentDay(), 12, 0)))
+                {
+
+                    isInProductionTime.set(true);
+                }
+                else{
+
+                    isInProductionTime.set(false);
+                }
+
                 baseAgent.finished();
             }
         }

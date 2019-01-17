@@ -10,6 +10,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.maas.JSONConverter;
 import org.maas.messages.KneadingNotification;
 import org.maas.messages.KneadingRequest;
+import org.maas.utils.Time;
 // import org.mas_maas.objects.Bakery;
 import org.maas.Objects.Equipment;
 import org.maas.Objects.KneadingMachine;
@@ -46,6 +47,8 @@ public class KneadingMachineAgent extends BaseAgent {
     private String doughManagerName;
 
     private Float kneadingTime;
+
+    private AtomicBoolean isInProductionTime = new AtomicBoolean(false);
 
     protected void setup() {
         super.setup();
@@ -98,17 +101,29 @@ public class KneadingMachineAgent extends BaseAgent {
             if (!baseAgent.getAllowAction()) {
                 return;
             }else{
-                if (kneadingInProcess.get()){
+                if (kneadingInProcess.get() && isInProductionTime.get()){
                     int curCount = kneadingCounter.incrementAndGet();
                     System.out.println(">>>>> Kneading Counter -> " + getAID().getLocalName() + " " + kneadingCounter + " <<<<<");
                     addBehaviour(new Kneading());
                 }
             }
-            // if (!messageInProcress.get()){
-            //     baseAgent.finished();
-            // }
             if (messageProcessing.get() <= 0)
             {
+                // Production time is from midnight to lunch (from 00.00 hrs to 12 hrs)
+                if ((baseAgent.getCurrentTime().greaterThan(new Time(baseAgent.getCurrentDay(), 0, 0)) ||
+
+                        baseAgent.getCurrentTime().equals(new Time(baseAgent.getCurrentDay(), 0, 0))) &&
+
+                        baseAgent.getCurrentTime().lessThan(new Time(baseAgent.getCurrentDay(), 12, 0)))
+                {
+
+                    isInProductionTime.set(true);
+                }
+                else{
+
+                    isInProductionTime.set(false);
+                }
+
                 baseAgent.finished();
             }
         }

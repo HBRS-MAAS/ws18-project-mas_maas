@@ -65,7 +65,7 @@ public class Start {
         if(doughPrepStage) {
             Initializer init = new DoughPrepStageInitializer();
             sb.append(init.initialize(scenarioDirectory));
-            endTime = "002.06.00";
+            endTime = "003.06.00";
         }
         if(bakingMasMaas) {
             // Initializer init = new DoughPrepStageInitializer();

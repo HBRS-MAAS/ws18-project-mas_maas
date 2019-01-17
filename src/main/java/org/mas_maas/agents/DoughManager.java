@@ -13,6 +13,7 @@ import org.maas.messages.KneadingRequest;
 import org.maas.messages.PreparationNotification;
 import org.maas.messages.PreparationRequest;
 import org.maas.messages.ProofingRequest;
+import org.maas.utils.Time;
 import org.maas.Objects.BakedGood;
 import org.maas.Objects.Bakery;
 import org.maas.Objects.Client;
@@ -24,6 +25,8 @@ import org.maas.Objects.ProductMas;
 import org.maas.Objects.ProductStatus;
 import org.maas.Objects.Step;
 import org.maas.Objects.WorkQueue;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.google.gson.Gson;
 
@@ -73,6 +76,8 @@ public class DoughManager extends BaseAgent {
 
     private AtomicInteger messageProcessing = new AtomicInteger(0);
 
+    private AtomicBoolean isInProductionTime = new AtomicBoolean (false);
+
     protected void setup() {
         super.setup();
 
@@ -118,10 +123,33 @@ public class DoughManager extends BaseAgent {
             if (!baseAgent.getAllowAction()) {
                 return;
             }
+
             // only advance if we aren't currently processing any messages
             if (messageProcessing.get() <= 0)
             {
+                //System.out.println("Current time: " + baseAgent.getCurrentTime());
+
+                // Production time is from midnight to lunch (from 00.00 hrs to 12 hrs)
+                if ((baseAgent.getCurrentTime().greaterThan(new Time(baseAgent.getCurrentDay(), 0, 0)) ||
+
+                        baseAgent.getCurrentTime().equals(new Time(baseAgent.getCurrentDay(), 0, 0))) &&
+
+                        baseAgent.getCurrentTime().lessThan(new Time(baseAgent.getCurrentDay(), 12, 0)))
+                {
+
+                    isInProductionTime.set(true);
+                    //System.out.println("Setting to true");
+
+                }
+                else{
+
+                    isInProductionTime.set(false);
+                    System.out.println("Out of production hours");
+                    //System.out.println("Setting to false");
+                }
+
                 baseAgent.finished();
+
             }
         }
     }
@@ -220,7 +248,7 @@ public class DoughManager extends BaseAgent {
         public void action(){
             messageProcessing.incrementAndGet();
 
-            if (needsKneading.hasProducts()){
+            if (needsKneading.hasProducts() && isInProductionTime.get()){
 
                 // Creates a kneadingRequestMessage for the first product in the workqueue
                 KneadingRequest kneadingRequestMessage = createKneadingRequestMessage();
@@ -252,7 +280,7 @@ public class DoughManager extends BaseAgent {
         public void action(){
             messageProcessing.incrementAndGet();
 
-            if (needsPreparation.hasProducts()){
+            if (needsPreparation.hasProducts() && isInProductionTime.get()){
 
                 // Creates a preparationRequestMessage for the first product in the workqueue
                 PreparationRequest preparationRequestMessage = createPreparationRequestMessage();
@@ -286,7 +314,7 @@ public class DoughManager extends BaseAgent {
         public void action(){
             messageProcessing.incrementAndGet();
 
-            if (needsProofing.hasProducts()){
+            if (needsProofing.hasProducts() && isInProductionTime.get()){
                 // Creates a proofingRequestMessage for the first product in the workqueue
                 ProofingRequest proofingRequestMessage = createProofingRequestMessage();
 
