@@ -1,0 +1,30 @@
+[
+  {
+    "name": "Sunspear Bakery",
+    "location": null,
+    "type": 1,
+    "orders": [
+      {
+        "delivery_date": {
+          "day": 2,
+          "hour": 18
+        },
+        "products": {
+          "Bread": 10,
+          "Muffin": 2,
+          "Berliner": 2,
+          "Bagel": 6,
+          "Donut": 7
+
+        },
+        "order_date": {
+          "day": 1,
+          "hour": 4
+        },
+        "customer_id": "customer-001",
+        "guid": "order-001"
+      }
+    ],
+    "guid": "customer-001"
+  }
+]

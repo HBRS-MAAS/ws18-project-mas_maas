@@ -23,7 +23,7 @@ public class Start {
     private static boolean noAgentStarting = true;
 
     private static String endTime = "000.03.00";
-    private static String scenarioDirectory = "small";
+    private static String scenarioDirectory = "smaller";
 
     public static void main(String[] args) {
         if(!decodeArguments(args)) {
