@@ -636,10 +636,6 @@ public class DoughManager extends BaseAgent {
                     cfp.setConversationId("kneading-request");
                     cfp.setReplyWith("cfp" + System.currentTimeMillis());
 
-                    //System.out.println("======================================");
-                    // System.out.println(" << << CFP for: " + kneadingRequest);
-                    //System.out.println("======================================");
-
                     baseAgent.sendMessage(cfp);
 
                     // Template to get proposals/refusals
@@ -710,8 +706,8 @@ public class DoughManager extends BaseAgent {
                     reply = baseAgent.receive(mt);
                     if (reply != null) {
                         if (reply.getPerformative() == ACLMessage.INFORM) {
-                            // System.out.println("-----> " + getAID().getLocalName()+ " confirmation received from -> "
-                            //     + reply.getSender().getLocalName() + " for: " + reply.getContent());
+                            System.out.println("-----> " + getAID().getLocalName()+ " confirmation received from -> "
+                                + reply.getSender().getLocalName() + " for: " + reply.getContent());
                         }
                         else {
                             // System.out.println(getAID().getLocalName() + " rejection received from -> "
@@ -849,8 +845,8 @@ public class DoughManager extends BaseAgent {
                 reply = baseAgent.receive(mt);
                 if (reply != null) {
                     if (reply.getPerformative() == ACLMessage.INFORM) {
-                        // System.out.println("----> " + getAID().getLocalName()+ " confirmation received from -> "
-                        //     +reply.getSender().getLocalName() + " for: " + reply.getContent());
+                        System.out.println("----> " + getAID().getLocalName()+ " confirmation received from -> "
+                            +reply.getSender().getLocalName() + " for: " + reply.getContent());
                         }
                         else{
                             // System.out.println(getAID().getLocalName() + " rejection received from -> "
@@ -976,12 +972,12 @@ public class DoughManager extends BaseAgent {
                     break;
 
                 case 3:
-                    // Receive the confirmation for the kneadingMachine
+                    // Receive the confirmation for the proofer
                     reply = baseAgent.receive(mt);
                     if (reply != null) {
                         if (reply.getPerformative() == ACLMessage.INFORM) {
-                            // System.out.println("-----> " + getAID().getLocalName()+ " confirmation received from -> "
-                            //     +reply.getSender().getLocalName() + " for: " + reply.getContent());
+                            System.out.println("-----> " + getAID().getLocalName()+ " confirmation received from -> "
+                                +reply.getSender().getLocalName() + " for: " + reply.getContent());
 
                         }else {
                             // System.out.println(getAID().getLocalName() + " rejection received from -> "

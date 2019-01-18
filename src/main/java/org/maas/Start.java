@@ -23,7 +23,7 @@ public class Start {
     private static boolean noAgentStarting = true;
 
     private static String endTime = "000.03.00";
-    private static String scenarioDirectory = "small";
+    private static String scenarioDirectory = "smaller";
 
     public static void main(String[] args) {
         if(!decodeArguments(args)) {
@@ -72,7 +72,7 @@ public class Start {
             // sb.append(init.initialize(scenarioDirectory));
 			Initializer init = new BakingMasMaasInitializer();
             sb.append(init.initialize(scenarioDirectory));
-            endTime = "003.06.00";
+            endTime = "004.06.00";
         }
         if(bakingStage) {
 			Initializer init = new BakingStageInitializer();

@@ -105,7 +105,7 @@ public class BakingManager extends BaseAgent {
         getDummyOrderProcesserAID();
         getProoferAID();
         // getCoolingRackAID();
-        getBakingPreparationAID();
+        // getBakingPreparationAID();
 
         addBehaviour(new timeTracker());
         addBehaviour(new ReceiveOrders());
@@ -189,15 +189,18 @@ public class BakingManager extends BaseAgent {
                 String ovenAgentName = "OvenAgent_" +  bakeryId + "_" + oven.getGuid();
 
                 ovenAgents.add(new AID (ovenAgentName, AID.ISLOCALNAME));
-
+                // System.out.println(">> Ovent agent "+ ovenAgentName);
                 try {
-                    Object[] args = new Object[3];
+                    Object[] args = new Object[5];
                     args[0] = oven;
                     args[1] = ovenAgentName;
                     args[2] = bakingManagerAgentName;
+                    args[3] = scenarioPath;
+                    args[4] = bakeryId;
 
                     AgentController ovenAgent = container.createNewAgent(ovenAgentName, "org.mas_maas.agents.OvenAgent", args);
                     ovenAgent.start();
+
 
                 } catch (Exception any) {
                     any.printStackTrace();
@@ -295,7 +298,7 @@ public class BakingManager extends BaseAgent {
                 Gson gson = new Gson();
                 String bakingRequestString = gson.toJson(bakingRequestMessage);
 
-                //System.out.println("----> BakingRequest: " + bakingRequestString);
+                // System.out.println("----> BakingRequest: " + bakingRequestString);
 
                 // Add behavior to send a CFP for this bakingRequest
                 addBehaviour(new RequestBaking(bakingRequestString, batch));
@@ -527,7 +530,7 @@ public class BakingManager extends BaseAgent {
     /* This is the behavior used for receiving doughNotifications */
     private class ReceiveDoughNotification extends CyclicBehaviour {
         public void action() {
-            messageProcessing.getAndIncrement();
+            messageProcessing.incrementAndGet();
 
             MessageTemplate mt = MessageTemplate.and(
                     MessageTemplate.MatchPerformative(ACLMessage.INFORM),
@@ -557,10 +560,10 @@ public class BakingManager extends BaseAgent {
                 //
                 // //Add the new request to the needsBaking workqueue
                 queueBaking(productType, guids, productQuantities);
-                messageProcessing.getAndDecrement();
+                messageProcessing.decrementAndGet();
             }
             else {
-                messageProcessing.getAndDecrement();
+                messageProcessing.decrementAndGet();
                 block();
             }
         }
@@ -569,7 +572,7 @@ public class BakingManager extends BaseAgent {
     /* This is the behaviour used for receiving baking notification */
     private class ReceiveBakingNotification extends CyclicBehaviour {
         public void action() {
-            messageProcessing.getAndIncrement();
+            messageProcessing.incrementAndGet();
 
             MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
                     MessageTemplate.MatchConversationId("baking-notification"));
@@ -596,10 +599,10 @@ public class BakingManager extends BaseAgent {
 
                 // Add guids with this productType to the queuePreparation
                 queuePreparation(productType, guids);
-                messageProcessing.getAndDecrement();
+                messageProcessing.decrementAndGet();
             }
             else {
-                messageProcessing.getAndDecrement();
+                messageProcessing.decrementAndGet();
                 block();
             }
         }
@@ -609,7 +612,7 @@ public class BakingManager extends BaseAgent {
     private class ReceivePreparationNotification extends CyclicBehaviour {
         public void action() {
 
-            messageProcessing.getAndIncrement();
+            messageProcessing.incrementAndGet();
             MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
                     MessageTemplate.MatchConversationId("preparationBaking-notification"));
 
@@ -647,22 +650,22 @@ public class BakingManager extends BaseAgent {
                 //     addBehaviour(new RequestCooling(coolingRequestString, coolingRequestCounter));
                 //     coolingRequestCounter ++;
                 // }
-                messageProcessing.getAndDecrement();
+                messageProcessing.decrementAndGet();
             }
             else {
-                messageProcessing.getAndDecrement();
+                messageProcessing.decrementAndGet();
                 block();
             }
         }
     }
 
-    //This is the behaviour used for sending a BakingRequest
+    //This is the behaviour used for sensing a KneadingRequest
     private class RequestBaking extends Behaviour{
         private String bakingRequest;
         private Vector <ProductStatus> batch;
         private MessageTemplate mt;
         private ArrayList<AID> ovensAvailable;
-        private AID oven;
+        private AID oven; // The oven that will perform kneading
         private int repliesCnt = 0;
         private int option = 0;
 
@@ -671,8 +674,10 @@ public class BakingManager extends BaseAgent {
             // Batch of products used for creating the bakingRequest
             this.batch = batch;
         }
+
         public void action(){
-            messageProcessing.getAndIncrement();
+            // insure we don't allow a time step until we are done processing this message
+            messageProcessing.incrementAndGet();
             switch(option){
                 case 0:
                     ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
@@ -698,7 +703,7 @@ public class BakingManager extends BaseAgent {
                     break;
 
                 case 1:
-                        // Receive proposals/refusals
+                    // Receive proposals/refusals
                     ACLMessage reply = baseAgent.receive(mt);
                     if (reply != null) {
                         repliesCnt++;
@@ -729,6 +734,7 @@ public class BakingManager extends BaseAgent {
                         block();
                     }
                     break;
+
                 case 2:
                     // Accept proposal from the oven that replied first
                     ACLMessage msg = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
@@ -750,22 +756,28 @@ public class BakingManager extends BaseAgent {
                     option = 3;
                     messageProcessing.decrementAndGet();
                     break;
-            case 3:
-                    // Receive the confirmation from the kneadingMachine
-                    reply = baseAgent.receive(mt);
-                    if (reply != null) {
-                        if (reply.getPerformative() == ACLMessage.INFORM) {
-                            System.out.println("-----> " + getAID().getLocalName()+ " confirmation received from -> "
-                                + reply.getSender().getLocalName() + " for: " + reply.getContent());
+
+                case 3:
+                    // Receive the confirmation from the oven
+                    ACLMessage new_msg = baseAgent.receive(mt);
+                    if (new_msg != null) {
+                        if (new_msg.getPerformative() == ACLMessage.AGREE) {
+                            // System.out.println("(5) " + getAID().getLocalName()+ " confirmation received from -> "
+                            //     + new_msg.getSender().getLocalName() + " for: " + new_msg.getContent());
                         }
-                        else {
-                            // System.out.println(getAID().getLocalName() + " rejection received from -> "
-                            //     + reply.getSender().getLocalName() + " for: " + bakingRequest + "Adding request to the needsBaking queue");
+                        else if (new_msg.getPerformative() == ACLMessage.CANCEL){
+                            // System.out.println("(5.2) "+getAID().getLocalName() + " rejection received from -> "
+                            //     + new_msg.getSender().getLocalName() + " for: \n" + bakingRequest + "Adding request to the needsBaking queue");
 
                             //Add the batch to the needsBaking queue
                             for (ProductStatus productStatus : batch){
                                 needsBaking.addProduct(productStatus);
                             }
+                        }
+                        else{
+                            // System.out.println("(5.3) "+getAID().getLocalName() + " rejection received from -> "
+                            //     + new_msg.getSender().getLocalName() + " But why!!?");
+
                         }
                         option = 4;
                         messageProcessing.decrementAndGet();
@@ -778,12 +790,14 @@ public class BakingManager extends BaseAgent {
                 default:
                     messageProcessing.decrementAndGet();
                     break;
+
             }
         }
         public boolean done(){
+
             if (option == 2 && oven == null) {
-                // System.out.println("++++++Attempt failed for " + bakingRequest + "Adding request to the needsBaking queue");
-                //Add the batch to the needsBaking queue
+                // System.out.println("++++++Attempt failed for " + bakingRequest + "Adding request to the needsKneading queue");
+                //Add the batch to the needsKneading queue
                 for (ProductStatus productStatus : batch){
                     needsBaking.addProduct(productStatus);
                 }
@@ -803,7 +817,7 @@ public class BakingManager extends BaseAgent {
             this.preparationRequest = preparationRequest;
         }
         public void action(){
-            messageProcessing.getAndIncrement();
+            messageProcessing.incrementAndGet();
 
             switch(option){
                 case 0:
@@ -820,7 +834,7 @@ public class BakingManager extends BaseAgent {
 
                     option = 1;
                     System.out.println(getLocalName()+" Sent baking preparationRequest" + preparationRequest);
-                    messageProcessing.getAndDecrement();
+                    messageProcessing.decrementAndGet();
                     break;
 
                 case 1:
@@ -832,16 +846,16 @@ public class BakingManager extends BaseAgent {
                     if (reply != null) {
                         System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
                         option = 2;
-                        messageProcessing.getAndDecrement();
+                        messageProcessing.decrementAndGet();
                     }
                     else {
-                        messageProcessing.getAndDecrement();
+                        messageProcessing.decrementAndGet();
                         block();
                     }
                     break;
 
                 default:
-                    messageProcessing.getAndDecrement();
+                    messageProcessing.decrementAndGet();
                     break;
             }
         }
@@ -868,7 +882,7 @@ public class BakingManager extends BaseAgent {
         }
         public void action(){
 
-            messageProcessing.getAndIncrement();
+            messageProcessing.incrementAndGet();
             switch(option){
                 case 0:
 
@@ -885,7 +899,7 @@ public class BakingManager extends BaseAgent {
 
                     option = 1;
                     System.out.println(getLocalName()+" Sent coolingRequest" + coolingRequest);
-                    messageProcessing.getAndDecrement();
+                    messageProcessing.decrementAndGet();
                     break;
 
                 case 1:
@@ -897,16 +911,16 @@ public class BakingManager extends BaseAgent {
                     if (reply != null) {
                         System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
                         option = 2;
-                        messageProcessing.getAndDecrement();
+                        messageProcessing.decrementAndGet();
                     }
                     else {
-                        messageProcessing.getAndDecrement();
+                        messageProcessing.decrementAndGet();
                         block();
                     }
                     break;
 
             default:
-                messageProcessing.getAndDecrement();
+                messageProcessing.decrementAndGet();
                 break;
             }
         }
