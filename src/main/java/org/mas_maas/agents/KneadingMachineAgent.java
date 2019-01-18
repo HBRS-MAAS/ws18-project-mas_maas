@@ -31,13 +31,9 @@ public class KneadingMachineAgent extends BaseAgent {
     private AID doughManagerAgent;
 
     private AtomicBoolean kneadingInProcess = new AtomicBoolean(false);
-    // private AtomicBoolean messageInProcress = new AtomicBoolean(false);
     private AtomicInteger messageProcessing = new AtomicInteger(0);
     private AtomicInteger kneadingCounter = new AtomicInteger(0);
 
-    // private Bakery bakery;
-    // private Vector<KneadingMachine> kneadingMachines = new Vector<KneadingMachine> ();
-    // private Vector<Equipment> equipment;
     private KneadingMachine kneadingMachine;
 
     private Vector<String> guids;
@@ -69,18 +65,8 @@ public class KneadingMachineAgent extends BaseAgent {
 
         kneadingMachine.setAvailable(true);
 
-
-        // Load bakery information (includes recipes for each product)
-        // getbakery();
-
-        // Get KneadingMachines
-        // this.getKneadingMachines();
-
-        // kneadingCounter.set(0);
-        // Time tracker behavior
         addBehaviour(new timeTracker());
         addBehaviour(new ReceiveProposalRequests());
-        // Creating receive kneading requests behaviour
         addBehaviour(new ReceiveKneadingRequests());
 
 
@@ -136,7 +122,6 @@ public class KneadingMachineAgent extends BaseAgent {
             MessageTemplate mt = MessageTemplate.and(
                 MessageTemplate.MatchPerformative(ACLMessage.CFP),
                 MessageTemplate.MatchConversationId("kneading-request"));
-                //MessageTemplate.MatchSender(doughManagerAgent));
 
             ACLMessage msg = baseAgent.receive(mt);
 
@@ -174,27 +159,19 @@ public class KneadingMachineAgent extends BaseAgent {
             MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL);
             ACLMessage msg = baseAgent.receive(mt);
 
-
-                //MessageTemplate.MatchSender(doughManagerAgent));
-                // MessageTemplate.MatchConversationId("kneading-request"));
-
             if (msg != null) {
                 ACLMessage reply = msg.createReply();
 
                 if (!kneadingMachine.isAvailable()){
-                    //Check if the kneadingMachine is busy performing the kneading for this kneading request
                     // System.out.println(getAID().getLocalName()  + " is already taken");
 
                     reply.setPerformative(ACLMessage.FAILURE);
                     reply.setContent("KneadingMachine is taken");
-                    //reply.setConversationId("kneading-request");
-                    //baseAgent.sendMessage(reply);
-                    // System.out.println("****************************");
                     // System.out.println(getAID().getLocalName() + " failed kneading of " + msg.getContent());
-                    // System.out.println("****************************");
                 }
                 else{
                     kneadingMachine.setAvailable(false);
+
                     String content = msg.getContent();
                     System.out.println("***** > " + getAID().getLocalName() + " WILL perform Kneading for "
                         + msg.getSender().getLocalName() + ": " + content);
@@ -203,14 +180,11 @@ public class KneadingMachineAgent extends BaseAgent {
 
                     reply.setPerformative(ACLMessage.INFORM);
                     reply.setContent("Kneading request was received " + content);
-                    //reply.setConversationId("kneading-request");
-                    //baseAgent.sendMessage(reply);
 
                     kneadingTime = kneadingRequest.getKneadingTime();
                     guids = kneadingRequest.getGuids();
                     productType = kneadingRequest.getProductType();
 
-                    // messageInProcress.set(false);
                     addBehaviour(new Kneading());
                 }
 
@@ -255,12 +229,12 @@ public class KneadingMachineAgent extends BaseAgent {
 
         public void action() {
             messageProcessing.incrementAndGet();
-            // messageInProcress.set(true);
+
             switch (option) {
                 case 0:
 
                     ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-                    // System.out.println("-----> Kneading notification string " + kneadingNotificationString);
+
                     msg.setContent(kneadingNotificationString);
                     msg.setConversationId("kneading-notification");
 
@@ -282,10 +256,8 @@ public class KneadingMachineAgent extends BaseAgent {
                     if (reply != null) {
                         // System.out.println(getAID().getLocalName() + " Received kneading notification confirmation from " + reply.getSender());
                         option = 2;
-                        // messageInProcress.set(false);
                     }
                     else {
-                        // messageInProcress.set(false);
                         messageProcessing.decrementAndGet();
                         block();
                     }
@@ -293,7 +265,6 @@ public class KneadingMachineAgent extends BaseAgent {
                     break;
 
                 default:
-                    // messageInProcress.set(false);
                     messageProcessing.decrementAndGet();
                     break;
             }

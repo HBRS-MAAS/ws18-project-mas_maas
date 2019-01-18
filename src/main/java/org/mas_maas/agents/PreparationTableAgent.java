@@ -34,7 +34,6 @@ import org.maas.agents.BaseAgent;
 public class PreparationTableAgent extends BaseAgent {
     private AID doughManagerAgent;
 
-    //private AtomicBoolean processingMessage = new AtomicBoolean(false);
     private AtomicBoolean preparationInProcess = new AtomicBoolean(false);
     private AtomicInteger stepCounter = new AtomicInteger(0);
 
@@ -75,12 +74,7 @@ public class PreparationTableAgent extends BaseAgent {
 
         doughPrepTable.setAvailable(true);
 
-
-        stepCounter.set(0);
-
-        // Time tracker behavior
         addBehaviour(new timeTracker());
-
         addBehaviour(new ReceiveProposalRequests());
         addBehaviour(new ReceivePreparationRequests());
     }
@@ -135,7 +129,7 @@ public class PreparationTableAgent extends BaseAgent {
 
             MessageTemplate mt = MessageTemplate.and(
                 MessageTemplate.MatchPerformative(ACLMessage.CFP),
-                MessageTemplate.MatchConversationId("preparation-request")); //MessageTemplate.MatchConversationId("preparation-request"));
+                MessageTemplate.MatchConversationId("preparation-request"));
 
             ACLMessage msg = baseAgent.receive(mt);
 
@@ -146,7 +140,6 @@ public class PreparationTableAgent extends BaseAgent {
                 ACLMessage reply = msg.createReply();
                 if (doughPrepTable.isAvailable()){
                 	// System.out.println(getAID().getLocalName() + " is available");
-                    // fullPrepDone.set(false);
                     reply.setPerformative(ACLMessage.PROPOSE);
                     reply.setContent("Hey I am free, do you wanna use me ;)?" + content);
                 }else{
@@ -171,7 +164,6 @@ public class PreparationTableAgent extends BaseAgent {
             messageProcessing.incrementAndGet();
 
             MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL);
-                // MessageTemplate.MatchConversationId("preparation-request"));
 
             ACLMessage msg = baseAgent.receive(mt);
 
@@ -183,12 +175,11 @@ public class PreparationTableAgent extends BaseAgent {
                     // System.out.println(getAID().getLocalName()  + " is already taken");
                     reply.setPerformative(ACLMessage.FAILURE);
                     reply.setContent("doughPrepTable is taken");
-                    //reply.setConversationId("preparation-request");
-                    //baseAgent.sendMessage(reply);
                     // System.out.println(getAID().getLocalName() + " failed preparation of " + msg.getContent());
                 }
                 else{
                     doughPrepTable.setAvailable(false);
+
                     String content = msg.getContent();
                     System.out.println("***** > " + getAID().getLocalName() + " WILL perform preparation for " + msg.getSender().getLocalName() + ": " + content);
 
@@ -196,8 +187,6 @@ public class PreparationTableAgent extends BaseAgent {
 
                     reply.setPerformative(ACLMessage.INFORM);
                     reply.setContent("Preparation request was received " + content);
-                    //reply.setConversationId("preparation-request");
-                    //baseAgent.sendMessage(reply);
 
                     guids = preparationRequest.getGuids();
                     productType = preparationRequest.getProductType();
@@ -221,15 +210,14 @@ public class PreparationTableAgent extends BaseAgent {
     // performs Preparation process
     private class Preparation extends OneShotBehaviour {
         public void action(){
-            // if (!preparationInProcess.get() && !fullPrepDone.get()){
             if (!preparationInProcess.get()){
 
                 preparationInProcess.set(true);
                 doughPrepTable.setAvailable(false);
 
                 if (curStepIndex < steps.size()){
-                    // Get the action and its duration
 
+                    // Get the action and its duration
                     stepAction = steps.get(curStepIndex).getAction();
 
                     if (stepAction.equals(Step.ITEM_PREPARATION_STEP)){
@@ -244,7 +232,6 @@ public class PreparationTableAgent extends BaseAgent {
                 }else{
                     // We have performed all preparation actions.
                     curStepIndex = 0;
-                    // fullPrepDone.set(true);
                     stepCounter.set(0);
                     preparationInProcess.set(false);
                     doughPrepTable.setAvailable(true);
@@ -252,7 +239,6 @@ public class PreparationTableAgent extends BaseAgent {
                 }
             }
 
-            // if (stepCounter.get() >= stepDuration && !fullPrepDone.get()){
             if (stepCounter.get() >= stepDuration){
                 curStepIndex++;
                 stepCounter.set(0);

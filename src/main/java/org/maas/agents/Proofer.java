@@ -60,7 +60,6 @@ public class Proofer extends BaseAgent {
         getBakingInterfaceAID();
         getDoughManagerAID();
 
-        proofingCounter.set(0);
         addBehaviour(new timeTracker());
         addBehaviour(new ReceiveProposalRequests());
         addBehaviour(new ReceiveProofingRequests());
@@ -158,8 +157,7 @@ public class Proofer extends BaseAgent {
             messageProcessing.getAndIncrement();
             MessageTemplate mt =
                 MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL);
-                // MessageTemplate.MatchSender(doughManager));
-                //MessageTemplate.MatchConversationId("proofing-request"));
+
             ACLMessage msg = baseAgent.receive(mt);
 
             if (msg != null) {
@@ -170,10 +168,7 @@ public class Proofer extends BaseAgent {
 
                     reply.setPerformative(ACLMessage.FAILURE);
                     reply.setContent("Proofer is taken");
-                    //reply.setConversationId("proofing-request");
-                    //baseAgent.sendMessage(reply);
                     //System.out.println(getAID().getLocalName() + " failed proofing of " + msg.getContent());
-
                 }
                 else{
 
@@ -184,19 +179,14 @@ public class Proofer extends BaseAgent {
 
                     ProofingRequest proofingRequest = JSONConverter.parseProofingRequest(content);
 
-                    //ACLMessage reply = msg.createReply();
                     reply.setPerformative(ACLMessage.INFORM);
                     reply.setContent("Proofing request was received");
-                    //reply.setConversationId("proofing-request");
-                    //baseAgent.sendMessage(reply);
 
                     proofingTime = proofingRequest.getProofingTime();
                     guids = proofingRequest.getGuids();
                     productType = proofingRequest.getProductType();
                     productQuantities = proofingRequest.getProductQuantities();
 
-                    // proofingInProcess.set(true);
-                    //messageProcessing.getAndDecrement();
                     addBehaviour(new Proofing());
 
                 }
@@ -258,7 +248,7 @@ public class Proofer extends BaseAgent {
                     msg.setConversationId("dough-Notification");
                     msg.addReceiver(bakingInterfaceAgent);
 
-                    baseAgent.sendMessage(msg);  // calling sendMessage instead of send
+                    baseAgent.sendMessage(msg);
 
                     System.out.println("----> " + getAID().getLocalName() + " Sent dough Notification to " + bakingInterfaceAgent);
                     messageProcessing.getAndDecrement();
@@ -275,7 +265,6 @@ public class Proofer extends BaseAgent {
                     if (reply != null) {
                         // System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
                         option = 2;
-                        // messageProcessing.getAndDecrement();
                     }
                     else {
                         messageProcessing.getAndDecrement();
