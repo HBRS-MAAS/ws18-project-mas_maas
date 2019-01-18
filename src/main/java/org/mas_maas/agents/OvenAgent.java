@@ -68,11 +68,10 @@ public class OvenAgent extends BaseAgent {
         Object[] args = getArguments();
 
         if(args != null && args.length > 0){
-            this.oven = (Oven) args[0];
-            this.ovenName = (String) args[1];
-            this.bakingManagerName = (String) args[2];
-            this.scenarioPath = (String) args[3];
-            this.bakeryId = (String) args[4];
+            this.ovenName = (String) args[0];
+            this.bakingManagerName = (String) args[1];
+            this.scenarioPath = (String) args[2];
+            this.bakeryId = (String) args[3];
         }
 
         //Read the scenario file and get the bakery with this.bakeryId
@@ -85,13 +84,13 @@ public class OvenAgent extends BaseAgent {
 
         this.register(this.ovenName, "JADE-bakery");
 
-        oven.setAvailable(true);
+        //oven.setAvailable(true);
 
         // Time tracker behavior
         addBehaviour(new timeTracker());
-        addBehaviour(new ReceiveProposalRequests());
+        //addBehaviour(new ReceiveProposalRequests());
         // Creating receive bakingRequests behaviour
-        addBehaviour(new ReceiveBakingRequests());
+        //addBehaviour(new ReceiveBakingRequests());
     }
 
     protected void takeDown() {
@@ -173,93 +172,42 @@ public class OvenAgent extends BaseAgent {
 
     }
 
-    private class ReceiveProposalRequests extends CyclicBehaviour{
-        public void action(){
-            messageProcessing.incrementAndGet();
-
-            MessageTemplate mt = MessageTemplate.and(
-                MessageTemplate.MatchPerformative(ACLMessage.CFP),
-                MessageTemplate.MatchConversationId("baking-request"));
-
-            ACLMessage msg = baseAgent.receive(mt);
-
-            if (msg != null){
-                String content = msg.getContent();
-                // System.out.println(" (1) " + getAID().getLocalName() + " has received a CFP from "
-                //     + msg.getSender().getName() + " for " + content);
-
-                ACLMessage reply = msg.createReply();
-                if (oven.isAvailable()){
-                	//System.out.println(getAID().getLocalName() + " is available");
-                    reply.setPerformative(ACLMessage.PROPOSE);
-                    reply.setContent("Hey I am free, do you wanna use me ;)? " + content);
-                }else{
-                	// System.out.println(getAID().getLocalName() + " is unavailable");
-                    reply.setPerformative(ACLMessage.REFUSE);
-                    reply.setContent("Sorry, I am married potato :c " + content);
-                }
-                baseAgent.sendMessage(reply);
-                messageProcessing.decrementAndGet();
-            }
-
-            else{
-                messageProcessing.decrementAndGet();
-                block();
-            }
-        }
-    }
-
     // Receiving Baking requests behavior
     private class ReceiveBakingRequests extends CyclicBehaviour {
         public void action() {
             messageProcessing.incrementAndGet();
 
-            // MessageTemplate mt = MessageTemplate.and(
-            //     MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL),
-            //     MessageTemplate.MatchConversationId("baking-request"));
-            MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL);
-            ACLMessage msg = baseAgent.receive(mt);
+            MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
+                MessageTemplate.MatchConversationId("baking-request"));
+
+            ACLMessage msg = myAgent.receive(mt);
 
             if (msg != null) {
-                ACLMessage new_msg = msg.createReply();
 
-                if (!oven.isAvailable()){
+            	String content = msg.getContent();
 
+                System.out.println("================================================================================");
+                System.out.println(getAID().getLocalName()+" received baking requests from " + msg.getSender()
+                    + " for: " + content);
+                System.out.println("================================================================================");
 
-                    new_msg.setPerformative(ACLMessage.CANCEL);
-                    new_msg.setContent("Oven is taken");
-                    // System.out.println("(4.2) " + getAID().getLocalName() + " cannot perform Baking for "
-                    //     + msg.getSender() + " baking information -> " + msg.getContent());
-                }
-                else{
-                    oven.setAvailable(false);
-                    String content = msg.getContent();
-                    System.out.println("(4) " + getAID().getLocalName() + " WILL perform Baking for "
-                        + msg.getSender() + " baking information -> " + content);
+                BakingRequest bakingRequest = JSONConverter.parseBakingRequest(content);
 
-                    BakingRequest bakingRequest = JSONConverter.parseBakingRequest(content);
+                ACLMessage reply = msg.createReply();
+                reply.setPerformative(ACLMessage.CONFIRM);
+                reply.setContent("Baking request was received");
+                reply.setConversationId("baking-request-reply");
+                baseAgent.sendMessage(reply);
 
-                    new_msg.setPerformative(ACLMessage.AGREE);
-                    new_msg.setContent("Baking request was received " + content);
+                bakingTemp = bakingRequest.getBakingTemp();
+                Float bakingTime = bakingRequest.getBakingTime();
+                productType = bakingRequest.getProductType();
+                guids = bakingRequest.getGuids();
+                productQuantities = bakingRequest.getProductQuantities();
 
-                    bakingTemp = bakingRequest.getBakingTemp();
-                    Float bakingTime = bakingRequest.getBakingTime();
-                    productType = bakingRequest.getProductType();
-                    guids = bakingRequest.getGuids();
-                    productQuantities = bakingRequest.getProductQuantities();
-
-                    System.out.println("---> Baking request " + bakingRequest);
-
-                    // messageInProcress.set(false);
-                    addBehaviour(new Baking(bakingTime));
-                    // try {
-                    //     Thread.sleep(3000);
-                    // } catch (InterruptedException e) {
-                    //     e.printStackTrace();
-                    // }
-                }
-                baseAgent.sendMessage(new_msg);
+                addBehaviour(new Baking(bakingTime));
                 messageProcessing.decrementAndGet();
+
             }
 
             else {
@@ -267,7 +215,103 @@ public class OvenAgent extends BaseAgent {
                 block();
             }
         }
-    }
+}
+
+    // private class ReceiveProposalRequests extends CyclicBehaviour{
+    //     public void action(){
+    //         messageProcessing.incrementAndGet();
+    //
+    //         MessageTemplate mt = MessageTemplate.and(
+    //             MessageTemplate.MatchPerformative(ACLMessage.CFP),
+    //             MessageTemplate.MatchConversationId("baking-request"));
+    //
+    //         ACLMessage msg = baseAgent.receive(mt);
+    //
+    //         if (msg != null){
+    //             String content = msg.getContent();
+    //             // System.out.println(" (1) " + getAID().getLocalName() + " has received a CFP from "
+    //             //     + msg.getSender().getName() + " for " + content);
+    //
+    //             ACLMessage reply = msg.createReply();
+    //             if (oven.isAvailable()){
+    //             	//System.out.println(getAID().getLocalName() + " is available");
+    //                 reply.setPerformative(ACLMessage.PROPOSE);
+    //                 reply.setContent("Hey I am free, do you wanna use me ;)? " + content);
+    //             }else{
+    //             	// System.out.println(getAID().getLocalName() + " is unavailable");
+    //                 reply.setPerformative(ACLMessage.REFUSE);
+    //                 reply.setContent("Sorry, I am married potato :c " + content);
+    //             }
+    //             baseAgent.sendMessage(reply);
+    //             messageProcessing.decrementAndGet();
+    //         }
+    //
+    //         else{
+    //             messageProcessing.decrementAndGet();
+    //             block();
+    //         }
+    //     }
+    // }
+
+    // // Receiving Baking requests behavior
+    // private class ReceiveBakingRequests extends CyclicBehaviour {
+    //     public void action() {
+    //         messageProcessing.incrementAndGet();
+    //
+    //         // MessageTemplate mt = MessageTemplate.and(
+    //         //     MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL),
+    //         //     MessageTemplate.MatchConversationId("baking-request"));
+    //         MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL);
+    //         ACLMessage msg = baseAgent.receive(mt);
+    //
+    //         if (msg != null) {
+    //             ACLMessage new_msg = msg.createReply();
+    //
+    //             if (!oven.isAvailable()){
+    //
+    //
+    //                 new_msg.setPerformative(ACLMessage.CANCEL);
+    //                 new_msg.setContent("Oven is taken");
+    //                 // System.out.println("(4.2) " + getAID().getLocalName() + " cannot perform Baking for "
+    //                 //     + msg.getSender() + " baking information -> " + msg.getContent());
+    //             }
+    //             else{
+    //                 oven.setAvailable(false);
+    //                 String content = msg.getContent();
+    //                 System.out.println("(4) " + getAID().getLocalName() + " WILL perform Baking for "
+    //                     + msg.getSender() + " baking information -> " + content);
+    //
+    //                 BakingRequest bakingRequest = JSONConverter.parseBakingRequest(content);
+    //
+    //                 new_msg.setPerformative(ACLMessage.AGREE);
+    //                 new_msg.setContent("Baking request was received " + content);
+    //
+    //                 bakingTemp = bakingRequest.getBakingTemp();
+    //                 Float bakingTime = bakingRequest.getBakingTime();
+    //                 productType = bakingRequest.getProductType();
+    //                 guids = bakingRequest.getGuids();
+    //                 productQuantities = bakingRequest.getProductQuantities();
+    //
+    //                 System.out.println("---> Baking request " + bakingRequest);
+    //
+    //                 // messageInProcress.set(false);
+    //                 addBehaviour(new Baking(bakingTime));
+    //                 // try {
+    //                 //     Thread.sleep(3000);
+    //                 // } catch (InterruptedException e) {
+    //                 //     e.printStackTrace();
+    //                 // }
+    //             }
+    //             baseAgent.sendMessage(new_msg);
+    //             messageProcessing.decrementAndGet();
+    //         }
+    //
+    //         else {
+    //             messageProcessing.decrementAndGet();
+    //             block();
+    //         }
+    //     }
+    // }
 
     private class Baking extends Behaviour {
         private Float bakingTime;
