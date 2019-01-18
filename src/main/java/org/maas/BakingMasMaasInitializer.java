@@ -22,23 +22,23 @@ public class BakingMasMaasInitializer extends Initializer {
         getBakery(this.scenarioPath);
 
 		// Create a DummyOrderProcesser agent
-        agents.add("DummyOrderProcesser:org.mas_maas.agents.DummyOrderProcesser(" + scenarioPath + ")");
+        // agents.add("DummyOrderProcesser:org.mas_maas.agents.DummyOrderProcesser(" + scenarioPath + ")");
 
         // Create agents per bakery
-        //for (Bakery bakery : bakeries) {
-		Bakery bakery = bakeries.get(0);
+        for (Bakery bakery : bakeries) {
+		//Bakery bakery = bakeries.get(0);
 
             String bakeryId = bakery.getGuid();
             System.out.println(bakeryId);
 
-			agents.add("DoughManager_" + bakeryId + ":org.mas_maas.agents.DoughManager(" + scenarioPath + "," + bakeryId +")");
-			//
-			agents.add("Proofer_" + bakeryId + ":org.maas.agents.Proofer(" + bakeryId + ")");
+            //agents.add("DoughManager_" + bakeryId + ":org.mas_maas.agents.DoughManager(" + scenarioPath + "," + bakeryId +")");
+            //
+            //agents.add("Proofer_" + bakeryId + ":org.maas.agents.Proofer(" + bakeryId + ")");
 
             agents.add("BakingInterface_" + bakeryId + ":org.mas_maas.agents.BakingManager(" + scenarioPath + "," + bakeryId +")");
 
-			// agents.add(bakeryId + "-cooling-rack:org.maas.agents.CoolingRackAgent(" + bakeryId + ")");
-        //}
+            // agents.add(bakeryId + "-cooling-rack:org.maas.agents.CoolingRackAgent(" + bakeryId + ")");
+        }
 
         String agentInitString = String.join(";", agents);
         agentInitString += ";";

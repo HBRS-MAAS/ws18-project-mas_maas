@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Scanner;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.maas.JSONConverter;
 import org.maas.messages.BakingNotification;
@@ -14,6 +15,7 @@ import org.maas.messages.CoolingRequest;
 import org.maas.messages.DoughNotification;
 import org.maas.messages.PreparationNotification;
 import org.maas.messages.PreparationRequest;
+import org.maas.utils.Time;
 import org.maas.Objects.Equipment;
 import org.maas.Objects.BakedGood;
 import org.maas.Objects.Oven;
@@ -40,11 +42,11 @@ import jade.wrapper.*;
 import org.maas.agents.BaseAgent;
 
 public class BakingManager extends BaseAgent {
-    // private AID dummyOrderProcesserAgent;
+    private AID dummyOrderProcesser;
     private AID prooferAgent;
     private AID coolingRackAgent;
     private AID bakingPreparationAgent;
-    private AID dummyOrderProcesser = new AID("dummyOrderProcesser", AID.ISLOCALNAME);
+    //private AID dummyOrderProcesser = new AID("dummyOrderProcesser", AID.ISLOCALNAME);
     private ArrayList<AID> ovenAgents = new ArrayList<AID>();
 
     private String scenarioPath;
@@ -70,6 +72,7 @@ public class BakingManager extends BaseAgent {
     private int coolingRequestCounter = 0; // TODO: What?
     private AtomicInteger messageProcessing = new AtomicInteger(0);
 
+    private AtomicBoolean isInProductionTime = new AtomicBoolean (false);
 
     protected void setup() {
         super.setup();
@@ -82,7 +85,7 @@ public class BakingManager extends BaseAgent {
 
         //Get the container of this agent
         container = (AgentContainer)getContainerController();
-        System.out.println("-------> Container Baking" + container);
+        //System.out.println("-------> Container Baking" + container);
         bakingManagerAgentName = "BakingInterface_" + bakeryId;
 
         // Register the Baking-manager in the yellow pages
@@ -117,13 +120,32 @@ public class BakingManager extends BaseAgent {
 
     private class timeTracker extends CyclicBehaviour {
         public void action() {
-            // first we make sure we are even allowed to do anything
+            // Check if we are allowed to do an action
             if (!baseAgent.getAllowAction()) {
                 return;
             }
-            // only advance if we aren't currently processing any messages
+            // Only advance if we aren't currently processing any messages and if we are in production time
             if (messageProcessing.get() <= 0)
             {
+                // Production time is from midnight to lunch (from 00.00 hrs to 12 hrs)
+                if ((baseAgent.getCurrentTime().greaterThan(new Time(baseAgent.getCurrentDay(), 0, 0)) ||
+
+                        baseAgent.getCurrentTime().equals(new Time(baseAgent.getCurrentDay(), 0, 0))) &&
+
+                        baseAgent.getCurrentTime().lessThan(new Time(baseAgent.getCurrentDay(), 12, 0)))
+                {
+
+                    isInProductionTime.set(true);
+                    //System.out.println("Setting to true");
+
+                }
+                else{
+
+                    isInProductionTime.set(false);
+                    System.out.println("Out of production hours");
+                    //System.out.println("Setting to false");
+                }
+
                 baseAgent.finished();
             }
         }
@@ -256,7 +278,7 @@ public class BakingManager extends BaseAgent {
         public void action(){
             messageProcessing.incrementAndGet();
 
-            if (needsBaking.hasProducts()){
+            if (needsBaking.hasProducts() && isInProductionTime.get()){
 
                 // Creates a bakingRequestMessage for the first product in the workqueue
                 BakingRequest bakingRequestMessage = createBakingRequestMessage();
@@ -273,7 +295,7 @@ public class BakingManager extends BaseAgent {
                 Gson gson = new Gson();
                 String bakingRequestString = gson.toJson(bakingRequestMessage);
 
-                System.out.println("----> BakingRequest: " + bakingRequestString);
+                //System.out.println("----> BakingRequest: " + bakingRequestString);
 
                 // Add behavior to send a CFP for this bakingRequest
                 addBehaviour(new RequestBaking(bakingRequestString, batch));
@@ -288,7 +310,7 @@ public class BakingManager extends BaseAgent {
         public void action(){
             messageProcessing.incrementAndGet();
 
-            if (needsPreparation.hasProducts()){
+            if (needsPreparation.hasProducts() && isInProductionTime.get()){
 
                 // Creates a preparationRequestMessage for the first product in the workqueue
                 PreparationRequest preparationRequestMessage = createPreparationRequestMessage();
@@ -322,7 +344,7 @@ public class BakingManager extends BaseAgent {
         public void action(){
             messageProcessing.incrementAndGet();
 
-            if (needsCooling.hasProducts()){
+            if (needsCooling.hasProducts() && isInProductionTime.get()){
                 System.out.println("In checkingCoolingWorkqueue");
                 // Creates a proofingRequestMessage for the first product in the workqueue
                 // CoolingRequest coolingRequestMessage = createCoolingRequests();

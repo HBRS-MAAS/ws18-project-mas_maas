@@ -232,7 +232,7 @@ public class Proofer extends BaseAgent {
                 System.out.println(getAID().getLocalName() + " Finishing proofing " + productType + guids);
                 System.out.println("======================================");
 
-                //addBehaviour(new SendDoughNotification());
+                addBehaviour(new SendDoughNotification());
             }
         }
     }

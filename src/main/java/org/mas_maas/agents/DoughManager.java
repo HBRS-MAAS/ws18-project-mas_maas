@@ -6,6 +6,7 @@ import java.util.Scanner;
 import java.util.Vector;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.maas.JSONConverter;
 import org.maas.messages.KneadingNotification;
@@ -26,8 +27,6 @@ import org.maas.Objects.ProductStatus;
 import org.maas.Objects.Step;
 import org.maas.Objects.WorkQueue;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import com.google.gson.Gson;
 
 import jade.core.AID;
@@ -46,13 +45,13 @@ import jade.wrapper.*;
 import org.maas.agents.BaseAgent;
 
 public class DoughManager extends BaseAgent {
-    // private AID dummyOrderProcesserAgent;
+    private AID dummyOrderProcesser;
     private AID prooferAgent;
 
     private ArrayList<AID> preparationTableAgents = new ArrayList<AID>();
     private ArrayList<AID> kneadingMachineAgents = new ArrayList<AID>();
 
-    private AID dummyOrderProcesser = new AID("dummyOrderProcesser", AID.ISLOCALNAME);
+    //private AID dummyOrderProcesser = new AID("dummyOrderProcesser", AID.ISLOCALNAME);
     private String scenarioPath;
     private AgentContainer container = null;
 
@@ -105,6 +104,7 @@ public class DoughManager extends BaseAgent {
         // Create an agent for each equipment
         createEquipmentAgents();
 
+        getDummyOrderProcesserAID();
         getProoferAID();
 
         addBehaviour(new timeTracker());
@@ -236,6 +236,11 @@ public class DoughManager extends BaseAgent {
 
         }
 
+    }
+
+    public void getDummyOrderProcesserAID() {
+        String dummyOrderProcesserName = "DummyOrderProcesser";
+        dummyOrderProcesser = new AID(dummyOrderProcesserName, AID.ISLOCALNAME);
     }
 
     public void getProoferAID() {

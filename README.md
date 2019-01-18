@@ -31,3 +31,15 @@ To use this project with eclipse run
 
 This command will create the necessary eclipse files.
 Afterwards you can import the project folder.
+
+## Run preparation stages in one computer
+
+### Run the Dough Preparation Stage
+
+    gradle run --args=-doughPrep
+
+### Run Dough Preparation and Baking Stage
+
+    gradle run --args='-doughPrep -bakingMasMaas'
+
+## Run preparation stages in different computers
