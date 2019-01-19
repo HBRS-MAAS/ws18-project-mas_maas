@@ -45,7 +45,9 @@ public class OvenAgent extends BaseAgent {
     private AtomicInteger bakingCounter = new AtomicInteger(0);
     private AtomicBoolean isInProductionTime = new AtomicBoolean (false);
 
-    private Oven oven;
+    // private Oven oven;
+    private Vector<Oven> ovens = new Vector<Oven> ();
+    private Vector<Equipment> equipment;
 
     private Bakery bakery;
     private String bakeryId;
@@ -85,12 +87,13 @@ public class OvenAgent extends BaseAgent {
         this.register(this.ovenName, "JADE-bakery");
 
         //oven.setAvailable(true);
+        getOvens();
 
         // Time tracker behavior
         addBehaviour(new timeTracker());
         //addBehaviour(new ReceiveProposalRequests());
         // Creating receive bakingRequests behaviour
-        //addBehaviour(new ReceiveBakingRequests());
+        addBehaviour(new ReceiveBakingRequests());
     }
 
     protected void takeDown() {
@@ -108,25 +111,26 @@ public class OvenAgent extends BaseAgent {
                 return;
             }
 
-            // if (bakingInProcess.get()){
-            //     int curBakingCount = bakingCounter.incrementAndGet();
-            //     System.out.println("=========================================" );
-            //     System.out.println("-------> Oven Clock-> " + baseAgent.getCurrentHour());
-            //     System.out.println("-------> baking Counter -> " + curBakingCount);
-            //     System.out.println("=========================================" );
-            // }
-            //
-            // else{
-            //     if (needHeating.get()){
-            //         // System.out.println("------->  Allowing heat");
-            //         heatingUp.set(true);
-            //     }
-            //     if (needCooling.get()){
-            //         // System.out.println("-------> Winter is coming");
-            //         coolingDown.set(true);
-            //     }
-            //
-            // }
+            if (bakingInProcess.get() && isInProductionTime.get()){
+                int curBakingCount = bakingCounter.incrementAndGet();
+                System.out.println("=========================================" );
+                // System.out.println(">>>>> Oven Clock-> " + baseAgent.getCurrentHour() + " <<<<<");
+                System.out.println(">>>>> baking Counter -> " + curBakingCount +
+                                " \n for " + getAID().getLocalName() + " <<<<<");
+                System.out.println("=========================================" );
+            }
+
+            else{
+                if (needHeating.get() && isInProductionTime.get()){
+                    // System.out.println("------->  Allowing heat");
+                    heatingUp.set(true);
+                }
+                if (needCooling.get() && isInProductionTime.get()){
+                    // System.out.println("-------> Winter is coming");
+                    coolingDown.set(true);
+                }
+
+            }
 
             if (messageProcessing.get() <= 0)
             {
@@ -172,6 +176,21 @@ public class OvenAgent extends BaseAgent {
 
     }
 
+    public void getOvens(){
+        equipment = bakery.getEquipment();
+        System.out.println("Bakery name " + bakery.getName());
+
+        for (int i = 0; i < equipment.size(); i++){
+            if (equipment.get(i) instanceof Oven){
+                // System.out.println("Kneading machines found " + equipment.get(i));
+                ovens.add((Oven) equipment.get(i));
+            }
+        }
+        System.out.println("=========================================" );
+        System.out.println(getAID().getLocalName() + " Ovens found " + ovens.size());
+        System.out.println("=========================================" );
+    }
+
     // Receiving Baking requests behavior
     private class ReceiveBakingRequests extends CyclicBehaviour {
         public void action() {
@@ -187,8 +206,8 @@ public class OvenAgent extends BaseAgent {
             	String content = msg.getContent();
 
                 System.out.println("================================================================================");
-                System.out.println(getAID().getLocalName()+" received baking requests from " + msg.getSender()
-                    + " for: " + content);
+                System.out.println(getAID().getLocalName()+" received baking requests from \n \t" + msg.getSender()
+                    + " for: \n \t" + content);
                 System.out.println("================================================================================");
 
                 BakingRequest bakingRequest = JSONConverter.parseBakingRequest(content);
@@ -216,102 +235,6 @@ public class OvenAgent extends BaseAgent {
             }
         }
 }
-
-    // private class ReceiveProposalRequests extends CyclicBehaviour{
-    //     public void action(){
-    //         messageProcessing.incrementAndGet();
-    //
-    //         MessageTemplate mt = MessageTemplate.and(
-    //             MessageTemplate.MatchPerformative(ACLMessage.CFP),
-    //             MessageTemplate.MatchConversationId("baking-request"));
-    //
-    //         ACLMessage msg = baseAgent.receive(mt);
-    //
-    //         if (msg != null){
-    //             String content = msg.getContent();
-    //             // System.out.println(" (1) " + getAID().getLocalName() + " has received a CFP from "
-    //             //     + msg.getSender().getName() + " for " + content);
-    //
-    //             ACLMessage reply = msg.createReply();
-    //             if (oven.isAvailable()){
-    //             	//System.out.println(getAID().getLocalName() + " is available");
-    //                 reply.setPerformative(ACLMessage.PROPOSE);
-    //                 reply.setContent("Hey I am free, do you wanna use me ;)? " + content);
-    //             }else{
-    //             	// System.out.println(getAID().getLocalName() + " is unavailable");
-    //                 reply.setPerformative(ACLMessage.REFUSE);
-    //                 reply.setContent("Sorry, I am married potato :c " + content);
-    //             }
-    //             baseAgent.sendMessage(reply);
-    //             messageProcessing.decrementAndGet();
-    //         }
-    //
-    //         else{
-    //             messageProcessing.decrementAndGet();
-    //             block();
-    //         }
-    //     }
-    // }
-
-    // // Receiving Baking requests behavior
-    // private class ReceiveBakingRequests extends CyclicBehaviour {
-    //     public void action() {
-    //         messageProcessing.incrementAndGet();
-    //
-    //         // MessageTemplate mt = MessageTemplate.and(
-    //         //     MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL),
-    //         //     MessageTemplate.MatchConversationId("baking-request"));
-    //         MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL);
-    //         ACLMessage msg = baseAgent.receive(mt);
-    //
-    //         if (msg != null) {
-    //             ACLMessage new_msg = msg.createReply();
-    //
-    //             if (!oven.isAvailable()){
-    //
-    //
-    //                 new_msg.setPerformative(ACLMessage.CANCEL);
-    //                 new_msg.setContent("Oven is taken");
-    //                 // System.out.println("(4.2) " + getAID().getLocalName() + " cannot perform Baking for "
-    //                 //     + msg.getSender() + " baking information -> " + msg.getContent());
-    //             }
-    //             else{
-    //                 oven.setAvailable(false);
-    //                 String content = msg.getContent();
-    //                 System.out.println("(4) " + getAID().getLocalName() + " WILL perform Baking for "
-    //                     + msg.getSender() + " baking information -> " + content);
-    //
-    //                 BakingRequest bakingRequest = JSONConverter.parseBakingRequest(content);
-    //
-    //                 new_msg.setPerformative(ACLMessage.AGREE);
-    //                 new_msg.setContent("Baking request was received " + content);
-    //
-    //                 bakingTemp = bakingRequest.getBakingTemp();
-    //                 Float bakingTime = bakingRequest.getBakingTime();
-    //                 productType = bakingRequest.getProductType();
-    //                 guids = bakingRequest.getGuids();
-    //                 productQuantities = bakingRequest.getProductQuantities();
-    //
-    //                 System.out.println("---> Baking request " + bakingRequest);
-    //
-    //                 // messageInProcress.set(false);
-    //                 addBehaviour(new Baking(bakingTime));
-    //                 // try {
-    //                 //     Thread.sleep(3000);
-    //                 // } catch (InterruptedException e) {
-    //                 //     e.printStackTrace();
-    //                 // }
-    //             }
-    //             baseAgent.sendMessage(new_msg);
-    //             messageProcessing.decrementAndGet();
-    //         }
-    //
-    //         else {
-    //             messageProcessing.decrementAndGet();
-    //             block();
-    //         }
-    //     }
-    // }
 
     private class Baking extends Behaviour {
         private Float bakingTime;
@@ -346,158 +269,166 @@ public class OvenAgent extends BaseAgent {
             return (int) 0;
         }
 
-        // public void findAvailableSlot(int slotsNeeded){
-        //     // Find the required amount of slots that available
-        //     int slotCounter = 0;
-        //     for (Oven oven : ovens){
-        //         for (OvenSlot slot : oven.getOvenSlots()){
-        //             if (slotCounter < slotsNeeded){
-        //                 if (slot.isAvailable()){
-        //                     // System.out.println("Slot " + slotCounter + " is available");
-        //                     chosenSlots.add(slot);
-        //                     slot.setAvailable(false);
-        //                     slotCounter++;
-        //                 }
-        //             }else{
-        //                 return;
-        //             }
-        //         }
-        //     }
-        // }
-        //
+        public void findAvailableSlot(int slotsNeeded){
+            // Find a specific amount of slots available
+            // TODO: What happends if there are not enough?
+            System.out.println("Using: ");
+            int slotCounter = 0;
+            for (Oven oven : ovens){
+                for (OvenSlot slot : oven.getOvenSlots()){
+                    if (slotCounter < slotsNeeded){
+                        if (slot.isAvailable()){
+                            System.out.println("Slot of " + slot.getOvenGuid());
+                            chosenSlots.add(slot);
+                            slot.setAvailable(false);
+                            slotCounter++;
+                        }
+                    }else{
+                        return;
+                    }
+                }
+            }
+        }
 
+
+
+        public int[] findOvenRates(String ovenGuid){
+            // Reads the heating and cooling rate from the oven using
+            int rates[] = new int[2];
+            for (Oven oven : ovens){
+                if (oven.getGuid().equals(ovenGuid)){
+                    rates[0] = oven.getHeatingRate();
+                    rates[1] = oven.getCoolingRate();
+                    return rates;
+                }
+            }
+            return rates;
+        }
+
+        public boolean readyToBake(boolean[] slotsReady){
+            // Read the values of the boolean array. This is used
+            // to heat all the chosenSlots at the same time.
+            for (boolean slotFlag : slotsReady){
+                if (!slotFlag){
+                    return false;
+                }
+            }
+            return true;
+        }
         //
-        // // public int[] findOvenRates(String ovenGuid){
-        // //     // Reads the heating and cooling rate from the oven using
-        // //     int rates[] = new int[2];
-        // //     for (Oven oven : ovens){
-        // //         if (oven.getGuid().equals(ovenGuid)){
-        // //             rates[0] = oven.getHeatingRate();
-        // //             rates[1] = oven.getCoolingRate();
-        // //             return rates;
-        // //         }
-        // //     }
-        // //     return rates;
-        // // }
-        //
-        // public boolean readyToBake(boolean[] slotsReady){
-        //     // Read the values of the boolean array. This is used
-        //     // to heat all the chosenSlots at the same time.
-        //     for (boolean slotFlag : slotsReady){
-        //         if (!slotFlag){
-        //             return false;
-        //         }
-        //     }
-        //     return true;
-        // }
-        //
-        // public void releaseUsedSlots(){
-        //     // Set the chosenSlots as available and delete the array
-        //     for (OvenSlot slot : chosenSlots) {
-        //         slot.setAvailable(true);
-        //
-        //     }
-        //     chosenSlots = new Vector<OvenSlot> ();
-        // }
+        public void releaseUsedSlots(){
+            // Set the chosenSlots as available and delete the array
+            for (OvenSlot slot : chosenSlots) {
+                slot.setAvailable(true);
+
+            }
+            chosenSlots = new Vector<OvenSlot> ();
+        }
 
         public void action(){
             // Iterate over the different orders
             if (productIdx < productQuantities.size()){
-                if (!needHeating.get() && !needCooling.get() && !bakingInProcess.get()){// Initial case
+                // Initial case
+                if (!bakingInProcess.get() && chosenSlots.isEmpty()){
 
-                    System.out.println("-----> Processing order " + productIdx);
+                    System.out.println("-----> Processing order " + guids.get(productIdx));
                     requestedQuantity = productQuantities.get(productIdx);
                     System.out.println("-----> I need to bake " + requestedQuantity + " " + productType);
                     int slotsNeeded = (int) Math.ceil( ((float)requestedQuantity/(float)productPerSlot));
                     System.out.println("-----> I need " + slotsNeeded + " slots");
-                    // findAvailableSlot(slotsNeeded);
+                    findAvailableSlot(slotsNeeded);
                     // System.out.println("-----> Found " + slotsNeeded + " slots");
                     slotsReady = new boolean [slotsNeeded];
                 }
+                // Iterate over each slot
+                if (slotIdx < chosenSlots.size() && !bakingInProcess.get()){
+
+                    // System.out.println("-----> Checking slot " + slotIdx);
+                    if (slotsReady[slotIdx] == false){
+                        OvenSlot slot = chosenSlots.get(slotIdx);
+                        int rates[] = findOvenRates(slot.getOvenGuid());
+                        int ovenHeatingRate = rates[0];
+                        int ovenCoolingRate = rates[1];
+
+                        // System.out.println("-----> Oven rates: Heating " + ovenHeatingRate + " - Cooling " + ovenCoolingRate);
+                        // System.out.println("-----> Slot  " + slotIdx + "currentTemp " + slot.getCurrentTemp() );
+
+                        // Checking if needing to heat up
+                        if ((slot.getCurrentTemp() < (float) bakingTemp) &&
+                            (Math.abs(slot.getCurrentTemp() - (float) bakingTemp) > (float) ovenHeatingRate)){
+                                needHeating.set(true);
+                                needCooling.set(false);
+                                // System.out.println("I need to heat up" );
+
+                                if (heatingUp.get()){
+                                    heatingUp.set(false);
+                                    slot.setCurrentTemp( slot.getCurrentTemp() + (float) ovenHeatingRate);
+                                    System.out.println("=========================================" );
+                                    System.out.println("Heating up slot " + slotIdx +" of " + slot.getOvenGuid());
+                                    System.out.println("Current temperature of slot " + slotIdx +" of " + slot.getOvenGuid()
+                                            +" is " + slot.getCurrentTemp() + " desired is " + bakingTemp);
+                                    System.out.println("=========================================" );
+                                }
+                        }
+                        else if ((slot.getCurrentTemp() > (float) bakingTemp) &&
+                                (Math.abs(slot.getCurrentTemp() - (float) bakingTemp) > (float) ovenCoolingRate)){
+                                    needCooling.set(true);
+                                    needHeating.set(false);
+                                    // System.out.println("I need to cool down" );
+            //
+                                if (coolingDown.get()){
+                                    coolingDown.set(false);
+                                    System.out.println("=========================================" );
+                                    System.out.println("Cooling down "  + slotIdx + " of oven " + slot.getOvenGuid());
+                                    System.out.println("Current temperature of slot " + slotIdx +" of oven " + slot.getOvenGuid()
+                                            +" is " + slot.getCurrentTemp() + " desired is " + bakingTemp);
+                                    System.out.println("=========================================" );
+                                    slot.setCurrentTemp( slot.getCurrentTemp() - (float) ovenCoolingRate);
+                                }
+                        }
+                        else{ // Ideal temperature reached
+                            System.out.println("Slot " + slotIdx +" of " + slot.getOvenGuid()
+                                +" \n \t has reached the desired temperature to bake " + productType + " for order "+ guids.get(productIdx) );
+                            needCooling.set(false);
+                            needHeating.set(false);
+                            slotsReady[slotIdx] = true;
+
+                            if (readyToBake(slotsReady)){
+                                // All the slots are ready to bake
+                                System.out.println("All the slots needed are ready to bake " + productType
+                                    + " for order "+ guids.get(productIdx) );
+                                bakingInProcess.set(true);
+                            }
+                        }
+                    }
+                    // System.out.println("Iterating to a new slot");
+                    slotIdx++;
+                }
+                else{
+                    if (!bakingInProcess.get()){
+                        // slots are not ready to bake. Iterate again
+                        slotIdx = 0;
+                    }
+                    else{
+                        if (bakingCounter.get() >= bakingTime){
+                            // We have finished baking this order
+                            System.out.println("I have finished baking " + guids.get(productIdx) );
+                            bakingInProcess.set(false);
+                            bakingCounter.set(0);
+                            releaseUsedSlots();
+                            productIdx++; //TODO: Change this implementation to not wait for an order to go to another one
+                        }
+                    }
+                }
             }
-            //     if (slotIdx < chosenSlots.size() && !bakingInProcess.get()){
-            //         // Iterate over each slot
-            //         // System.out.println("-----> Checking slot " + slotIdx);
-            //         OvenSlot slot = chosenSlots.get(slotIdx);
-            //         // int rates[] = findOvenRates(slot.getOvenGuid());
-            //         // int ovenHeatingRate = rates[0];
-            //         // int ovenCoolingRate = rates[1];
-            //
-            //         // System.out.println("-----> Oven rates " + ovenHeatingRate + " - " + ovenCoolingRate);
-            //         // System.out.println("-----> Slot  currentTemp " + slot.getCurrentTemp() );
-            //
-            //         // Checking if needing to heat up
-            //         if ((slot.getCurrentTemp() < (float) bakingTemp) &&
-            //            (Math.abs(slot.getCurrentTemp() - (float) bakingTemp) > (float) ovenHeatingRate)){
-            //             needHeating.set(true);
-            //             needCooling.set(false);
-            //             // System.out.println("I need to heat up" );
-            //
-            //             if (heatingUp.get()){
-            //                 heatingUp.set(false);
-            //                 slot.setCurrentTemp( slot.getCurrentTemp() + (float) ovenHeatingRate);
-            //                 System.out.println("=========================================" );
-            //                 System.out.println("Heating up slot " + slotIdx);
-            //                 System.out.println("Current temperature is " + slot.getCurrentTemp() + " desired is " + bakingTemp);
-            //                 System.out.println("=========================================" );
-            //             }
-            //         }
-            //         else{
-            //             // Checking if needing to cool down
-            //             if ((slot.getCurrentTemp() > (float) bakingTemp) &&
-            //                  (Math.abs(slot.getCurrentTemp() - (float) bakingTemp) > (float) ovenCoolingRate)){
-            //                 needCooling.set(true);
-            //                 needHeating.set(false);
-            //                 System.out.println("=========================================" );
-            //                 System.out.println("I need to cool down" );
-            //
-            //                 if (coolingDown.get()){
-            //                     coolingDown.set(false);
-            //                     System.out.println("Cooling down "  + slotIdx + 1);
-            //                     System.out.println("Current temperature is " + slot.getCurrentTemp());
-            //                     System.out.println("=========================================" );
-            //                     slot.setCurrentTemp( slot.getCurrentTemp() - (float) ovenCoolingRate);
-            //                 }
-            //             }
-            //             else{ // Ideal temperature reached
-            //                 System.out.println("I am ready to bake" );
-            //                 needCooling.set(false);
-            //                 needHeating.set(false);
-            //                 slotsReady[slotIdx] = true;
-            //             }
-            //         }
-            //
-            //         if (readyToBake(slotsReady)){
-            //             // All the slots are ready to bake
-            //             bakingInProcess.set(true);
-            //         }
-            //         else{
-            //             slotIdx++;
-            //         }
-            //     }
-            //     else{
-            //         if (!bakingInProcess.get()){
-            //             // slots are not ready to bake. Iterate again
-            //             slotIdx = 0;
-            //         }
-            //         else{
-            //             if (bakingCounter.get() >= bakingTime){
-            //                 // We have finished baking this order
-            //                 bakingInProcess.set(false);
-            //                 bakingCounter.set(0);
-            //                 productIdx++;
-            //             }
-            //         }
-            //     }
-            // }
-            // else{
-            //     // We have baked all the orders
-            //     bakedFullOrder.set(true);
-            //     System.out.println("=========================================" );
-            //     System.out.println("I have finished baking" );
-            //     System.out.println("=========================================" );
-            //     addBehaviour(new SendBakingNotification());
-            // }
+            else{
+                // We have baked all the orders
+                bakedFullOrder.set(true);
+                System.out.println("=========================================" );
+                System.out.println("I have finished baking all the orders in the bakingRequest" );
+                System.out.println("=========================================" );
+                // addBehaviour(new SendBakingNotification());
+            }
 
         }
         public boolean done(){

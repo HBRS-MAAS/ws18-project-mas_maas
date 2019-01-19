@@ -173,7 +173,7 @@ public class KneadingMachineAgent extends BaseAgent {
                     kneadingMachine.setAvailable(false);
 
                     String content = msg.getContent();
-                    System.out.println("***** > " + getAID().getLocalName() + " WILL perform Kneading for "
+                    System.out.println(getAID().getLocalName() + " WILL perform Kneading for \n \t"
                         + msg.getSender().getLocalName() + ": " + content);
 
                     KneadingRequest kneadingRequest = JSONConverter.parseKneadingRequest(content);
@@ -203,7 +203,7 @@ public class KneadingMachineAgent extends BaseAgent {
         public void action(){
             if (kneadingCounter.get() < kneadingTime){
                 if (!kneadingInProcess.get()){
-                    System.out.println(getAID().getLocalName() + " Kneading for " + kneadingTime + " " + productType);
+                    System.out.println(getAID().getLocalName() + " Kneading for -> " + kneadingTime + " product -> " + productType);
                     kneadingInProcess.set(true);
                     kneadingMachine.setAvailable(false);
                 }

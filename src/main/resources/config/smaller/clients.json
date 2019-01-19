@@ -10,11 +10,11 @@
           "hour": 18
         },
         "products": {
-          "Bread": 1,
-          "Muffin": 2,
-          "Berliner": 1,
-          "Bagel": 1,
-          "Donut": 1
+          "Bread": 55,
+          "Muffin": 0,
+          "Berliner": 0,
+          "Bagel": 0,
+          "Donut": 0
 
         },
         "order_date": {

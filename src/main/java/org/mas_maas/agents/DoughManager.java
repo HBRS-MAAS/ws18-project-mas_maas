@@ -503,7 +503,8 @@ public class DoughManager extends BaseAgent {
             ACLMessage msg = myAgent.receive(mt);
             if (msg != null) {
                 String content = msg.getContent();
-                System.out.println(getAID().getLocalName() + " received order " + content + " from " + msg.getSender().getName());
+                System.out.println(getAID().getLocalName() + " received order " + content +
+                                    "\n \t from " + msg.getSender().getName());
                 OrderMas order = JSONConverter.parseOrder(content);
 
                 ACLMessage reply = msg.createReply();
@@ -706,7 +707,7 @@ public class DoughManager extends BaseAgent {
                     reply = baseAgent.receive(mt);
                     if (reply != null) {
                         if (reply.getPerformative() == ACLMessage.INFORM) {
-                            System.out.println("-----> " + getAID().getLocalName()+ " confirmation received from -> "
+                            System.out.println(getAID().getLocalName()+ " confirmation received from -> \n \t"
                                 + reply.getSender().getLocalName() + " for: " + reply.getContent());
                         }
                         else {
@@ -834,7 +835,9 @@ public class DoughManager extends BaseAgent {
                     baseAgent.sendMessage(msg);
 
                     // Prepare the template to get the msg reply
-                    mt = MessageTemplate.and(MessageTemplate.MatchConversationId("preparation-request"), MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
+                    mt = MessageTemplate.and(
+                         MessageTemplate.MatchConversationId("preparation-request"),
+                         MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
 
                     option = 3;
                     messageProcessing.decrementAndGet();
@@ -845,7 +848,7 @@ public class DoughManager extends BaseAgent {
                 reply = baseAgent.receive(mt);
                 if (reply != null) {
                     if (reply.getPerformative() == ACLMessage.INFORM) {
-                        System.out.println("----> " + getAID().getLocalName()+ " confirmation received from -> "
+                        System.out.println(getAID().getLocalName()+ " confirmation received from -> \n \t"
                             +reply.getSender().getLocalName() + " for: " + reply.getContent());
                         }
                         else{
@@ -916,8 +919,9 @@ public class DoughManager extends BaseAgent {
                     baseAgent.sendMessage(cfp);
 
                     // Template to get proposals/refusals
-                    mt = MessageTemplate.and(MessageTemplate.MatchConversationId("proofing-request"),
-                    MessageTemplate.MatchInReplyTo(cfp.getReplyWith()));
+                    mt = MessageTemplate.and(
+                         MessageTemplate.MatchConversationId("proofing-request"),
+                         MessageTemplate.MatchInReplyTo(cfp.getReplyWith()));
 
                     messageProcessing.decrementAndGet();
                     option = 1;
@@ -976,7 +980,7 @@ public class DoughManager extends BaseAgent {
                     reply = baseAgent.receive(mt);
                     if (reply != null) {
                         if (reply.getPerformative() == ACLMessage.INFORM) {
-                            System.out.println("-----> " + getAID().getLocalName()+ " confirmation received from -> "
+                            System.out.println(getAID().getLocalName()+ " confirmation received from -> \n \t"
                                 +reply.getSender().getLocalName() + " for: " + reply.getContent());
 
                         }else {

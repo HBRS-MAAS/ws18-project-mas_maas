@@ -276,7 +276,8 @@ public class BakingManager extends BaseAgent {
             ACLMessage msg = myAgent.receive(mt);
             if (msg != null) {
                 String content = msg.getContent();
-                System.out.println(getAID().getLocalName() + " received order " + content + " from " + msg.getSender().getName());
+                System.out.println(getAID().getLocalName() + " received order " + content +
+                    "\n \t from " + msg.getSender().getName());
                 OrderMas order = JSONConverter.parseOrder(content);
 
                 ACLMessage reply = msg.createReply();
@@ -561,7 +562,7 @@ public class BakingManager extends BaseAgent {
 
             if (msg != null) {
                 System.out.println("================================================================================");
-                System.out.println(getAID().getLocalName()+" Received dough Notification from " + msg.getSender()
+                System.out.println(getAID().getLocalName()+" Received dough Notification from \n \t" + msg.getSender()
                     + " for: " + msg.getContent());
                 System.out.println("================================================================================");
                 String doughNotificationString = msg.getContent();
@@ -708,7 +709,8 @@ public class BakingManager extends BaseAgent {
 
                     baseAgent.sendMessage(msg);
 
-                    System.out.println(getAID().getLocalName() + " Sent bakingRequest");
+                    System.out.println(getAID().getLocalName() + " Sent bakingRequest \n \t" +
+                            bakingRequest);
                     messageProcessing.decrementAndGet();
                     option = 1;
                     break;
@@ -720,7 +722,7 @@ public class BakingManager extends BaseAgent {
                     ACLMessage reply = baseAgent.receive(mt);
 
                     if (reply != null) {
-                        System.out.println(getAID().getLocalName() + " Received baking notification confirmation from " + reply.getSender());
+                        System.out.println(getAID().getLocalName() + " Received baking notification confirmation from \n \t" + reply.getSender());
                         option = 2;
                     }
                     else {

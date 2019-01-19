@@ -181,7 +181,8 @@ public class PreparationTableAgent extends BaseAgent {
                     doughPrepTable.setAvailable(false);
 
                     String content = msg.getContent();
-                    System.out.println("***** > " + getAID().getLocalName() + " WILL perform preparation for " + msg.getSender().getLocalName() + ": " + content);
+                    System.out.println(getAID().getLocalName() + " WILL perform preparation for \n \t"
+                                + msg.getSender().getLocalName() + ": " + content);
 
                     PreparationRequest preparationRequest = JSONConverter.parsePreparationRequest(content);
 
@@ -226,7 +227,7 @@ public class PreparationTableAgent extends BaseAgent {
                         stepDuration = steps.get(curStepIndex).getDuration();
                     }
 
-                    System.out.println("-----> Performing " + stepAction + " for " + stepDuration
+                    System.out.println("Performing " + stepAction + " for " + stepDuration
                                       + " for product " + productType);
 
                 }else{

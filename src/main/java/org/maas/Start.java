@@ -72,7 +72,7 @@ public class Start {
             // sb.append(init.initialize(scenarioDirectory));
 			Initializer init = new BakingMasMaasInitializer();
             sb.append(init.initialize(scenarioDirectory));
-            endTime = "004.06.00";
+            endTime = "002.06.00";
         }
         if(bakingStage) {
 			Initializer init = new BakingStageInitializer();

@@ -9,7 +9,7 @@
   "orders": 1,
   "timeStep": {
     "hour": 0,
-    "minute": 10,
+    "minute": 1,
     "day": 0
   },
   "bakeries": 1,
