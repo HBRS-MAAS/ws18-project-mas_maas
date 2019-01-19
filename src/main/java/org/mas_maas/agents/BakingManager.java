@@ -103,12 +103,12 @@ public class BakingManager extends BaseAgent {
 
         // Create an agent for each equipment
         createEquipmentAgents();
-        // createBakingPreparationAgent();
+        createBakingPreparationAgent();
 
         getDummyOrderProcesserAID();
         getProoferAID();
         // getCoolingRackAID();
-        // getBakingPreparationAID();
+        getBakingPreparationAID();
 
         addBehaviour(new timeTracker());
         addBehaviour(new ReceiveOrders());
@@ -117,7 +117,7 @@ public class BakingManager extends BaseAgent {
         // addBehaviour(new ReceivePreparationNotification());
 
         addBehaviour(new checkingBakingWorkqueue());
-        // addBehaviour(new checkingPreparationWorkqueue());
+        addBehaviour(new checkingPreparationWorkqueue());
         // addBehaviour(new checkingCoolingWorkqueue());
     }
 
@@ -208,8 +208,9 @@ public class BakingManager extends BaseAgent {
     private void createBakingPreparationAgent(){
         String bakingPreparationAgentName = "BakingPreparationAgent_" +  bakeryId;
         try {
-            Object[] args = new Object[1];
-            args[0] = bakingManagerAgentName;
+            Object[] args = new Object[2];
+            args[0] = bakingPreparationAgentName;
+            args[1] = bakingManagerAgentName;
 
             AgentController bakingPreparationAgent = container.createNewAgent(bakingPreparationAgentName, "org.mas_maas.agents.BakingPreparationAgent", args);
             bakingPreparationAgent.start();
@@ -327,10 +328,10 @@ public class BakingManager extends BaseAgent {
                 Gson gson = new Gson();
                 String preparationRequestString = gson.toJson(preparationRequestMessage);
 
-                // System.out.println("preparationRequest: " + preparationRequestString);
+                // System.out.println("bakingPreparationRequest: " + preparationRequestString);
 
                 // Add behavior to send a CFP for this preparationRequest
-                // addBehaviour(new RequestPreparation(preparationRequestString, batch));
+                addBehaviour(new RequestPreparation(preparationRequestString, batch));
             }
             messageProcessing.decrementAndGet();
 
@@ -391,22 +392,18 @@ public class BakingManager extends BaseAgent {
         }
     }
 
-    public void queuePreparation(String productType, Vector<String> guids ) {
+    public void queuePreparation(String productType, Vector<String> guids, Vector<Integer> productQuantities) {
         // Add productStatus to the needsPreparation WorkQueue
 
-        for (String guid : guids) {
+        for (int i = 0; i < guids.size(); i++) {
 
-            int amount = -1;
+            //int amount = -1;
             String status = NEEDS_PREPARATION;
             ProductMas product = bakery.findProduct(productType);
-            OrderMas order = orders.get(guid);
+            int amount = productQuantities.get(i);
+            String guid = guids.get(i);
+            //OrderMas order = orders.get(guid);
 
-            for(BakedGood bakedGood : order.getBakedGoods()) {
-                if (bakedGood.getName().equals(productType)) {
-                    amount = bakedGood.getAmount();
-                }
-
-            }
             ProductStatus productStatus = new ProductStatus(guid, status, amount, product);
             needsPreparation.addProduct(productStatus);
         }
@@ -610,7 +607,7 @@ public class BakingManager extends BaseAgent {
                 Vector<Integer> productQuantities = bakingNotification.getProductQuantities();
 
                 // Add guids with this productType to the queuePreparation
-                queuePreparation(productType, guids);
+                queuePreparation(productType, guids, productQuantities);
                 messageProcessing.decrementAndGet();
             }
             else {
@@ -735,212 +732,136 @@ public class BakingManager extends BaseAgent {
 
     }
 
-    //This is the behaviour used for sensing a KneadingRequest
-    // private class RequestBaking extends Behaviour{
-    //     private String bakingRequest;
-    //     private Vector <ProductStatus> batch;
-    //     private MessageTemplate mt;
-    //     private ArrayList<AID> ovensAvailable;
-    //     private AID oven; // The oven that will perform kneading
-    //     private int repliesCnt = 0;
-    //     private int option = 0;
-    //
-    //     public RequestBaking(String bakingRequest, Vector <ProductStatus> batch){
-    //         this.bakingRequest = bakingRequest;
-    //         // Batch of products used for creating the bakingRequest
-    //         this.batch = batch;
-    //     }
-    //
-    //     public void action(){
-    //         // insure we don't allow a time step until we are done processing this message
-    //         messageProcessing.incrementAndGet();
-    //         switch(option){
-    //             case 0:
-    //                 ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
-    //
-    //                 ovensAvailable = new ArrayList<AID>();
-    //                 // Send bakingRequest msg to all ovenAgents
-    //                 for (int i=0; i<ovenAgents.size(); i++){
-    //                     cfp.addReceiver(ovenAgents.get(i));
-    //                 }
-    //
-    //                 cfp.setContent(bakingRequest);
-    //                 cfp.setConversationId("baking-request");
-    //                 cfp.setReplyWith("cfp" + System.currentTimeMillis());
-    //
-    //                 baseAgent.sendMessage(cfp);
-    //
-    //                 // Template to get proposals/refusals
-    //                 mt = MessageTemplate.and(MessageTemplate.MatchConversationId("baking-request"),
-    //                 MessageTemplate.MatchInReplyTo(cfp.getReplyWith()));
-    //
-    //                 messageProcessing.decrementAndGet();
-    //                 option = 1;
-    //                 break;
-    //
-    //             case 1:
-    //                 // Receive proposals/refusals
-    //                 ACLMessage reply = baseAgent.receive(mt);
-    //                 if (reply != null) {
-    //                     repliesCnt++;
-    //
-    //                     // The oven that replies first gets the job
-    //                     if (reply.getPerformative() == ACLMessage.PROPOSE) {
-    //                         ovensAvailable.add(reply.getSender());
-    //
-    //                         // System.out.println(getAID().getLocalName() +
-    //                         // " received a proposal from " + reply.getSender().getName()
-    //                         // + " for: " + bakingRequest);
-    //                     }
-    //                     // All ovens replied
-    //                     if (repliesCnt >= ovenAgents.size()) {
-    //                         if (!ovensAvailable.isEmpty()){
-    //                             oven = ovensAvailable.get(0);
-    //                             ovensAvailable.remove(0);
-    //                         }
-    //
-    //                         option = 2;
-    //
-    //                     }
-    //                     messageProcessing.decrementAndGet();
-    //                 }
-    //
-    //                 else {
-    //                     messageProcessing.decrementAndGet();
-    //                     block();
-    //                 }
-    //                 break;
-    //
-    //             case 2:
-    //                 // Accept proposal from the oven that replied first
-    //                 ACLMessage msg = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
-    //
-    //                 msg.addReceiver(oven);
-    //
-    //                 // System.out.println(">>>>> " + getAID().getLocalName() + " Accepting proposal from "
-    //                 //     + oven.getName() + " for: " + bakingRequest);
-    //
-    //                 msg.setContent(bakingRequest);
-    //                 msg.setConversationId("baking-request");
-    //                 msg.setReplyWith(bakingRequest + System.currentTimeMillis());
-    //                 baseAgent.sendMessage(msg);
-    //
-    //                 // Prepare the template to get the msg reply
-    //                 mt = MessageTemplate.and(MessageTemplate.MatchConversationId("baking-request"),
-    //                 MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
-    //
-    //                 option = 3;
-    //                 messageProcessing.decrementAndGet();
-    //                 break;
-    //
-    //             case 3:
-    //                 // Receive the confirmation from the oven
-    //                 ACLMessage new_msg = baseAgent.receive(mt);
-    //                 if (new_msg != null) {
-    //                     if (new_msg.getPerformative() == ACLMessage.AGREE) {
-    //                         // System.out.println("(5) " + getAID().getLocalName()+ " confirmation received from -> "
-    //                         //     + new_msg.getSender().getLocalName() + " for: " + new_msg.getContent());
-    //                     }
-    //                     else if (new_msg.getPerformative() == ACLMessage.CANCEL){
-    //                         // System.out.println("(5.2) "+getAID().getLocalName() + " rejection received from -> "
-    //                         //     + new_msg.getSender().getLocalName() + " for: \n" + bakingRequest + "Adding request to the needsBaking queue");
-    //
-    //                         //Add the batch to the needsBaking queue
-    //                         for (ProductStatus productStatus : batch){
-    //                             needsBaking.addProduct(productStatus);
-    //                         }
-    //                     }
-    //                     else{
-    //                         // System.out.println("(5.3) "+getAID().getLocalName() + " rejection received from -> "
-    //                         //     + new_msg.getSender().getLocalName() + " But why!!?");
-    //
-    //                     }
-    //                     option = 4;
-    //                     messageProcessing.decrementAndGet();
-    //                 }
-    //                 else {
-    //                     messageProcessing.decrementAndGet();
-    //                     block();
-    //                 }
-    //                 break;
-    //             default:
-    //                 messageProcessing.decrementAndGet();
-    //                 break;
-    //
-    //         }
-    //     }
-    //     public boolean done(){
-    //
-    //         if (option == 2 && oven == null) {
-    //             // System.out.println("++++++Attempt failed for " + bakingRequest + "Adding request to the needsKneading queue");
-    //             //Add the batch to the needsKneading queue
-    //             for (ProductStatus productStatus : batch){
-    //                 needsBaking.addProduct(productStatus);
-    //             }
-    //         }
-    //         return ((option == 2 && oven == null) || option == 4);
-    //     }
-    // }
-
     //This is the behaviour used for sending a PreparationRequest
     private class RequestPreparation extends Behaviour{
         private String preparationRequest;
+        private Vector <ProductStatus> batch;
         private MessageTemplate mt;
-        private ACLMessage msg;
+        private AID bakingPreparation;
         private int option = 0;
 
-        public RequestPreparation(String preparationRequest){
+        public RequestPreparation(String preparationRequest, Vector <ProductStatus> batch){
             this.preparationRequest = preparationRequest;
+            // Batch of products used for creating the kneadingRequest
+            this.batch = batch;
         }
         public void action(){
+            // insure we don't allow a time step until we are done processing this message
             messageProcessing.incrementAndGet();
 
             switch(option){
                 case 0:
-                    ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-                    msg.setContent(preparationRequest);
-                    msg.setConversationId("preparationBaking-request");
+                    ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
 
-                    // Send preparationRequest msg to all preparationTableAgents
-                    // for (int i=0; i<bakingPreparationAgent.length; i++){
-                    //     msg.addReceiver(bakingPreparationAgent[i]);
-                    // }
-                    // msg.setReplyWith("msg"+System.currentTimeMillis());
-                    baseAgent.sendMessage(msg);  // calling sendMessage instead of send
+                    cfp.addReceiver(bakingPreparationAgent);
 
-                    option = 1;
-                    System.out.println(getLocalName()+" Sent baking preparationRequest" + preparationRequest);
+                    cfp.setContent(preparationRequest);
+                    cfp.setConversationId("baking-preparation-request");
+                    cfp.setReplyWith("cfp"+System.currentTimeMillis());
+
+                    // System.out.println("======================================");
+                    // System.out.println("CFP for: " + preparationRequest);
+                    // System.out.println("======================================");
+
+                    baseAgent.sendMessage(cfp);
+
+                    // Template to get proposals/refusals
+                    mt = MessageTemplate.and(MessageTemplate.MatchConversationId("baking-preparation-request"),
+                    MessageTemplate.MatchInReplyTo(cfp.getReplyWith()));
+
                     messageProcessing.decrementAndGet();
+                    option = 1;
                     break;
 
                 case 1:
-                    mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.CONFIRM),
-                        MessageTemplate.MatchConversationId("preparationBaking-request-reply"));
+                    // Receive proposals/refusals
                     ACLMessage reply = baseAgent.receive(mt);
-
-
                     if (reply != null) {
-                        System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
+                        if (reply.getPerformative() == ACLMessage.PROPOSE) {
+                            // System.out.println(getAID().getLocalName() + " received a proposal from " +
+                            //     reply.getSender().getName() + " for: " + proofingRequest);
+
+
+                        // }else if (reply.getPerformative() == ACLMessage.FAILURE){
+                        //     option = 0;
+                        //
+                        // }
+
+                            bakingPreparation = reply.getSender();
+
+                        }
                         option = 2;
                         messageProcessing.decrementAndGet();
                     }
+
                     else {
                         messageProcessing.decrementAndGet();
                         block();
                     }
                     break;
 
-                default:
+            case 2:
+                    ACLMessage msg = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
+
+                    msg.addReceiver(bakingPreparation);
+
+                    // System.out.println(getAID().getLocalName() + " Accepting proposal from "
+                    //     + preparationTable.getName() + " for: " + preparationRequest);
+
+                    msg.setContent(preparationRequest);
+                    msg.setConversationId("baking-preparation-request");
+                    msg.setReplyWith(preparationRequest + System.currentTimeMillis());
+                    baseAgent.sendMessage(msg);
+
+                    // Prepare the template to get the msg reply
+                    mt = MessageTemplate.and(
+                         MessageTemplate.MatchConversationId("baking-preparation-request"),
+                         MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
+
+                    option = 3;
                     messageProcessing.decrementAndGet();
                     break;
+
+            case 3:
+                // Receive the confirmation from the preparationTable
+                reply = baseAgent.receive(mt);
+                if (reply != null) {
+                    if (reply.getPerformative() == ACLMessage.INFORM) {
+                        System.out.println(getAID().getLocalName()+ " baking confirmation received from -> \n \t"
+                            +reply.getSender().getLocalName() + " for: " + reply.getContent());
+                        }
+                        else{
+                            System.out.println(getAID().getLocalName() + " baking rejection received from -> "
+                                +reply.getSender().getLocalName() + " for: " + preparationRequest);
+
+                            //Add the batch to the needsPreparation queue
+                            for (ProductStatus productStatus : batch){
+                                needsPreparation.addProduct(productStatus);
+                            }
+                        }
+                        option = 4;
+                        messageProcessing.decrementAndGet();
+                }
+                else {
+                    messageProcessing.decrementAndGet();
+                    block();
+                }
+                break;
+
+            default:
+                messageProcessing.decrementAndGet();
+                break;
             }
         }
         public boolean done(){
-            if (option == 2){
-                // baseAgent.finished();
-                return true;
+            if (option == 2 && bakingPreparation == null) {
+                // System.out.println("++++++Attempt failed for " + preparationRequest + "Adding request to the needsPreparation queue");
+                //Add the batch to the needsKneading queue
+                for (ProductStatus productStatus : batch){
+                    needsPreparation.addProduct(productStatus);
+                }
             }
-            return false;
+            return ((option == 2 && bakingPreparation == null) || option == 4);
         }
     }
 

@@ -882,7 +882,7 @@ public class DoughManager extends BaseAgent {
                     needsPreparation.addProduct(productStatus);
                 }
             }
-            return ((option == 2 && needsPreparation == null) || option == 4);
+            return ((option == 2 && preparationTable == null) || option == 4);
         }
     }
 

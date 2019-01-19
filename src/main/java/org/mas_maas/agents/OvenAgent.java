@@ -298,8 +298,8 @@ public class OvenAgent extends BaseAgent {
                     // tmp_slots.remove(slotIdx);
                     // bookedSlots.add(slot);
                     //
-                    System.out.println("Slot of " + slots.get(slotIdx).getOvenGuid() +" will bake " + productPerSlot + " "
-                            + productType + " for " + bakingTime);
+                    System.out.println("Slot of " + slots.get(slotIdx).getOvenGuid() +" will bake " + slots.get(slotIdx).getQuantity() + " "
+                            + productType + " for " + bakingTime + " for "+ slots.get(slotIdx).getGuid());
 
                     slotsBooked++;
                     // System.out.println("c: " + slotsBooked);
@@ -332,7 +332,7 @@ public class OvenAgent extends BaseAgent {
             MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
                 MessageTemplate.MatchConversationId("baking-request"));
 
-            ACLMessage msg = myAgent.receive(mt);
+            ACLMessage msg = baseAgent.receive(mt);
 
             if (msg != null) {
 

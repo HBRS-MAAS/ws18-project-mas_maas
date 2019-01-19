@@ -45,6 +45,7 @@ public class PreparationTableAgent extends BaseAgent {
 
     private Vector<String> guids;
     private Vector<Integer> productQuantities;
+    private int totalQuantity;
     private String productType;
     private Vector<Step> steps;
 
@@ -193,7 +194,10 @@ public class PreparationTableAgent extends BaseAgent {
                     productType = preparationRequest.getProductType();
                     steps = preparationRequest.getSteps();
                     productQuantities = preparationRequest.getProductQuantities();
-
+                    for (Integer quantity : productQuantities){
+                        totalQuantity = totalQuantity + quantity;
+                    }
+                    System.out.println(" doughPreparation table quantities " + totalQuantity);
                     // System.out.println(getAID().getLocalName() + " WILL do the following actions " + steps);
 
                     addBehaviour(new Preparation());
@@ -222,13 +226,13 @@ public class PreparationTableAgent extends BaseAgent {
                     stepAction = steps.get(curStepIndex).getAction();
 
                     if (stepAction.equals(Step.ITEM_PREPARATION_STEP)){
-                        stepDuration = steps.get(curStepIndex).getDuration() * productQuantities.get(productIndex);
+                        stepDuration = steps.get(curStepIndex).getDuration() * totalQuantity;
                     }else{
                         stepDuration = steps.get(curStepIndex).getDuration();
                     }
 
-                    System.out.println("Performing " + stepAction + " for " + stepDuration
-                                      + " for product " + productType);
+                    System.out.println("Performing dough " + stepAction + " for " + stepDuration
+                                      + " for " + totalQuantity + " " + productType );
 
                 }else{
                     // We have performed all preparation actions.
@@ -236,6 +240,7 @@ public class PreparationTableAgent extends BaseAgent {
                     stepCounter.set(0);
                     preparationInProcess.set(false);
                     doughPrepTable.setAvailable(true);
+                    totalQuantity = 0;
                     addBehaviour(new SendPreparationNotification());
                 }
             }
@@ -271,7 +276,9 @@ public class PreparationTableAgent extends BaseAgent {
 
                     baseAgent.sendMessage(msg);
 
-                    System.out.println(getAID().getLocalName() + " Sent preparationNotification to" + doughManagerAgent);
+                    System.out.println(getAID().getLocalName() + " Sent preparationNotification to " + doughManagerAgent
+                        + " of " + productType );
+
                     messageProcessing.decrementAndGet();
                     option = 1;
                     break;

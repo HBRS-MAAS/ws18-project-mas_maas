@@ -10,7 +10,7 @@
           "hour": 18
         },
         "products": {
-          "Bread": 125,
+          "Bread": 1,
           "Muffin": 1,
           "Berliner": 1,
           "Bagel": 1,
@@ -23,7 +23,27 @@
         },
         "customer_id": "customer-001",
         "guid": "order-001"
-      }
+    },
+     {
+       "delivery_date": {
+         "day": 2,
+         "hour": 18
+       },
+       "products": {
+         "Bread": 0,
+         "Muffin": 0,
+         "Berliner": 0,
+         "Bagel": 0,
+         "Donut": 0
+
+       },
+       "order_date": {
+         "day": 1,
+         "hour": 4
+       },
+       "customer_id": "customer-001",
+       "guid": "order-002"
+     }
     ],
     "guid": "customer-001"
   }
