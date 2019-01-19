@@ -279,11 +279,20 @@ public class OvenAgent extends BaseAgent {
                     // slots.get(slotIdx).setReadyToBake(slots.get(slotIdx).getCurrentTemp() == bakingTemp);
                     slots.get(slotIdx).setBakingTime(bakingTime);
                     slots.get(slotIdx).setBakingTemp(bakingTemp);
-                    if ((quantity - productPerSlot) >= 0){
+
+                    if (quantity < productPerSlot){
+                        slots.get(slotIdx).setQuantity(quantity);
+                        quantity = 0;
+                    }else if ((quantity - productPerSlot) >= 0){
                         slots.get(slotIdx).setQuantity(productPerSlot);
-                    }else{
-                        slots.get(slotIdx).setQuantity(Math.abs(quantity - productPerSlot));
+                        quantity = quantity - productPerSlot;
                     }
+
+                    // if ((quantity - productPerSlot) >= 0){
+                    //     slots.get(slotIdx).setQuantity(productPerSlot);
+                    // }else{
+                    //     slots.get(slotIdx).setQuantity(Math.abs(quantity - productPerSlot));
+                    // }
                     slots.get(slotIdx).setGuid(guid);
                     //
                     // tmp_slots.remove(slotIdx);
@@ -294,7 +303,7 @@ public class OvenAgent extends BaseAgent {
 
                     slotsBooked++;
                     // System.out.println("c: " + slotsBooked);
-                    quantity = quantity - productPerSlot;
+                    // quantity = quantity - productPerSlot;
                 }else{
                     // slotsNotAvailable++;
                 }
@@ -374,6 +383,7 @@ public class OvenAgent extends BaseAgent {
             // slots.get(slotIdx).setReadyToBake(false);
             slots.get(slotIdx).setBakingTime(0);
             slots.get(slotIdx).setBakingTemp(0);
+            slots.get(slotIdx).setBakingCounter(0);
             slots.get(slotIdx).setQuantity(0);
             slots.get(slotIdx).setGuid(null);
             // bookedSlots.remove(slotIdx);
@@ -415,7 +425,7 @@ public class OvenAgent extends BaseAgent {
                     }
                     // Desired temperature is reached
                     else{
-                        if (slots.get(slotIdx).getBakingTime() == slots.get(slotIdx).getBakingCounter()){
+                        if (slots.get(slotIdx).getBakingTime() >= slots.get(slotIdx).getBakingCounter()){
                             // Slot has finished baking
                             System.out.println(" Slot of " + slots.get(slotIdx).getOvenGuid() + " has finished baking " +
                             + slots.get(slotIdx).getQuantity() + " " + slots.get(slotIdx).getProductType() + " for " + slots.get(slotIdx).getGuid());
