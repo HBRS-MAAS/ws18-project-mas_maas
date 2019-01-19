@@ -240,8 +240,8 @@ public class PreparationTableAgent extends BaseAgent {
                     stepCounter.set(0);
                     preparationInProcess.set(false);
                     doughPrepTable.setAvailable(true);
+                    addBehaviour(new SendPreparationNotification(totalQuantity));
                     totalQuantity = 0;
-                    addBehaviour(new SendPreparationNotification());
                 }
             }
 
@@ -261,8 +261,15 @@ public class PreparationTableAgent extends BaseAgent {
     private MessageTemplate mt;
     private int option = 0;
     private Gson gson = new Gson();
-    private PreparationNotification preparationNotification = new PreparationNotification(guids,productType);
-    private String preparationNotificationString = gson.toJson(preparationNotification);
+    private int totalQuantity;
+    private PreparationNotification preparationNotification;
+    private String preparationNotificationString;
+
+    private SendPreparationNotification(int totalQuantity){
+        this.totalQuantity = totalQuantity;
+        this.preparationNotification = new PreparationNotification(guids,productType, totalQuantity);
+        this.preparationNotificationString = gson.toJson(preparationNotification);
+    }
 
        public void action() {
            messageProcessing.incrementAndGet();

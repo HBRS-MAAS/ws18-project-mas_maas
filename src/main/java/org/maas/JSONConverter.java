@@ -524,6 +524,7 @@ public class JSONConverter
         JsonObject jsonPreparationNotification = root.getAsJsonObject();
 
         String productType = jsonPreparationNotification.get("productType").getAsString();
+        int quantity = jsonPreparationNotification.get("quantity").getAsInt();
         Vector<String> guids = new Vector<String>();
         JsonArray jsonGuids = jsonPreparationNotification.get("guids").getAsJsonArray();
         for (JsonElement guid : jsonGuids)
@@ -531,7 +532,7 @@ public class JSONConverter
             guids.add(guid.getAsString());
         }
 
-        PreparationNotification preparationNotification = new PreparationNotification(guids, productType);
+        PreparationNotification preparationNotification = new PreparationNotification(guids, productType, quantity);
         return preparationNotification;
     }
 

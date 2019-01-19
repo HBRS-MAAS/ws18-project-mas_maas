@@ -114,7 +114,7 @@ public class BakingManager extends BaseAgent {
         addBehaviour(new ReceiveOrders());
         addBehaviour(new ReceiveDoughNotification());
         addBehaviour(new ReceiveBakingNotification());
-        // addBehaviour(new ReceivePreparationNotification());
+        addBehaviour(new ReceivePreparationNotification());
 
         addBehaviour(new checkingBakingWorkqueue());
         addBehaviour(new checkingPreparationWorkqueue());
@@ -409,7 +409,7 @@ public class BakingManager extends BaseAgent {
         }
     }
 
-    public void queueCooling(String productType, Vector<String> guids ) {
+    public void queueCooling(String productType, Vector<String> guids, quantity ) {
         // Add productStatus to the needsCooling WorkQueue
 
         for (String guid : guids) {
@@ -496,7 +496,7 @@ public class BakingManager extends BaseAgent {
 
     }
 
-    public Vector<CoolingRequest> createCoolingRequests() {
+    public Vector<CoolingRequest> createCoolingRequests(int quantity) {
         // Checks the needsCooling WorkQueue and creates a coolingRequestMessage
         Vector<ProductStatus> products = needsCooling.getProductBatch();
         Vector<CoolingRequest> coolingRequests = new Vector<CoolingRequest>();
@@ -629,7 +629,7 @@ public class BakingManager extends BaseAgent {
 
             if (msg != null) {
                 // System.out.println("======================================");
-                System.out.println("-------> " + getAID().getLocalName()+" Received Baking Preparation Notification from "
+                System.out.println(getAID().getLocalName()+" Received Baking Preparation Notification from "
                 + msg.getSender() + " for: " + msg.getContent());
                 // System.out.println("======================================");
                 String preparationNotificationString = msg.getContent();
@@ -644,21 +644,22 @@ public class BakingManager extends BaseAgent {
                 PreparationNotification preparationNotification = JSONConverter.parsePreparationNotification(preparationNotificationString);
                 String productType = preparationNotification.getProductType();
                 Vector<String> guids = preparationNotification.getGuids();
+                int quantity = preparationNotification.getQuantity();
 
                 // Add guids with this productType to the queueCooling
-                queueCooling(productType, guids);
+                // queueCooling(productType, guids);
                 // TODO:
-                // //Create coollingRequestMessages with the information in the queueCooling
-                // Vector<CoolingRequest> coolingRequests = createCoolingRequests();
-                //
-                // Gson gson = new Gson();
-                //
-                // for (CoolingRequest coolingRequest : coolingRequests) {
-                //     String coolingRequestString = gson.toJson(coolingRequest);
-                //     // Adds one behaviour per coolingRequest
-                //     addBehaviour(new RequestCooling(coolingRequestString, coolingRequestCounter));
-                //     coolingRequestCounter ++;
-                // }
+                //Create coollingRequestMessages with the information in the queueCooling
+                Vector<CoolingRequest> coolingRequests = createCoolingRequests(quantity);
+
+                Gson gson = new Gson();
+
+                for (CoolingRequest coolingRequest : coolingRequests) {
+                    String coolingRequestString = gson.toJson(coolingRequest);
+                    // Adds one behaviour per coolingRequest
+                    addBehaviour(new RequestCooling(coolingRequestString, coolingRequestCounter));
+                    coolingRequestCounter ++;
+                }
                 messageProcessing.decrementAndGet();
             }
             else {
