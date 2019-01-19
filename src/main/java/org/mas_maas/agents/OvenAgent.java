@@ -427,12 +427,24 @@ public class OvenAgent extends BaseAgent {
                     else{
                         if (slots.get(slotIdx).getBakingTime() >= slots.get(slotIdx).getBakingCounter()){
                             // Slot has finished baking
-                            System.out.println(" Slot of " + slots.get(slotIdx).getOvenGuid() + " has finished baking " +
+                            System.out.println(" Slot of " + slots.get(slotIdx).getOvenGuid() + " has finished baking "
                             + slots.get(slotIdx).getQuantity() + " " + slots.get(slotIdx).getProductType() + " for " + slots.get(slotIdx).getGuid());
+
+                            Vector<Integer> quantity = new Vector<Integer>();;
+                            quantity.add(slots.get(slotIdx).getQuantity());
+
+                            Vector<String> guids_done = new Vector<String> ();
+                            guids_done.add(slots.get(slotIdx).getGuid());
+
+                            Gson gson = new Gson();
+                            BakingNotification bakingNotification = new BakingNotification(guids_done,
+                                    slots.get(slotIdx).getProductType(),quantity);
+
+                            String bakingNotificationString = gson.toJson(bakingNotification);
+
                             releaseSlot(slotIdx);
-
-
-
+                            messageProcessing.decrementAndGet();
+                            addBehaviour(new SendBakingNotification(bakingNotificationString));
 
                         }else{
                              // if (bakingAllowed.get()){
@@ -453,62 +465,59 @@ public class OvenAgent extends BaseAgent {
         }
     }
 
-    // Send a bakingNotification msg to the bakingManager agents
-    // private class SendBakingNotification extends Behaviour {
-    //     private MessageTemplate mt;
-    //     private int option = 0;
-    //     private Gson gson = new Gson();
-    //     private BakingNotification bakingNotification = new BakingNotification(guids,productType,productQuantities);
-    //     private String bakingNotificationString = gson.toJson(bakingNotification);
-    //
-    //     public void action() {
-    //         switch (option) {
-    //             case 0:
-    //
-    //                 ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-    //                 System.out.println("-----> Baking notification string " + bakingNotificationString);
-    //                 msg.setContent(bakingNotificationString);
-    //                 msg.setConversationId("baking-notification");
-    //
-    //                 // Send bakingNotification msg to bakingManagerAgents
-    //                 // for (int i = 0; i < bakingManagerAgents.length; i++){
-    //                 //     msg.addReceiver(bakingManagerAgents[i]);
-    //                 // }
-    //
-    //                 baseAgent.sendMessage(msg);
-    //
-    //                 option = 1;
-    //                 System.out.println(getAID().getLocalName() + " Sent bakingNotification");
-    //                 break;
-    //
-    //             case 1:
-    //                 mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.CONFIRM),
-    //                     MessageTemplate.MatchConversationId("baking-notification-reply"));
-    //                 ACLMessage reply = baseAgent.receive(mt);
-    //
-    //                 if (reply != null) {
-    //                     System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
-    //                     option = 2;
-    //                 }
-    //                 else {
-    //                     block();
-    //                 }
-    //                 break;
-    //
-    //             default:
-    //                 break;
-    //         }
-    //     }
-    //
-    //     public boolean done() {
-    //         if (option == 2) {
-    //             baseAgent.finished();
-    //             myAgent.doDelete();
-    //             return true;
-    //         }
-    //
-    //        return false;
-    //    }
-    // }
+//    Send a bakingNotification msg to the bakingManager agents
+    private class SendBakingNotification extends Behaviour {
+        private MessageTemplate mt;
+        private int option = 0;
+        private String bakingNotificationString;
+
+        private SendBakingNotification(String bakingNotificationString){
+            this.bakingNotificationString = bakingNotificationString;
+        }
+
+        public void action() {
+            messageProcessing.getAndIncrement();
+            switch (option) {
+                case 0:
+
+                    ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+                    msg.setContent(bakingNotificationString);
+                    msg.setConversationId("baking-notification");
+                    msg.addReceiver(bakingManagerAgent);
+
+                    baseAgent.sendMessage(msg);
+
+                    System.out.println(getAID().getLocalName() + " Sent bakingNotification " + bakingNotificationString);
+
+                    option = 1;
+                    break;
+
+                case 1:
+                    mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.CONFIRM),
+                        MessageTemplate.MatchConversationId("baking-notification-reply"));
+
+                    ACLMessage reply = baseAgent.receive(mt);
+
+                    if (reply != null) {
+                        // System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
+                        option = 2;
+                    }
+                    else {
+                        messageProcessing.getAndDecrement();
+                        block();
+                    }
+                    messageProcessing.getAndDecrement();
+                    break;
+
+                default:
+                    messageProcessing.getAndDecrement();
+                    break;
+            }
+        }
+
+        public boolean done() {
+            return option == 2;
+       }
+    }
 
 }

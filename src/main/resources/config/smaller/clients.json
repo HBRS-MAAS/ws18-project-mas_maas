@@ -11,10 +11,10 @@
         },
         "products": {
           "Bread": 125,
-          "Muffin": 32,
-          "Berliner": 28,
+          "Muffin": 1,
+          "Berliner": 1,
           "Bagel": 1,
-          "Donut": 16
+          "Donut": 1
 
         },
         "order_date": {

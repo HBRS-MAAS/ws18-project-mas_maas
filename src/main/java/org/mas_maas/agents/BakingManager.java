@@ -113,7 +113,7 @@ public class BakingManager extends BaseAgent {
         addBehaviour(new timeTracker());
         addBehaviour(new ReceiveOrders());
         addBehaviour(new ReceiveDoughNotification());
-        // addBehaviour(new ReceiveBakingNotification());
+        addBehaviour(new ReceiveBakingNotification());
         // addBehaviour(new ReceivePreparationNotification());
 
         addBehaviour(new checkingBakingWorkqueue());
