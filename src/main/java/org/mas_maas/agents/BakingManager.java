@@ -20,6 +20,7 @@ import org.maas.Objects.Equipment;
 import org.maas.Objects.BakedGood;
 import org.maas.Objects.Oven;
 import org.maas.Objects.Bakery;
+import org.maas.Objects.Batch;
 import org.maas.Objects.OrderMas;
 import org.maas.Objects.ProductMas;
 import org.maas.Objects.ProductStatus;
@@ -69,6 +70,7 @@ public class BakingManager extends BaseAgent {
     private static final String NEEDS_COOLING = "needsCooling";
 
     private Vector<Equipment> equipment;
+    private Vector<ProductMas> products;
 
     private int coolingRequestCounter = 0; // TODO: What?
     private AtomicInteger messageProcessing = new AtomicInteger(0);
@@ -175,6 +177,9 @@ public class BakingManager extends BaseAgent {
             e.printStackTrace();
         }
 
+        // Get list of products
+        products = bakery.getProducts();
+
     }
 
     private void createEquipmentAgents() {
@@ -198,38 +203,6 @@ public class BakingManager extends BaseAgent {
         } catch (Exception any) {
             any.printStackTrace();
         }
-
-        // for (int i = 0; i < equipment.size(); i++){
-        //
-        //
-        //     //if (equipment.get(i) instanceof Oven){
-        //
-        //         // Object of type KneadingMachine
-        //         Oven oven = (Oven) equipment.get(i);
-        //         // Name of the kneadingMachineAgent
-        //         String ovenAgentName = "OvenAgent_" +  bakeryId + "_" + oven.getGuid();
-        //
-        //         ovenAgents.add(new AID (ovenAgentName, AID.ISLOCALNAME));
-        //         // System.out.println(">> Ovent agent "+ ovenAgentName);
-        //         try {
-        //             Object[] args = new Object[5];
-        //             args[0] = oven;
-        //             args[1] = ovenAgentName;
-        //             args[2] = bakingManagerAgentName;
-        //             args[3] = scenarioPath;
-        //             args[4] = bakeryId;
-        //
-        //             AgentController ovenAgent = container.createNewAgent(ovenAgentName, "org.mas_maas.agents.OvenAgent", args);
-        //             ovenAgent.start();
-        //
-        //
-        //         } catch (Exception any) {
-        //             any.printStackTrace();
-        //         }
-        //     }
-
-        //}
-
     }
 
     private void createBakingPreparationAgent(){
@@ -470,20 +443,26 @@ public class BakingManager extends BaseAgent {
 
             Vector<String> guids = new Vector<String>();
             Vector<Integer> productQuantities = new Vector<Integer>();
+            Vector<Integer> slotsNeeded = new Vector<Integer>();
+            int productPerSlot = 0;
 
+            String productType = products.get(0).getProduct().getGuid();
 
             for (ProductStatus productStatus : products) {
                 guids.add(productStatus.getGuid());
                 productQuantities.add(productStatus.getAmount());
+                productPerSlot = findProductPerSlot(productType);
+                slotsNeeded.add((int) Math.ceil( ((float)productStatus.getAmount()/(float)productPerSlot)));
             }
 
-            String productType = products.get(0).getProduct().getGuid();
 
             int bakingTemp = products.get(0).getProduct().getRecipe().getBakingTemp();
             float bakingTime = products.get(0).getProduct().getRecipe().getActionTime(Step.BAKING_STEP);
 
 
-            bakingRequest = new BakingRequest(guids, productType, bakingTemp, bakingTime, productQuantities);
+
+
+            bakingRequest = new BakingRequest(guids, productType, bakingTemp, slotsNeeded, bakingTime, productQuantities, productPerSlot);
 
         }
 
@@ -546,6 +525,17 @@ public class BakingManager extends BaseAgent {
         }
 
         return coolingRequests;
+    }
+
+    public int findProductPerSlot(String productType){
+        // Get the Number of products the slot can fit based on product type
+        for (ProductMas product : products) {
+            if (product.getGuid().equals(productType)){
+                Batch batch = product.getBatch();
+                return batch.getBreadsPerOven();
+            }
+        }
+        return (int) 0;
     }
 
 

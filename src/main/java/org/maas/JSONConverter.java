@@ -604,6 +604,8 @@ public class JSONConverter
         JsonObject jsonBakingRequest = root.getAsJsonObject();
 
         int bakingTemp = jsonBakingRequest.get("bakingTemp").getAsInt();
+        int productPerSlot = jsonBakingRequest.get("productPerSlot").getAsInt();
+
         Float bakingTime = jsonBakingRequest.get("bakingTime").getAsFloat();
         String productType = jsonBakingRequest.get("productType").getAsString();
 
@@ -621,7 +623,15 @@ public class JSONConverter
             productQuantities.add(productQuantitie.getAsInt());
         }
 
-        BakingRequest bakingRequest = new BakingRequest(guids, productType, bakingTemp, bakingTime, productQuantities);
+        Vector<Integer> slotsNeeded = new Vector<Integer>();
+        JsonArray jsonSlotsNeeded = jsonBakingRequest.get("slotsNeeded").getAsJsonArray();
+        for (JsonElement slotNeeded : jsonSlotsNeeded)
+        {
+            slotsNeeded.add(slotNeeded.getAsInt());
+        }
+
+
+        BakingRequest bakingRequest = new BakingRequest(guids, productType, bakingTemp, slotsNeeded, bakingTime, productQuantities, productPerSlot);
         return bakingRequest;
     }
 
