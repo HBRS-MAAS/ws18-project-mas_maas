@@ -524,7 +524,14 @@ public class JSONConverter
         JsonObject jsonPreparationNotification = root.getAsJsonObject();
 
         String productType = jsonPreparationNotification.get("productType").getAsString();
-        int quantity = jsonPreparationNotification.get("quantity").getAsInt();
+        Vector<Integer> productQuantities = new Vector<Integer>();
+        JsonArray jsonProductQuantities = jsonPreparationNotification.get("productQuantities").getAsJsonArray();
+
+        for (JsonElement productQuantity : jsonProductQuantities)
+        {
+            productQuantities.add(productQuantity.getAsInt());
+        }
+
         Vector<String> guids = new Vector<String>();
         JsonArray jsonGuids = jsonPreparationNotification.get("guids").getAsJsonArray();
         for (JsonElement guid : jsonGuids)
@@ -532,7 +539,7 @@ public class JSONConverter
             guids.add(guid.getAsString());
         }
 
-        PreparationNotification preparationNotification = new PreparationNotification(guids, productType, quantity);
+        PreparationNotification preparationNotification = new PreparationNotification(guids, productType, productQuantities);
         return preparationNotification;
     }
 
@@ -669,10 +676,10 @@ public class JSONConverter
         JsonArray jsonCoolingRequests = root.getAsJsonArray();
         for (JsonElement jsonCoolingRequest : jsonCoolingRequests)
         {
-            JsonObject CoolingRequeatjson = jsonCoolingRequest.getAsJsonObject();
-            String guid = CoolingRequeatjson.get("guid").getAsString();
-            int quantity = CoolingRequeatjson.get("quantity").getAsInt();
-            float coolingDuration = CoolingRequeatjson.get("coolingDuration").getAsFloat();
+            JsonObject CoolingRequestjson = jsonCoolingRequest.getAsJsonObject();
+            String guid = CoolingRequestjson.get("guid").getAsString();
+            int quantity = CoolingRequestjson.get("quantity").getAsInt();
+            float coolingDuration = CoolingRequestjson.get("coolingDuration").getAsFloat();
 
             coolingRequest.addCoolingRequest(guid, coolingDuration, quantity);
         }

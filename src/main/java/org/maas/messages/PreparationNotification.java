@@ -3,18 +3,19 @@ package org.maas.messages;
 import java.util.Vector;
 
 public class PreparationNotification extends GenericGuidMessage {
-    private int quantity;
-    public PreparationNotification(Vector<String> guids, String productType, int quantity) {
+    private Vector<Integer> productQuantities;
+    public PreparationNotification(Vector<String> guids, String productType, Vector<Integer> productQuantities) {
         super(guids, productType);
-        this.quantity = quantity;
+        this.productQuantities = productQuantities;
     }
 
-    public int getQuantity() {
-        return quantity;
+    public Vector<Integer> getProductQuantities() {
+        return productQuantities;
     }
 
-    public void setQuantity(int quantity) {
-        this.quantity = quantity;
+    public void setProductQuantities(Vector<Integer> productQuantities) {
+        this.productQuantities = productQuantities;
     }
+
 
 }
