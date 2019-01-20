@@ -392,7 +392,7 @@ public class OvenAgent extends BaseAgent {
 
         public void action(){
 
-            messageProcessing.getAndIncrement();
+            messageProcessing.incrementAndGet();
             for (int slotIdx = 0; slotIdx < slots.size(); slotIdx++){
                 // OvenSlot slot = (OvenSlot) slots.get(slotIdx);
 
@@ -405,8 +405,8 @@ public class OvenAgent extends BaseAgent {
                             // heatingAllowed.set(false);
                             slots.get(slotIdx).setCurrentTemp( slots.get(slotIdx).getCurrentTemp() + (float) slots.get(slotIdx).getHeatingRate());
                             // System.out.println("=========================================" );
-                            // System.out.println("Heating up slot of " + slots.get(slotIdx).getOvenGuid() + " with current temperature of "
-                            //     + slots.get(slotIdx).getCurrentTemp() + ". Desired temperature  is " + slots.get(slotIdx).getBakingTemp());
+                            System.out.println("Heating up slot of " + slots.get(slotIdx).getOvenGuid() + " with current temperature of "
+                                + slots.get(slotIdx).getCurrentTemp() + ". Desired temperature  is " + slots.get(slotIdx).getBakingTemp());
                             // System.out.println("=========================================" );
                         // }
                     }
@@ -418,14 +418,14 @@ public class OvenAgent extends BaseAgent {
                             // if (coolingAllowed.get()){
                                 // coolingAllowed.set(false);
                                 // System.out.println("=========================================" );
-                                // System.out.println("Cooling down slot of " + slots.get(slotIdx).getOvenGuid() + " with current temperature of "
-                                //     + slots.get(slotIdx).getCurrentTemp() + ". Desired temperature  is " + slots.get(slotIdx).getBakingTemp());
+                                System.out.println("Cooling down slot of " + slots.get(slotIdx).getOvenGuid() + " with current temperature of "
+                                    + slots.get(slotIdx).getCurrentTemp() + ". Desired temperature  is " + slots.get(slotIdx).getBakingTemp());
                                 // System.out.println("=========================================" );
                             // }
                     }
                     // Desired temperature is reached
                     else{
-                        if (slots.get(slotIdx).getBakingTime() >= slots.get(slotIdx).getBakingCounter()){
+                        if (slots.get(slotIdx).getBakingTime() <= slots.get(slotIdx).getBakingCounter()){
                             // Slot has finished baking
                             System.out.println(" Slot of " + slots.get(slotIdx).getOvenGuid() + " finished baking "
                             + slots.get(slotIdx).getQuantity() + " " + slots.get(slotIdx).getProductType() + " for " + slots.get(slotIdx).getGuid());
@@ -451,7 +451,7 @@ public class OvenAgent extends BaseAgent {
                             // bakingAllowed.set(false);
                             slots.get(slotIdx).setBakingCounter(slots.get(slotIdx).getBakingCounter() + 1);
                             // System.out.println("=========================================" );
-                            System.out.println(">>>>> Baking counter of slot of " + slots.get(slotIdx).getOvenGuid()
+                            System.out.println(" \t >>>>> Baking counter of slot of " + slots.get(slotIdx).getOvenGuid()
                                 + " increased to " + slots.get(slotIdx).getBakingCounter() +
                                 " for " + slots.get(slotIdx).getGuid() + " for product " + slots.get(slotIdx).getProductType() +" <<<<<");
                             // System.out.println("=========================================" );
@@ -476,7 +476,7 @@ public class OvenAgent extends BaseAgent {
         }
 
         public void action() {
-            messageProcessing.getAndIncrement();
+            messageProcessing.incrementAndGet();
             switch (option) {
                 case 0:
 
@@ -503,14 +503,14 @@ public class OvenAgent extends BaseAgent {
                         option = 2;
                     }
                     else {
-                        messageProcessing.getAndDecrement();
+                        messageProcessing.decrementAndGet();
                         block();
                     }
-                    messageProcessing.getAndDecrement();
+                    messageProcessing.decrementAndGet();
                     break;
 
                 default:
-                    messageProcessing.getAndDecrement();
+                    messageProcessing.decrementAndGet();
                     break;
             }
         }

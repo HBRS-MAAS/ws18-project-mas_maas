@@ -89,7 +89,7 @@ public class KneadingMachineAgent extends BaseAgent {
             }else{
                 if (kneadingInProcess.get() && isInProductionTime.get()){
                     int curCount = kneadingCounter.incrementAndGet();
-                    System.out.println(">>>>> Kneading Counter -> " + getAID().getLocalName() + " " + kneadingCounter + " <<<<<");
+                    System.out.println("\t >>>>> Kneading Counter -> " + getAID().getLocalName() + " " + kneadingCounter + " <<<<<");
                     addBehaviour(new Kneading());
                 }
             }
@@ -203,7 +203,7 @@ public class KneadingMachineAgent extends BaseAgent {
         public void action(){
             if (kneadingCounter.get() < kneadingTime){
                 if (!kneadingInProcess.get()){
-                    // System.out.println(getAID().getLocalName() + " Kneading for -> " + kneadingTime + " product -> " + productType);
+                    System.out.println(getAID().getLocalName() + " Kneading for -> " + kneadingTime + " " + productType + " for guids " + guids);
                     kneadingInProcess.set(true);
                     kneadingMachine.setAvailable(false);
                 }
