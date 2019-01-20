@@ -36,7 +36,7 @@ Afterwards you can import the project folder.
 
 ### Run only the **Dough Preparation Stage**
 
-    gradle run --args='-doughPrep'
+    gradle run --args=-doughPrep
 
 ### Run both **Dough Preparation** and **Baking Stage**
 
