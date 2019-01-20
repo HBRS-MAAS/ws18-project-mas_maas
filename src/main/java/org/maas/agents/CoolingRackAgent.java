@@ -18,7 +18,7 @@ public class CoolingRackAgent extends BaseAgent{
     private List<ProcessedProduct> processedProductList;
     private int cooledProductConversationNumber = 0;
     private String bakeryGuid = "bakery-001";
-    private boolean verbose = true;
+    private boolean verbose = false;
 
     protected void setup() {
         super.setup();

@@ -217,7 +217,7 @@ public class OvenAgent extends BaseAgent {
 
     public void getOvens(){
         equipment = bakery.getEquipment();
-        System.out.println("Bakery name " + bakery.getName());
+        // System.out.println("Bakery name " + bakery.getName());
 
         for (int i = 0; i < equipment.size(); i++){
             if (equipment.get(i) instanceof Oven){
@@ -225,9 +225,9 @@ public class OvenAgent extends BaseAgent {
                 ovens.add((Oven) equipment.get(i));
             }
         }
-        System.out.println("=========================================" );
-        System.out.println(getAID().getLocalName() + " Ovens found " + ovens.size());
-        System.out.println("=========================================" );
+        // System.out.println("=========================================" );
+        // System.out.println(getAID().getLocalName() + " Ovens found " + ovens.size());
+        // System.out.println("=========================================" );
     }
 
     public int[] findOvenRates(String ovenGuid){
@@ -249,8 +249,8 @@ public class OvenAgent extends BaseAgent {
                 slots.add(slot);
             }
         }
-        System.out.println("----> Total number of slots " + slots.size());
-        System.out.println(slots);
+        // System.out.println("----> Total number of slots " + slots.size());
+        // System.out.println(slots);
     }
 
     public int[] bookSlots(int slotsNeeded, String productType, int bakingTemp, float bakingTime, Integer quantity, int productPerSlot, String guid){
@@ -298,8 +298,8 @@ public class OvenAgent extends BaseAgent {
                     // tmp_slots.remove(slotIdx);
                     // bookedSlots.add(slot);
                     //
-                    System.out.println("Slot of " + slots.get(slotIdx).getOvenGuid() +" will bake " + slots.get(slotIdx).getQuantity() + " "
-                            + productType + " for " + bakingTime + " for "+ slots.get(slotIdx).getGuid());
+                    // System.out.println("Slot of " + slots.get(slotIdx).getOvenGuid() +" will bake " + slots.get(slotIdx).getQuantity() + " "
+                    //         + productType + " for " + bakingTime + " for "+ slots.get(slotIdx).getGuid());
 
                     slotsBooked++;
                     // System.out.println("c: " + slotsBooked);
@@ -338,10 +338,10 @@ public class OvenAgent extends BaseAgent {
 
             	String content = msg.getContent();
 
-                System.out.println("================================================================================");
-                System.out.println(getAID().getLocalName()+" received baking requests from \n \t" + msg.getSender()
-                    + " for: \n \t" + content);
-                System.out.println("================================================================================");
+                // System.out.println("================================================================================");
+                // System.out.println(getAID().getLocalName()+" received baking requests from \n \t" + msg.getSender()
+                //     + " for: \n \t" + content);
+                // System.out.println("================================================================================");
 
                 BakingRequest bakingRequest = JSONConverter.parseBakingRequest(content);
 
@@ -375,7 +375,7 @@ public class OvenAgent extends BaseAgent {
 
         public void releaseSlot(int slotIdx){
             // OvenSlot slot = (OvenSlot) bookedSlots.get(slotIdx);
-            System.out.println("Releasing slot " + slots.get(slotIdx).getOvenGuid());
+            // System.out.println("Releasing slot " + slots.get(slotIdx).getOvenGuid());
             slots.get(slotIdx).setAvailable(true);
             slots.get(slotIdx).setProductType(null);
             slots.get(slotIdx).setHeatingRate(0);
@@ -404,10 +404,10 @@ public class OvenAgent extends BaseAgent {
                         // if (heatingAllowed.get()){
                             // heatingAllowed.set(false);
                             slots.get(slotIdx).setCurrentTemp( slots.get(slotIdx).getCurrentTemp() + (float) slots.get(slotIdx).getHeatingRate());
-                            System.out.println("=========================================" );
-                            System.out.println("Heating up slot of " + slots.get(slotIdx).getOvenGuid() + " with current temperature of "
-                                + slots.get(slotIdx).getCurrentTemp() + ". Desired temperature  is " + slots.get(slotIdx).getBakingTemp());
-                            System.out.println("=========================================" );
+                            // System.out.println("=========================================" );
+                            // System.out.println("Heating up slot of " + slots.get(slotIdx).getOvenGuid() + " with current temperature of "
+                            //     + slots.get(slotIdx).getCurrentTemp() + ". Desired temperature  is " + slots.get(slotIdx).getBakingTemp());
+                            // System.out.println("=========================================" );
                         // }
                     }
                     // Needs Cooling
@@ -417,17 +417,17 @@ public class OvenAgent extends BaseAgent {
 
                             // if (coolingAllowed.get()){
                                 // coolingAllowed.set(false);
-                                System.out.println("=========================================" );
-                                System.out.println("Cooling down slot of " + slots.get(slotIdx).getOvenGuid() + " with current temperature of "
-                                    + slots.get(slotIdx).getCurrentTemp() + ". Desired temperature  is " + slots.get(slotIdx).getBakingTemp());
-                                System.out.println("=========================================" );
+                                // System.out.println("=========================================" );
+                                // System.out.println("Cooling down slot of " + slots.get(slotIdx).getOvenGuid() + " with current temperature of "
+                                //     + slots.get(slotIdx).getCurrentTemp() + ". Desired temperature  is " + slots.get(slotIdx).getBakingTemp());
+                                // System.out.println("=========================================" );
                             // }
                     }
                     // Desired temperature is reached
                     else{
                         if (slots.get(slotIdx).getBakingTime() >= slots.get(slotIdx).getBakingCounter()){
                             // Slot has finished baking
-                            System.out.println(" Slot of " + slots.get(slotIdx).getOvenGuid() + " has finished baking "
+                            System.out.println(" Slot of " + slots.get(slotIdx).getOvenGuid() + " finished baking "
                             + slots.get(slotIdx).getQuantity() + " " + slots.get(slotIdx).getProductType() + " for " + slots.get(slotIdx).getGuid());
 
                             Vector<Integer> quantity = new Vector<Integer>();;
@@ -450,11 +450,11 @@ public class OvenAgent extends BaseAgent {
                              // if (bakingAllowed.get()){
                             // bakingAllowed.set(false);
                             slots.get(slotIdx).setBakingCounter(slots.get(slotIdx).getBakingCounter() + 1);
-                            System.out.println("=========================================" );
+                            // System.out.println("=========================================" );
                             System.out.println(">>>>> Baking counter of slot of " + slots.get(slotIdx).getOvenGuid()
                                 + " increased to " + slots.get(slotIdx).getBakingCounter() +
                                 " for " + slots.get(slotIdx).getGuid() + " for product " + slots.get(slotIdx).getProductType() +" <<<<<");
-                            System.out.println("=========================================" );
+                            // System.out.println("=========================================" );
                         }
 
 
@@ -487,7 +487,7 @@ public class OvenAgent extends BaseAgent {
 
                     baseAgent.sendMessage(msg);
 
-                    System.out.println(getAID().getLocalName() + " Sent bakingNotification " + bakingNotificationString);
+                    // System.out.println(getAID().getLocalName() + " Sent bakingNotification " + bakingNotificationString);
 
                     option = 1;
                     break;

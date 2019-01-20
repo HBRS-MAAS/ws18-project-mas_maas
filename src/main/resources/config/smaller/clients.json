@@ -11,10 +11,10 @@
         },
         "products": {
           "Bread": 1,
-          "Muffin": 1,
-          "Berliner": 1,
+          "Muffin": 3,
+          "Berliner": 3,
           "Bagel": 1,
-          "Donut": 1
+          "Donut": 7
 
         },
         "order_date": {
@@ -30,11 +30,11 @@
          "hour": 18
        },
        "products": {
-         "Bread": 0,
-         "Muffin": 0,
-         "Berliner": 0,
-         "Bagel": 0,
-         "Donut": 0
+         "Bread": 5,
+         "Muffin": 2,
+         "Berliner": 5,
+         "Bagel": 2,
+         "Donut": 5
 
        },
        "order_date": {

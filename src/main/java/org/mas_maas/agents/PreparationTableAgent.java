@@ -182,8 +182,8 @@ public class PreparationTableAgent extends BaseAgent {
                     doughPrepTable.setAvailable(false);
 
                     String content = msg.getContent();
-                    System.out.println(getAID().getLocalName() + " WILL perform preparation for \n \t"
-                                + msg.getSender().getLocalName() + ": " + content);
+                    // System.out.println(getAID().getLocalName() + " WILL perform preparation for \n \t"
+                    //             + msg.getSender().getLocalName() + ": " + content);
 
                     PreparationRequest preparationRequest = JSONConverter.parsePreparationRequest(content);
 
@@ -197,7 +197,7 @@ public class PreparationTableAgent extends BaseAgent {
                     for (Integer quantity : productQuantities){
                         totalQuantity = totalQuantity + quantity;
                     }
-                    System.out.println(" doughPreparation table quantities " + totalQuantity);
+                    // System.out.println(" doughPreparation table quantities " + totalQuantity);
                     // System.out.println(getAID().getLocalName() + " WILL do the following actions " + steps);
 
                     addBehaviour(new Preparation());
@@ -231,8 +231,8 @@ public class PreparationTableAgent extends BaseAgent {
                         stepDuration = steps.get(curStepIndex).getDuration();
                     }
 
-                    System.out.println("Performing dough " + stepAction + " for " + stepDuration
-                                      + " for " + totalQuantity + " " + productType );
+                    // System.out.println("Performing dough " + stepAction + " for " + stepDuration
+                    //                   + " for " + totalQuantity + " " + productType );
 
                 }else{
                     // We have performed all preparation actions.
@@ -276,8 +276,7 @@ public class PreparationTableAgent extends BaseAgent {
 
                     baseAgent.sendMessage(msg);
 
-                    System.out.println(getAID().getLocalName() + " Sent preparationNotification to " + doughManagerAgent
-                        + " of " + productType );
+                    System.out.println(getAID().getLocalName() + " finished dough preparation " + productType + " for guids " + guids);
 
                     messageProcessing.decrementAndGet();
                     option = 1;
@@ -290,7 +289,7 @@ public class PreparationTableAgent extends BaseAgent {
                     ACLMessage reply = baseAgent.receive(mt);
 
                     if (reply != null) {
-                        System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
+                        // System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
                         option = 2;
                     }
                     else {

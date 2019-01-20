@@ -148,7 +148,7 @@ public class BakingManager extends BaseAgent {
                 else{
 
                     isInProductionTime.set(false);
-                    System.out.println("Out of production hours");
+                    // System.out.println("Out of production hours");
                     //System.out.println("Setting to false");
                 }
 
@@ -275,8 +275,8 @@ public class BakingManager extends BaseAgent {
             ACLMessage msg = myAgent.receive(mt);
             if (msg != null) {
                 String content = msg.getContent();
-                System.out.println(getAID().getLocalName() + " received order " + content +
-                    "\n \t from " + msg.getSender().getName());
+                // System.out.println(getAID().getLocalName() + " received order " + content +
+                //     "\n \t from " + msg.getSender().getName());
                 OrderMas order = JSONConverter.parseOrder(content);
 
                 ACLMessage reply = msg.createReply();
@@ -405,7 +405,7 @@ public class BakingManager extends BaseAgent {
         // Add productStatus to the needsCooling WorkQueue
 
 
-        System.out.println("++ Guids" + guids + " ProductType " + productType + "Quantities" + productQuantities);
+        // System.out.println("++ Guids" + guids + " ProductType " + productType + "Quantities" + productQuantities);
         // System.out.println("+++++ productQuantities" + productQuantities);
 
 
@@ -426,7 +426,7 @@ public class BakingManager extends BaseAgent {
 
             //}
 
-            System.out.println("-- ProductType " + productType + "amount" + amount + "product" + product);
+            // System.out.println("-- ProductType " + productType + "amount" + amount + "product" + product);
 
             ProductStatus productStatus = new ProductStatus(productType, status, amount, product);
             needsCooling.addProduct(productStatus);
@@ -511,7 +511,7 @@ public class BakingManager extends BaseAgent {
 
         coolingRequests.add(coolingRequest);
 
-        System.out.println("-------> Cooling Request:" + coolingRequests);
+        // System.out.println("-------> Cooling Request:" + coolingRequests);
 
 
         // // Checks the needsCooling WorkQueue and creates a coolingRequestMessage
@@ -570,10 +570,10 @@ public class BakingManager extends BaseAgent {
             ACLMessage msg = baseAgent.receive(mt);
 
             if (msg != null) {
-                System.out.println("================================================================================");
-                System.out.println(getAID().getLocalName()+" Received dough Notification from \n \t" + msg.getSender()
-                    + " for: " + msg.getContent());
-                System.out.println("================================================================================");
+                // System.out.println("================================================================================");
+                // System.out.println(getAID().getLocalName()+" Received dough Notification from \n \t" + msg.getSender()
+                //     + " for: " + msg.getContent());
+                // System.out.println("================================================================================");
                 String doughNotificationString = msg.getContent();
                 // System.out.println("Dough notification contains -> " +doughNotificationString);
 
@@ -611,8 +611,8 @@ public class BakingManager extends BaseAgent {
 
             if (msg != null) {
                 // System.out.println("======================================");
-                System.out.println("-------> " + getAID().getLocalName()+" Received Baking Notification from "
-                + msg.getSender() + " for: " + msg.getContent());
+                // System.out.println("-------> " + getAID().getLocalName()+" Received Baking Notification from "
+//                + msg.getSender() + " for: " + msg.getContent());
                 // System.out.println("======================================");
                 String bakingNotificationString = msg.getContent();
 
@@ -651,8 +651,8 @@ public class BakingManager extends BaseAgent {
 
             if (msg != null) {
                 // System.out.println("======================================");
-                System.out.println(getAID().getLocalName()+" Received Baking Preparation Notification from "
-                + msg.getSender() + " for: " + msg.getContent());
+                // System.out.println(getAID().getLocalName()+" Received Baking Preparation Notification from "
+//                + msg.getSender() + " for: " + msg.getContent());
                 // System.out.println("======================================");
                 String preparationNotificationString = msg.getContent();
 
@@ -682,7 +682,7 @@ public class BakingManager extends BaseAgent {
 
                     String coolingRequestString = gson.toJson(coolingRequests);
 
-                    System.out.println("CoolingRequestString: " + coolingRequestString);
+                    // System.out.println("CoolingRequestString: " + coolingRequestString);
 
                     // Adds one behaviour per coolingRequest
                     addBehaviour(new RequestCooling(coolingRequestString, coolingRequestCounter));
@@ -737,8 +737,8 @@ public class BakingManager extends BaseAgent {
 
                     baseAgent.sendMessage(msg);
 
-                    System.out.println(getAID().getLocalName() + " Sent bakingRequest \n \t" +
-                            bakingRequest);
+                    // System.out.println(getAID().getLocalName() + " Sent bakingRequest \n \t" +
+                    //         bakingRequest);
                     messageProcessing.decrementAndGet();
                     option = 1;
                     break;
@@ -750,7 +750,7 @@ public class BakingManager extends BaseAgent {
                     ACLMessage reply = baseAgent.receive(mt);
 
                     if (reply != null) {
-                        System.out.println(getAID().getLocalName() + " Received baking notification confirmation from \n \t" + reply.getSender());
+                        // System.out.println(getAID().getLocalName() + " Received baking notification confirmation from \n \t" + reply.getSender());
                         option = 2;
                     }
                     else {
@@ -868,12 +868,12 @@ public class BakingManager extends BaseAgent {
                 reply = baseAgent.receive(mt);
                 if (reply != null) {
                     if (reply.getPerformative() == ACLMessage.INFORM) {
-                        System.out.println(getAID().getLocalName()+ " baking confirmation received from -> \n \t"
-                            +reply.getSender().getLocalName() + " for: " + reply.getContent());
+                        // System.out.println(getAID().getLocalName()+ " baking confirmation received from -> \n \t"
+                        //     +reply.getSender().getLocalName() + " for: " + reply.getContent());
                         }
                         else{
-                            System.out.println(getAID().getLocalName() + " baking rejection received from -> "
-                                +reply.getSender().getLocalName() + " for: " + preparationRequest);
+                            // System.out.println(getAID().getLocalName() + " baking rejection received from -> "
+                            //     +reply.getSender().getLocalName() + " for: " + preparationRequest);
 
                             //Add the batch to the needsPreparation queue
                             for (ProductStatus productStatus : batch){
@@ -930,7 +930,7 @@ public class BakingManager extends BaseAgent {
                     coolingRequest = coolingRequest.replaceFirst(".*?:", "");
                     coolingRequest = coolingRequest.substring(0, coolingRequest.length() - 1);
 
-                    System.out.println("Cooling request: " + coolingRequest);
+                    // System.out.println("Cooling request: " + coolingRequest);
 
 
                     msg.setContent(coolingRequest);
@@ -945,7 +945,7 @@ public class BakingManager extends BaseAgent {
                     baseAgent.sendMessage(msg);  // calling sendMessage instead of send
 
                     option = 1;
-                    System.out.println(getLocalName()+" Sent coolingRequest" + coolingRequest);
+                    // System.out.println(getLocalName()+" Sent coolingRequest" + coolingRequest);
                     messageProcessing.decrementAndGet();
                     break;
 

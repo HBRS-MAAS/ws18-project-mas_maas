@@ -97,11 +97,10 @@ public class PostBakingProcessor extends BaseAgent {
             if (msg != null) {
 
             	String content = msg.getContent();
-
-                System.out.println("================================================================================");
-                System.out.println(getAID().getLocalName()+" received cooling requests from \n \t" + msg.getSender()
-                    + " for: \n \t" + content);
-                System.out.println("================================================================================");
+                // System.out.println("================================================================================");
+                // System.out.println(getAID().getLocalName()+" received cooling requests from \n \t" + msg.getSender()
+                //     + " for: \n \t" + content);
+                // System.out.println("================================================================================");
 
                 ACLMessage loadingBayMessage = new ACLMessage(ACLMessage.INFORM);
 
@@ -111,6 +110,7 @@ public class PostBakingProcessor extends BaseAgent {
 
                 baseAgent.sendMessage(loadingBayMessage);
 
+                System.out.println(getAID().getLocalName()+" sent coolingRequest of " + content + " to " + coolingRacksAgent.getName());
                 // bakingTemp = bakingRequest.getBakingTemp();
                 // Float bakingTime = bakingRequest.getBakingTime();
                 // productType = bakingRequest.getProductType();

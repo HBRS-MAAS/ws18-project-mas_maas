@@ -174,8 +174,8 @@ public class BakingPreparationAgent extends BaseAgent {
                     isAvailable = false;
 
                     String content = msg.getContent();
-                    System.out.println(getAID().getLocalName() + " WILL perform baking preparation for \n \t"
-                                + msg.getSender().getLocalName() + ": " + content);
+                    // System.out.println(getAID().getLocalName() + " WILL perform baking preparation for \n \t"
+                    //             + msg.getSender().getLocalName() + ": " + content);
 
                     PreparationRequest preparationRequest = JSONConverter.parsePreparationRequest(content);
 
@@ -186,11 +186,11 @@ public class BakingPreparationAgent extends BaseAgent {
                     productType = preparationRequest.getProductType();
                     steps = preparationRequest.getSteps();
                     productQuantities = preparationRequest.getProductQuantities();
-                    System.out.println(" -----> old totalQuantity " + totalQuantity);
+                    // System.out.println(" -----> old totalQuantity " + totalQuantity);
                     for (Integer quantity : productQuantities){
                         totalQuantity = totalQuantity + quantity;
                     }
-                    System.out.println("bakingPreparation table quantities " + totalQuantity);
+                    // System.out.println("bakingPreparation table quantities " + totalQuantity);
                     // System.out.println(getAID().getLocalName() + " WILL do the following actions " + steps);
 
                     addBehaviour(new Preparation());
@@ -218,8 +218,8 @@ public class BakingPreparationAgent extends BaseAgent {
 
                     stepDuration = steps.get(curStepIndex).getDuration();
                     // }
-                    System.out.println("Performing baking " + stepAction + " for " + stepDuration
-                                      + " for " + totalQuantity + " "+ productType);
+                    // System.out.println("Performing baking " + stepAction + " for " + stepDuration
+                    //                   + " for " + totalQuantity + " "+ productType);
                 }else{
                     curStepIndex = 0;
                     stepCounter.set(0);
@@ -267,7 +267,7 @@ public class BakingPreparationAgent extends BaseAgent {
                     baseAgent.sendMessage(msg);
 
                     option = 1;
-                    System.out.println(getAID().getLocalName() + " Sent baking preparationNotification of " + productType );
+                    System.out.println(getAID().getLocalName() + " finished baking preparation of " + productType + " for guids " + guids);
                     break;
 
                 case 1:
