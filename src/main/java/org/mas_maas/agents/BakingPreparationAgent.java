@@ -109,8 +109,9 @@ public class BakingPreparationAgent extends BaseAgent {
                }else{
                    isInProductionTime.set(false);
                }
+
+               baseAgent.finished();
             }
-            baseAgent.finished();
         }
     }
 
@@ -224,8 +225,8 @@ public class BakingPreparationAgent extends BaseAgent {
                     stepCounter.set(0);
                     preparationInProcess.set(false);
                     isAvailable = true;
-                    addBehaviour(new SendPreparationNotification(totalQuantity));
                     totalQuantity = 0;
+                    addBehaviour(new SendPreparationNotification());
                     // this.done();
                 }
             }
@@ -250,14 +251,8 @@ public class BakingPreparationAgent extends BaseAgent {
         private int option = 0;
         private Gson gson = new Gson();
         private int totalQuantity;
-        private PreparationNotification preparationNotification;
-        private String preparationNotificationString;
-
-        private SendPreparationNotification(int totalQuantity){
-            this.totalQuantity = totalQuantity;
-            this.preparationNotification = new PreparationNotification(guids,productType, totalQuantity);
-            this.preparationNotificationString = gson.toJson(preparationNotification);
-        }
+        private PreparationNotification preparationNotification = new PreparationNotification(guids,productType, productQuantities);
+        private String preparationNotificationString = gson.toJson(preparationNotification);
 
         public void action() {
             messageProcessing.getAndIncrement();

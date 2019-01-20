@@ -47,6 +47,7 @@ public class BakingManager extends BaseAgent {
     private AID prooferAgent;
     private AID coolingRackAgent;
     private AID bakingPreparationAgent;
+    private AID postBakingProcessor;
     //private AID dummyOrderProcesser = new AID("dummyOrderProcesser", AID.ISLOCALNAME);
     //private ArrayList<AID> ovenAgents = new ArrayList<AID>();
     private AID ovenAgent;
@@ -104,11 +105,14 @@ public class BakingManager extends BaseAgent {
         // Create an agent for each equipment
         createEquipmentAgents();
         createBakingPreparationAgent();
+        createPostBakingProcessorAgent();
 
         getDummyOrderProcesserAID();
         getProoferAID();
         // getCoolingRackAID();
         getBakingPreparationAID();
+
+        getPostBakingProcessorAID();
 
         addBehaviour(new timeTracker());
         addBehaviour(new ReceiveOrders());
@@ -118,7 +122,6 @@ public class BakingManager extends BaseAgent {
 
         addBehaviour(new checkingBakingWorkqueue());
         addBehaviour(new checkingPreparationWorkqueue());
-        // addBehaviour(new checkingCoolingWorkqueue());
     }
 
     private class timeTracker extends CyclicBehaviour {
@@ -220,6 +223,23 @@ public class BakingManager extends BaseAgent {
         }
     }
 
+    private void createPostBakingProcessorAgent(){
+
+        String postBakingProcessorAgentName = bakeryId + "-postBakingProcessor";
+        try {
+            Object[] args = new Object[3];
+            args[0] = postBakingProcessorAgentName;
+            args[1] = bakingManagerAgentName;
+            args[2] = bakeryId;
+
+            AgentController postBakingProcessorAgent = container.createNewAgent(postBakingProcessorAgentName, "org.mas_maas.agents.PostBakingProcessor", args);
+            postBakingProcessorAgent.start();
+
+        } catch (Exception any) {
+            any.printStackTrace();
+        }
+    }
+
     public void getDummyOrderProcesserAID() {
         String dummyOrderProcesserName = "DummyOrderProcesser";
         dummyOrderProcesser = new AID(dummyOrderProcesserName, AID.ISLOCALNAME);
@@ -228,6 +248,11 @@ public class BakingManager extends BaseAgent {
     public void getBakingPreparationAID() {
         String bakingPreparationAgentName = "BakingPreparationAgent_" +  bakeryId;
         bakingPreparationAgent = new AID(bakingPreparationAgentName, AID.ISLOCALNAME);
+    }
+
+    public void getPostBakingProcessorAID() {
+        String postBakingProcessorAgentName =  bakeryId + "-postBakingProcessor";
+        postBakingProcessor = new AID(postBakingProcessorAgentName, AID.ISLOCALNAME);
     }
 
     public void getProoferAID() {
@@ -338,39 +363,6 @@ public class BakingManager extends BaseAgent {
         }
     }
 
-    // Behaviour that checks the needsProofing workqueue and activates CFP for requesting kneading
-    private class checkingCoolingWorkqueue extends CyclicBehaviour{
-        public void action(){
-            messageProcessing.incrementAndGet();
-
-            if (needsCooling.hasProducts() && isInProductionTime.get()){
-                System.out.println("In checkingCoolingWorkqueue");
-                // Creates a proofingRequestMessage for the first product in the workqueue
-                // CoolingRequest coolingRequestMessage = createCoolingRequests();
-
-                // String productType = coolingRequestMessage.getProductType();
-
-                //Batch of ProductStatuses used for creating the coolingRequest
-                // Vector <ProductStatus> batch = needsCooling.findProductStatus(productType);
-                //
-                // //Remove the product from the needsCooling workQueue
-                // needsCooling.removeProductStatus(productType);
-                //
-                // // Convert the coolingRequest object to a String.
-                // Gson gson = new Gson();
-                // String coolingRequestString = gson.toJson(coolingRequestMessage);
-
-                //System.out.println("coolingRequest: " + coolingRequestString);
-
-                // Add behavior to send a CFP for this coolingRequest
-                // addBehaviour(new RequestCooling(coolingRequestString, batch));
-            }
-            messageProcessing.decrementAndGet();
-
-        }
-    }
-
-
     public void queueBaking(String productType, Vector<String> guids, Vector<Integer> productQuantities ) {
         // Add productStatus to the needsBaking WorkQueue
 
@@ -409,23 +401,34 @@ public class BakingManager extends BaseAgent {
         }
     }
 
-    public void queueCooling(String productType, Vector<String> guids, quantity ) {
+    public void queueCooling(String productType, Vector<String> guids, Vector <Integer> productQuantities ) {
         // Add productStatus to the needsCooling WorkQueue
 
-        for (String guid : guids) {
 
-            int amount = -1;
+        System.out.println("++ Guids" + guids + " ProductType " + productType + "Quantities" + productQuantities);
+        // System.out.println("+++++ productQuantities" + productQuantities);
+
+
+
+        for (int i = 0; i < guids.size(); i++) {
+
+            //int amount = -1;
             String status = NEEDS_COOLING;
             ProductMas product = bakery.findProduct(productType);
-            OrderMas order = orders.get(guid);
+            //String guid = guids.get(i);
+            int amount = productQuantities.get(i);
+            //OrderMas order = orders.get(guid);
 
-            for(BakedGood bakedGood : order.getBakedGoods()) {
-                if (bakedGood.getName().equals(productType)) {
-                    amount = bakedGood.getAmount();
-                }
+            // for(BakedGood bakedGood : order.getBakedGoods()) {
+            //     if (bakedGood.getName().equals(productType)) {
+            //         amount = bakedGood.getAmount();
+            //     }
 
-            }
-            ProductStatus productStatus = new ProductStatus(guid, status, amount, product);
+            //}
+
+            System.out.println("-- ProductType " + productType + "amount" + amount + "product" + product);
+
+            ProductStatus productStatus = new ProductStatus(productType, status, amount, product);
             needsCooling.addProduct(productStatus);
         }
     }
@@ -496,30 +499,49 @@ public class BakingManager extends BaseAgent {
 
     }
 
-    public Vector<CoolingRequest> createCoolingRequests(int quantity) {
-        // Checks the needsCooling WorkQueue and creates a coolingRequestMessage
-        Vector<ProductStatus> products = needsCooling.getProductBatch();
+    public Vector <CoolingRequest> createCoolingRequests(String productType, int quantity) {
+
         Vector<CoolingRequest> coolingRequests = new Vector<CoolingRequest>();
 
-        if (products != null) {
+        ProductMas product = bakery.findProduct(productType);
+        float coolingDuration = product.getRecipe().getActionTime(Step.COOLING_STEP);
 
-            Vector<String> guids = new Vector<String>();
-            Vector<Integer> productQuantities = new Vector<Integer>();
+        CoolingRequest coolingRequest = new CoolingRequest();
+        coolingRequest.addCoolingRequest(productType, coolingDuration, quantity);
 
-            for (ProductStatus productStatus : products) {
-                String guid = productStatus.getProduct().getGuid();
-                float coolingDuration = productStatus.getProduct().getRecipe().getActionTime(Step.COOLING_STEP);
-                int boxingTemp = productStatus.getProduct().getPackaging().getBoxingTemp();
-                int quantity = productStatus.getAmount();
+        coolingRequests.add(coolingRequest);
 
-                CoolingRequest coolingRequest = new CoolingRequest();
-                coolingRequest.addCoolingRequest(guid, coolingDuration, quantity);
-                // System.out.println("-------> HERE");
-                coolingRequests.add(coolingRequest);
-            }
+        System.out.println("-------> Cooling Request:" + coolingRequests);
 
 
-        }
+        // // Checks the needsCooling WorkQueue and creates a coolingRequestMessage
+        // Vector<ProductStatus> products = needsCooling.getProductBatch();
+        //
+        //
+        //
+        // if (products != null) {
+        //
+        //     // Vector<String> guids = new Vector<String>();
+        //     // Vector<Integer> productQuantities = new Vector<Integer>();
+        //
+        //     for (ProductStatus productStatus : products) {
+        //         System.out.println("Products: " + productStatus);
+        //
+        //         //String guid = productStatus.getProduct().getGuid();
+        //         float coolingDuration = productStatus.getProduct().getRecipe().getActionTime(Step.COOLING_STEP);
+        //         // int boxingTemp = productStatus.getProduct().getPackaging().getBoxingTemp();
+        //         int quantity = productStatus.getAmount();
+        //
+        //         System.out.println("-------> Product type :" + guid + " coolingDuration: " + coolingDuration + " quantity: " + quantity);
+        //
+        //         CoolingRequest coolingRequest = new CoolingRequest();
+        //         coolingRequest.addCoolingRequest(guid, coolingDuration, quantity);
+        //         coolingRequests.add(coolingRequest);
+        //         System.out.println("-------> Cooling Request:" + coolingRequests);
+        //     }
+        //
+        //
+        // }
 
         return coolingRequests;
     }
@@ -642,24 +664,42 @@ public class BakingManager extends BaseAgent {
 
                 // Convert preparationNotificationString to preparationNotification object
                 PreparationNotification preparationNotification = JSONConverter.parsePreparationNotification(preparationNotificationString);
+
                 String productType = preparationNotification.getProductType();
                 Vector<String> guids = preparationNotification.getGuids();
-                int quantity = preparationNotification.getQuantity();
+                Vector<Integer> productQuantities = preparationNotification.getProductQuantities();
+
 
                 // Add guids with this productType to the queueCooling
-                // queueCooling(productType, guids);
+                //queueCooling(productType, guids, productQuantities);
                 // TODO:
                 //Create coollingRequestMessages with the information in the queueCooling
-                Vector<CoolingRequest> coolingRequests = createCoolingRequests(quantity);
-
                 Gson gson = new Gson();
 
-                for (CoolingRequest coolingRequest : coolingRequests) {
-                    String coolingRequestString = gson.toJson(coolingRequest);
+                for (int quantity : productQuantities){
+                    Vector<CoolingRequest> coolingRequests = createCoolingRequests(productType, quantity);
+
+
+                    String coolingRequestString = gson.toJson(coolingRequests);
+
+                    System.out.println("CoolingRequestString: " + coolingRequestString);
+
                     // Adds one behaviour per coolingRequest
                     addBehaviour(new RequestCooling(coolingRequestString, coolingRequestCounter));
                     coolingRequestCounter ++;
+
+
+
+
+
                 }
+
+                // for (CoolingRequest coolingRequest : coolingRequests) {
+                //     String coolingRequestString = gson.toJson(coolingRequest);
+                //     // Adds one behaviour per coolingRequest
+                //     addBehaviour(new RequestCooling(coolingRequestString, coolingRequestCounter));
+                //     coolingRequestCounter ++;
+                // }
                 messageProcessing.decrementAndGet();
             }
             else {
@@ -885,8 +925,17 @@ public class BakingManager extends BaseAgent {
                 case 0:
 
                     ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+
+                    // hacky way to remove the charaters before the json array section of the string and the '}' after
+                    coolingRequest = coolingRequest.replaceFirst(".*?:", "");
+                    coolingRequest = coolingRequest.substring(0, coolingRequest.length() - 1);
+
+                    System.out.println("Cooling request: " + coolingRequest);
+
+
                     msg.setContent(coolingRequest);
-                    msg.setConversationId("cooling-request");
+                    msg.setConversationId("baked-products" + coolingRequestCounter);
+                    msg.addReceiver(postBakingProcessor);
 
                     // Send bakingRequest msg to all ovenAgents
                     // for (int i=0; i<coolingRackAgent.length; i++){
@@ -900,36 +949,15 @@ public class BakingManager extends BaseAgent {
                     messageProcessing.decrementAndGet();
                     break;
 
-                case 1:
-                    mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.CONFIRM),
-                        MessageTemplate.MatchConversationId("cooling-request-reply"));
-
-                    ACLMessage reply = baseAgent.receive(mt);
-
-                    if (reply != null) {
-                        System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
-                        option = 2;
-                        messageProcessing.decrementAndGet();
-                    }
-                    else {
-                        messageProcessing.decrementAndGet();
-                        block();
-                    }
-                    break;
-
             default:
                 messageProcessing.decrementAndGet();
                 break;
             }
         }
         public boolean done(){
-            if (option == 2){
-                // baseAgent.finished();
-                return true;
-
-            }
-            return false;
+            return (option == 1);
         }
+
     }
 
 }
