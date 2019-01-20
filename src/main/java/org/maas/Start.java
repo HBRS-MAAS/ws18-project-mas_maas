@@ -65,19 +65,19 @@ public class Start {
         if(doughPrepStage) {
             Initializer init = new DoughPrepStageInitializer();
             sb.append(init.initialize(scenarioDirectory));
-            endTime = "002.06.00";
+            endTime = "001.06.00";
         }
         if(bakingMasMaas) {
             // Initializer init = new DoughPrepStageInitializer();
             // sb.append(init.initialize(scenarioDirectory));
 			Initializer init = new BakingMasMaasInitializer();
             sb.append(init.initialize(scenarioDirectory));
-            endTime = "002.06.00";
+            endTime = "001.06.00";
         }
         if(bakingStage) {
 			Initializer init = new BakingStageInitializer();
             sb.append(init.initialize(scenarioDirectory));
-            endTime = "002.06.00";
+            endTime = "001.06.00";
         }
         if(packagingStage) {
 			Initializer init = new PackagingStageInitializer();

@@ -220,7 +220,7 @@ public class Proofer extends BaseAgent {
                 isAvailable = true;
                 proofingCounter.set(0);
                 // System.out.println("======================================");
-                System.out.println(getAID().getLocalName() + " finished proofing " + productType + " for guids" + guids);
+                System.out.println(getAID().getLocalName() + " finished proofing " + productQuantities + " "+ productType + " for guids" + guids);
                 // System.out.println("======================================");
 
                 addBehaviour(new SendDoughNotification());

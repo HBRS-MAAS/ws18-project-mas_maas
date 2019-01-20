@@ -267,7 +267,7 @@ public class BakingPreparationAgent extends BaseAgent {
                     baseAgent.sendMessage(msg);
 
                     option = 1;
-                    System.out.println(getAID().getLocalName() + " finished baking preparation of " + productType + " for guids " + guids);
+                    System.out.println(getAID().getLocalName() + " finished baking preparation of " + productQuantities + " "+ productType + " for guids " + guids);
                     break;
 
                 case 1:

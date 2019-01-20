@@ -276,7 +276,7 @@ public class PreparationTableAgent extends BaseAgent {
 
                     baseAgent.sendMessage(msg);
 
-                    System.out.println(getAID().getLocalName() + " finished dough preparation " + productType + " for guids " + guids);
+                    System.out.println(getAID().getLocalName() + " finished dough preparation " + productQuantities + " " + productType + " for guids " + guids);
 
                     messageProcessing.decrementAndGet();
                     option = 1;

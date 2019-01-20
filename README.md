@@ -3,7 +3,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/HBRS-MAAS/ws18-project-mas_maas/badge.svg?branch=master)](https://coveralls.io/github/HBRS-MAAS/ws18-project-mas_maas?branch=master)
 # MAAS Project - <Team mas_MAAS>
 
-Add a brief description of your project. Make sure to keep this README updated, particularly on how to run your project from the **command line**.
+This project contains the dough preparation and baking stage for the MAAS WS 18/19. It uses proofer and coolingRack interface agents. Proofer connects dough preparation and baking stage, while coolingRack links the baking and packaging stage.
 
 ## Team Members
 *  Erick Kramer - [erickkramer](https://github.com/erickkramer)
@@ -34,12 +34,12 @@ Afterwards you can import the project folder.
 
 ## Run preparation stages in one computer
 
-### Run the Dough Preparation Stage
+### Run only the **Dough Preparation Stage**
 
-    gradle run --args=-doughPrep
+    gradle run --args='-doughPrep'
 
-### Run Dough Preparation and Baking Stage
+### Run both **Dough Preparation** and **Baking Stage**
 
-    gradle run --args='-doughPrep -bakingMasMaas'
+    gradle run --args='-doughPrep -bakingMasMaas -baking'
 
 ## Run preparation stages in different computers
