@@ -524,6 +524,14 @@ public class JSONConverter
         JsonObject jsonPreparationNotification = root.getAsJsonObject();
 
         String productType = jsonPreparationNotification.get("productType").getAsString();
+        Vector<Integer> productQuantities = new Vector<Integer>();
+        JsonArray jsonProductQuantities = jsonPreparationNotification.get("productQuantities").getAsJsonArray();
+
+        for (JsonElement productQuantity : jsonProductQuantities)
+        {
+            productQuantities.add(productQuantity.getAsInt());
+        }
+
         Vector<String> guids = new Vector<String>();
         JsonArray jsonGuids = jsonPreparationNotification.get("guids").getAsJsonArray();
         for (JsonElement guid : jsonGuids)
@@ -531,7 +539,7 @@ public class JSONConverter
             guids.add(guid.getAsString());
         }
 
-        PreparationNotification preparationNotification = new PreparationNotification(guids, productType);
+        PreparationNotification preparationNotification = new PreparationNotification(guids, productType, productQuantities);
         return preparationNotification;
     }
 
@@ -604,6 +612,8 @@ public class JSONConverter
         JsonObject jsonBakingRequest = root.getAsJsonObject();
 
         int bakingTemp = jsonBakingRequest.get("bakingTemp").getAsInt();
+        int productPerSlot = jsonBakingRequest.get("productPerSlot").getAsInt();
+
         Float bakingTime = jsonBakingRequest.get("bakingTime").getAsFloat();
         String productType = jsonBakingRequest.get("productType").getAsString();
 
@@ -621,7 +631,15 @@ public class JSONConverter
             productQuantities.add(productQuantitie.getAsInt());
         }
 
-        BakingRequest bakingRequest = new BakingRequest(guids, productType, bakingTemp, bakingTime, productQuantities);
+        Vector<Integer> slotsNeeded = new Vector<Integer>();
+        JsonArray jsonSlotsNeeded = jsonBakingRequest.get("slotsNeeded").getAsJsonArray();
+        for (JsonElement slotNeeded : jsonSlotsNeeded)
+        {
+            slotsNeeded.add(slotNeeded.getAsInt());
+        }
+
+
+        BakingRequest bakingRequest = new BakingRequest(guids, productType, bakingTemp, slotsNeeded, bakingTime, productQuantities, productPerSlot);
         return bakingRequest;
     }
 
@@ -658,10 +676,10 @@ public class JSONConverter
         JsonArray jsonCoolingRequests = root.getAsJsonArray();
         for (JsonElement jsonCoolingRequest : jsonCoolingRequests)
         {
-            JsonObject CoolingRequeatjson = jsonCoolingRequest.getAsJsonObject();
-            String guid = CoolingRequeatjson.get("guid").getAsString();
-            int quantity = CoolingRequeatjson.get("quantity").getAsInt();
-            float coolingDuration = CoolingRequeatjson.get("coolingDuration").getAsFloat();
+            JsonObject CoolingRequestjson = jsonCoolingRequest.getAsJsonObject();
+            String guid = CoolingRequestjson.get("guid").getAsString();
+            int quantity = CoolingRequestjson.get("quantity").getAsInt();
+            float coolingDuration = CoolingRequestjson.get("coolingDuration").getAsFloat();
 
             coolingRequest.addCoolingRequest(guid, coolingDuration, quantity);
         }

@@ -6,12 +6,12 @@
     "2": 5,
     "3": 10
   },
-  "orders": 1074,
+  "orders": 1,
   "timeStep": {
     "hour": 0,
     "minute": 1,
     "day": 0
   },
-  "bakeries": 5,
+  "bakeries": 1,
   "delivery": 5
 }

@@ -24,6 +24,7 @@ import jade.lang.acl.MessageTemplate;
 
 public class DummyOrderProcesser extends BaseAgent {
     private ArrayList<AID> doughManagerAgents = new ArrayList<AID>();
+    private ArrayList<AID> bakingInterfaceAgents = new ArrayList<AID>();
     private Vector<Bakery> bakeries;
     private String scenarioPath;
     private Vector<OrderMas> orders = new Vector<OrderMas>();
@@ -41,8 +42,9 @@ public class DummyOrderProcesser extends BaseAgent {
         this.register("DummyOrderProcesser", "JADE-bakery");
 
         getBakeries(this.scenarioPath);
-
         getDoughManagerAIDs();
+        getBakingInterfaceAIDs();
+
         try {
             //Read the orders from the scenarioPath
             getOrderInfo();
@@ -51,15 +53,8 @@ public class DummyOrderProcesser extends BaseAgent {
             e.printStackTrace();
         }
 
-        // try {
-        //     Thread.sleep(3000);
-        // } catch (InterruptedException e) {
-        //     e.printStackTrace();
-        // }
-
         addBehaviour(new timeTracker());
         processOrders();
-
     }
 
     protected void takeDown() {
@@ -72,7 +67,6 @@ public class DummyOrderProcesser extends BaseAgent {
             if (!baseAgent.getAllowAction()) {
                 return;
             }
-
             // only advance if we aren't currently processing any messages
             if (messageProcessing.get() <= 0)
             {
@@ -95,11 +89,20 @@ public class DummyOrderProcesser extends BaseAgent {
 
     public void getDoughManagerAIDs(){
         // For now get just the first one to test
-        //for (Bakery bakery : bakeries) {
-        Bakery bakery = bakeries.get(0);
+        for (Bakery bakery : bakeries) {
+        //Bakery bakery = bakeries.get(0);
             String doughManagerAgentName = "DoughManager_" + bakery.getGuid();
             doughManagerAgents.add(new AID (doughManagerAgentName, AID.ISLOCALNAME));
-        //}
+        }
+    }
+
+    public void getBakingInterfaceAIDs(){
+        // For now get just the first one to test
+        for (Bakery bakery : bakeries) {
+        //Bakery bakery = bakeries.get(0);
+            String bakingInterfaceAgentName = "BakingInterface_" + bakery.getGuid();
+            bakingInterfaceAgents.add(new AID (bakingInterfaceAgentName, AID.ISLOCALNAME));
+        }
     }
 
     private void getOrderInfo() throws FileNotFoundException{
@@ -116,91 +119,96 @@ public class DummyOrderProcesser extends BaseAgent {
     public void processOrders(){
         Gson gson = new Gson();
         Random rand = new Random();
-        OrderMas order = orders.get(0);
-        // for (Order order : orders){
-            //Randomly select a DoughManager to send the order to
-            int doughManagerIndex = rand.nextInt(doughManagerAgents.size());
-            AID doughManagerAgent = doughManagerAgents.get(doughManagerIndex);
-            System.out.println("Order will be sent to: " + doughManagerAgent);
-            System.out.println("Order object " + order);
-            String orderString = gson.toJson(order);
+        //OrderMas order = orders.get(0);
+        for (OrderMas order : orders){
+            //Randomly select the index of the DoughManager and BakingInterface to send the order to
+            int index = rand.nextInt(doughManagerAgents.size());
 
-            addBehaviour(new sendOrder(orderString, doughManagerAgent));
-            // }
+            AID doughManagerAgent = doughManagerAgents.get(index);
+
+            AID bakingInterfaceAgent = bakingInterfaceAgents.get(index);
+
+            // System.out.println("Order will be sent to: " + doughManagerAgent + "and" + bakingInterfaceAgent);
+
+            String orderString = gson.toJson(order);
+            //System.out.println("Order: " + orderString);
+
+            addBehaviour(new sendOrder(orderString, doughManagerAgent, bakingInterfaceAgent));
+        }
     }
+
+
 
 // Send a kneadingNotification msg to the doughManager agents
     private class sendOrder extends Behaviour {
         private MessageTemplate mt;
         private int option = 0;
+        private int repliesCnt = 0;
         private Gson gson = new Gson();
         private String orderString;
         private AID doughManagerAgent;
+        private AID bakingInterfaceAgent;
 
-        private sendOrder(String orderString, AID doughManagerAgent){
+        private sendOrder(String orderString, AID doughManagerAgent, AID bakingInterfaceAgent){
             this.orderString = orderString;
             this.doughManagerAgent = doughManagerAgent;
+            this.bakingInterfaceAgent = bakingInterfaceAgent;
         }
 
-    public void action() {
+        public void action() {
+            messageProcessing.incrementAndGet();
+            switch (option) {
 
-        // TODO: Change to CFP ?
-        messageProcessing.incrementAndGet();
-        switch (option) {
-            case 0:
+                case 0:
+                    ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
 
-                ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-                msg.setContent(orderString);
-                // msg.setConversationId("sending-Order"+doughManagerName);
+                    msg.setContent(orderString);
+                    msg.setConversationId("sending-Order");
+                    msg.addReceiver(doughManagerAgent);
+                    msg.addReceiver(bakingInterfaceAgent);
 
-                // Send kneadingNotification msg to doughManagerAgents
-                // for (int i = 0; i < doughManagerAgents.size(); i++){
-                //     if (doughManagerAgents.get(i).getName().equals(doughManagerName)){
-                //         msg.addReceiver(doughManagerAgents.get(i));
-                //     }
-                // }
-                msg.addReceiver(doughManagerAgent);
-                baseAgent.sendMessage(msg);
+                    // System.out.println("================================================================================");
+                    // System.out.println("Sending order to: " + doughManagerAgent + "and" + bakingInterfaceAgent);
+                    // System.out.println("================================================================================");
 
-                option = 1;
-                System.out.println(getAID().getLocalName() + " Sent Order to dough manager " + doughManagerAgent );
-                messageProcessing.decrementAndGet();
-                break;
+                    baseAgent.sendMessage(msg);
 
-            case 1:
-                mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.CONFIRM),
-                    MessageTemplate.MatchConversationId("reply-Order"));
+                    messageProcessing.decrementAndGet();
+                    option = 1;
+                    break;
 
-                ACLMessage reply = baseAgent.receive(mt);
+                case 1:
+                    mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.CONFIRM),
+                        MessageTemplate.MatchConversationId("reply-Order"));
 
-                if (reply != null) {
-                    System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
-                    option = 2;
-                    // messageInProcress.set(false);
-                }
-                else {
-                    // messageInProcress.set(false);
-                    block();
-                }
-                messageProcessing.decrementAndGet();
-                break;
+                    ACLMessage reply = baseAgent.receive(mt);
 
-            default:
-                // messageInProcress.set(false);
-                messageProcessing.decrementAndGet();
-                break;
-        }
-    }
+                    if (reply != null) {
+                        repliesCnt++;
 
-    public boolean done() {
-        if (option == 2) {
-            //System.out.println(getAID().getLocalName() + " My purpose is over ");
-            //baseAgent.finished();
-            // myAgent.doDelete(); //TODO Find when to die
-            return true;
+                        // System.out.println("******" + getAID().getLocalName() + "Received confirmation from " + reply.getSender());
+
+                        // We expect a reply from the doughManagerAgent and from the bakingInterfaceAgent
+                        if (repliesCnt >= 2){
+                            option = 2;
+                        }
+                        messageProcessing.decrementAndGet();
+                    }
+                    else {
+                        messageProcessing.decrementAndGet();
+                        block();
+                    }
+                    messageProcessing.decrementAndGet();
+                    break;
+
+                default:
+                    messageProcessing.decrementAndGet();
+                    break;
+            }
         }
 
-       return false;
-    }
+        public boolean done() {
+            return option == 2;
+        }
     }
 }

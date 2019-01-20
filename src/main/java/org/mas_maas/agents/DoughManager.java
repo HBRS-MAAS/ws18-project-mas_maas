@@ -6,6 +6,7 @@ import java.util.Scanner;
 import java.util.Vector;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.maas.JSONConverter;
 import org.maas.messages.KneadingNotification;
@@ -13,6 +14,7 @@ import org.maas.messages.KneadingRequest;
 import org.maas.messages.PreparationNotification;
 import org.maas.messages.PreparationRequest;
 import org.maas.messages.ProofingRequest;
+import org.maas.utils.Time;
 import org.maas.Objects.BakedGood;
 import org.maas.Objects.Bakery;
 import org.maas.Objects.Client;
@@ -43,13 +45,13 @@ import jade.wrapper.*;
 import org.maas.agents.BaseAgent;
 
 public class DoughManager extends BaseAgent {
-    private AID dummyOrderProcesserAgent;
+    private AID dummyOrderProcesser;
     private AID prooferAgent;
 
     private ArrayList<AID> preparationTableAgents = new ArrayList<AID>();
     private ArrayList<AID> kneadingMachineAgents = new ArrayList<AID>();
 
-    private AID dummyOrderProcesser = new AID("dummyOrderProcesser", AID.ISLOCALNAME);
+    //private AID dummyOrderProcesser = new AID("dummyOrderProcesser", AID.ISLOCALNAME);
     private String scenarioPath;
     private AgentContainer container = null;
 
@@ -60,14 +62,20 @@ public class DoughManager extends BaseAgent {
     private WorkQueue needsKneading = new WorkQueue();
     private WorkQueue needsPreparation = new WorkQueue();
     private WorkQueue needsProofing = new WorkQueue();
+
     private HashMap<String, OrderMas> orders = new HashMap<String, OrderMas>();
+
     private static final String NEEDS_KNEADING = "needsKneading";
     private static final String NEEDS_PREPARATION = "needsPreparation";
     private static final String NEEDS_PROOFING = "needsProofing";
+
 	private Vector<Equipment> equipment;
-    private Vector<String> kneadingMachineNames = new Vector<String>();
+    // private Vector<String> kneadingMachineNames = new Vector<String>();
     private Vector<String> doughPrepTableNames = new Vector<String>();
+
     private AtomicInteger messageProcessing = new AtomicInteger(0);
+
+    private AtomicBoolean isInProductionTime = new AtomicBoolean (false);
 
     protected void setup() {
         super.setup();
@@ -80,6 +88,7 @@ public class DoughManager extends BaseAgent {
 
         //Get the container of this agent
         container = (AgentContainer)getContainerController();
+        //System.out.println("-------> Container Dough" + container);
         doughManagerAgentName = "DoughManager_" + bakeryId;
 
         // Register the Dough-manager in the yellow pages
@@ -114,10 +123,33 @@ public class DoughManager extends BaseAgent {
             if (!baseAgent.getAllowAction()) {
                 return;
             }
+
             // only advance if we aren't currently processing any messages
             if (messageProcessing.get() <= 0)
             {
+                //System.out.println("Current time: " + baseAgent.getCurrentTime());
+
+                // Production time is from midnight to lunch (from 00.00 hrs to 12 hrs)
+                if ((baseAgent.getCurrentTime().greaterThan(new Time(baseAgent.getCurrentDay(), 0, 0)) ||
+
+                        baseAgent.getCurrentTime().equals(new Time(baseAgent.getCurrentDay(), 0, 0))) &&
+
+                        baseAgent.getCurrentTime().lessThan(new Time(baseAgent.getCurrentDay(), 12, 0)))
+                {
+
+                    isInProductionTime.set(true);
+                    //System.out.println("Setting to true");
+
+                }
+                else{
+
+                    isInProductionTime.set(false);
+                    System.out.println("Out of production hours");
+                    //System.out.println("Setting to false");
+                }
+
                 baseAgent.finished();
+
             }
         }
     }
@@ -159,7 +191,7 @@ public class DoughManager extends BaseAgent {
                 // Name of the kneadingMachineAgent
                 String kneadingMachineAgentName = "KneadingMachineAgent_" +  bakeryId + "_" + kneadingMachine.getGuid();
 
-                kneadingMachineNames.add(kneadingMachineAgentName);
+                // kneadingMachineNames.add(kneadingMachineAgentName);
                 kneadingMachineAgents.add(new AID (kneadingMachineAgentName, AID.ISLOCALNAME));
 
                 try {
@@ -207,8 +239,8 @@ public class DoughManager extends BaseAgent {
     }
 
     public void getDummyOrderProcesserAID() {
-        String dummyOrderProcesserAgentName = "DummyOrderProcesser";
-        dummyOrderProcesserAgent = new AID(dummyOrderProcesserAgentName, AID.ISLOCALNAME);
+        String dummyOrderProcesserName = "DummyOrderProcesser";
+        dummyOrderProcesser = new AID(dummyOrderProcesserName, AID.ISLOCALNAME);
     }
 
     public void getProoferAID() {
@@ -221,7 +253,7 @@ public class DoughManager extends BaseAgent {
         public void action(){
             messageProcessing.incrementAndGet();
 
-            if (needsKneading.hasProducts()){
+            if (needsKneading.hasProducts() && isInProductionTime.get()){
 
                 // Creates a kneadingRequestMessage for the first product in the workqueue
                 KneadingRequest kneadingRequestMessage = createKneadingRequestMessage();
@@ -253,7 +285,7 @@ public class DoughManager extends BaseAgent {
         public void action(){
             messageProcessing.incrementAndGet();
 
-            if (needsPreparation.hasProducts()){
+            if (needsPreparation.hasProducts() && isInProductionTime.get()){
 
                 // Creates a preparationRequestMessage for the first product in the workqueue
                 PreparationRequest preparationRequestMessage = createPreparationRequestMessage();
@@ -287,8 +319,7 @@ public class DoughManager extends BaseAgent {
         public void action(){
             messageProcessing.incrementAndGet();
 
-            if (needsProofing.hasProducts()){
-                System.out.println("In checkingProofingWorkqueue");
+            if (needsProofing.hasProducts() && isInProductionTime.get()){
                 // Creates a proofingRequestMessage for the first product in the workqueue
                 ProofingRequest proofingRequestMessage = createProofingRequestMessage();
 
@@ -472,7 +503,8 @@ public class DoughManager extends BaseAgent {
             ACLMessage msg = myAgent.receive(mt);
             if (msg != null) {
                 String content = msg.getContent();
-                System.out.println(getAID().getLocalName() + " received order " + content + " from " + msg.getSender().getName());
+                // System.out.println(getAID().getLocalName() + " received order " + content +
+                //                     "\n \t from " + msg.getSender().getName());
                 OrderMas order = JSONConverter.parseOrder(content);
 
                 ACLMessage reply = msg.createReply();
@@ -509,7 +541,6 @@ public class DoughManager extends BaseAgent {
                 // + " for: " + msg.getContent());
                 // System.out.println("================================================================================");
                 String kneadingNotificationString = msg.getContent();
-                // System.out.println("-----> Kneading notification " + kneadingNotificationString);
 
                 ACLMessage reply = msg.createReply();
                 reply.setPerformative(ACLMessage.CONFIRM);
@@ -522,22 +553,8 @@ public class DoughManager extends BaseAgent {
                 String productType = kneadingNotification.getProductType();
                 Vector<String> guids = kneadingNotification.getGuids();
 
-                // System.out.println("-----> product type " + productType);
-                // System.out.println("-----> guid " + guids);
-
                 // Add guids with this productType to the queuePreparation
                 queuePreparation(productType, guids);
-
-                // // Create preparationRequestMessage with the information in the queuePreparation
-                // PreparationRequest preparationRequestMessage = createPreparationRequestMessage();
-                //
-                // // Convert preparationRequestMessage to String
-                // Gson gson = new Gson();
-                //
-                // String preparationRequestString = gson.toJson(preparationRequestMessage);
-
-                // Send preparationRequestMessage
-                //addBehaviour(new RequestPreparation(preparationRequestString));
                 messageProcessing.decrementAndGet();
             }
             else {
@@ -576,16 +593,6 @@ public class DoughManager extends BaseAgent {
 
                 // Add guids with this productType to the queueProofing
                 queueProofing(productType, guids);
-
-                // // Create proofingRequestMessage with the information in the queueProofing
-                // ProofingRequest proofingRequestMessage = createProofingRequestMessage();
-                //
-                // // Convert proofingRequestMessage to String
-                // Gson gson = new Gson();
-                // String proofingRequestString = gson.toJson(proofingRequestMessage);
-                //
-                // // Send preparationRequestMessage
-                // addBehaviour(new RequestProofing(proofingRequestString));
                 messageProcessing.decrementAndGet();
             }
             else {
@@ -629,10 +636,6 @@ public class DoughManager extends BaseAgent {
                     cfp.setContent(kneadingRequest);
                     cfp.setConversationId("kneading-request");
                     cfp.setReplyWith("cfp" + System.currentTimeMillis());
-
-                    //System.out.println("======================================");
-                    // System.out.println(" << << CFP for: " + kneadingRequest);
-                    //System.out.println("======================================");
 
                     baseAgent.sendMessage(cfp);
 
@@ -692,7 +695,8 @@ public class DoughManager extends BaseAgent {
                     baseAgent.sendMessage(msg);
 
                     // Prepare the template to get the msg reply
-                    mt = MessageTemplate.and(MessageTemplate.MatchConversationId("kneading-request"),     MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
+                    mt = MessageTemplate.and(MessageTemplate.MatchConversationId("kneading-request"),
+                    MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
 
                     option = 3;
                     messageProcessing.decrementAndGet();
@@ -703,8 +707,8 @@ public class DoughManager extends BaseAgent {
                     reply = baseAgent.receive(mt);
                     if (reply != null) {
                         if (reply.getPerformative() == ACLMessage.INFORM) {
-                            System.out.println("-----> " + getAID().getLocalName()+ " confirmation received from -> "
-                                + reply.getSender().getLocalName() + " for: " + reply.getContent());
+                            // System.out.println(getAID().getLocalName()+ " confirmation received from -> \n \t"
+                            //     + reply.getSender().getLocalName() + " for: " + reply.getContent());
                         }
                         else {
                             // System.out.println(getAID().getLocalName() + " rejection received from -> "
@@ -831,7 +835,9 @@ public class DoughManager extends BaseAgent {
                     baseAgent.sendMessage(msg);
 
                     // Prepare the template to get the msg reply
-                    mt = MessageTemplate.and(MessageTemplate.MatchConversationId("preparation-request"), MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
+                    mt = MessageTemplate.and(
+                         MessageTemplate.MatchConversationId("preparation-request"),
+                         MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
 
                     option = 3;
                     messageProcessing.decrementAndGet();
@@ -842,8 +848,8 @@ public class DoughManager extends BaseAgent {
                 reply = baseAgent.receive(mt);
                 if (reply != null) {
                     if (reply.getPerformative() == ACLMessage.INFORM) {
-                        System.out.println("----> " + getAID().getLocalName()+ " confirmation received from -> "
-                            +reply.getSender().getLocalName() + " for: " + reply.getContent());
+                        // System.out.println(getAID().getLocalName()+ " confirmation received from -> \n \t"
+                        //     +reply.getSender().getLocalName() + " for: " + reply.getContent());
                         }
                         else{
                             // System.out.println(getAID().getLocalName() + " rejection received from -> "
@@ -876,7 +882,7 @@ public class DoughManager extends BaseAgent {
                     needsPreparation.addProduct(productStatus);
                 }
             }
-            return ((option == 2 && needsPreparation == null) || option == 4);
+            return ((option == 2 && preparationTable == null) || option == 4);
         }
     }
 
@@ -907,14 +913,15 @@ public class DoughManager extends BaseAgent {
                     cfp.setContent(proofingRequest);
                     cfp.setConversationId("proofing-request");
                     cfp.setReplyWith("cfp"+System.currentTimeMillis());
-                    System.out.println("***************************************");
-                    System.out.println("CFP for: " + proofingRequest);
-                    System.out.println("***************************************");
+                    // System.out.println("***************************************");
+                    // System.out.println("CFP for: " + proofingRequest);
+                    // System.out.println("***************************************");
                     baseAgent.sendMessage(cfp);
 
                     // Template to get proposals/refusals
-                    mt = MessageTemplate.and(MessageTemplate.MatchConversationId("proofing-request"),
-                    MessageTemplate.MatchInReplyTo(cfp.getReplyWith()));
+                    mt = MessageTemplate.and(
+                         MessageTemplate.MatchConversationId("proofing-request"),
+                         MessageTemplate.MatchInReplyTo(cfp.getReplyWith()));
 
                     messageProcessing.decrementAndGet();
                     option = 1;
@@ -969,16 +976,16 @@ public class DoughManager extends BaseAgent {
                     break;
 
                 case 3:
-                    // Receive the confirmation for the kneadingMachine
+                    // Receive the confirmation for the proofer
                     reply = baseAgent.receive(mt);
                     if (reply != null) {
                         if (reply.getPerformative() == ACLMessage.INFORM) {
-                            System.out.println("-----> " + getAID().getLocalName()+ " confirmation received from -> "
-                                +reply.getSender().getLocalName() + " for: " + reply.getContent());
+                            // System.out.println(getAID().getLocalName()+ " confirmation received from -> \n \t"
+                            //     +reply.getSender().getLocalName() + " for: " + reply.getContent());
 
                         }else {
-                            System.out.println(getAID().getLocalName() + " rejection received from -> "
-                                +reply.getSender().getLocalName() + " for: " + proofingRequest + "Adding it back to the queue");
+                            // System.out.println(getAID().getLocalName() + " rejection received from -> "
+                            //     +reply.getSender().getLocalName() + " for: " + proofingRequest + "Adding it back to the queue");
 
                                 //Add the batch to the needsProofing queue
                                 for (ProductStatus productStatus : batch){
@@ -1001,7 +1008,7 @@ public class DoughManager extends BaseAgent {
         }
         public boolean done(){
             if (option == 2 && proofer == null) {
-                System.out.println("++++++Attempt failed for " + proofingRequest + "Adding request to the needsProofing queue");
+                // System.out.println("++++++Attempt failed for " + proofingRequest + "Adding request to the needsProofing queue");
 
                 for (ProductStatus productStatus : batch){
                     needsProofing.addProduct(productStatus);

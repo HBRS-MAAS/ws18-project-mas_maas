@@ -15,6 +15,7 @@ public class Start {
     private static boolean customerStage = false;
     private static boolean orderProcessingStage = false;
     private static boolean doughPrepStage = false;
+    private static boolean bakingMasMaas = false;
     private static boolean bakingStage = false;
     private static boolean packagingStage = false;
     private static boolean deliveryStage = false;
@@ -22,7 +23,7 @@ public class Start {
     private static boolean noAgentStarting = true;
 
     private static String endTime = "000.03.00";
-    private static String scenarioDirectory = "small";
+    private static String scenarioDirectory = "smaller";
 
     public static void main(String[] args) {
         if(!decodeArguments(args)) {
@@ -64,12 +65,19 @@ public class Start {
         if(doughPrepStage) {
             Initializer init = new DoughPrepStageInitializer();
             sb.append(init.initialize(scenarioDirectory));
-            endTime = "002.06.00";
+            endTime = "001.06.00";
+        }
+        if(bakingMasMaas) {
+            // Initializer init = new DoughPrepStageInitializer();
+            // sb.append(init.initialize(scenarioDirectory));
+			Initializer init = new BakingMasMaasInitializer();
+            sb.append(init.initialize(scenarioDirectory));
+            endTime = "001.06.00";
         }
         if(bakingStage) {
 			Initializer init = new BakingStageInitializer();
             sb.append(init.initialize(scenarioDirectory));
-            endTime = "000.06.00";
+            endTime = "001.06.00";
         }
         if(packagingStage) {
 			Initializer init = new PackagingStageInitializer();
@@ -120,6 +128,10 @@ public class Start {
             }
             if (args[i].equals("-doughPrep")) {
                 doughPrepStage = true;
+                noAgentStarting = false;
+            }
+            if (args[i].equals("-bakingMasMaas")) {
+                bakingMasMaas = true;
                 noAgentStarting = false;
             }
             if (args[i].equals("-baking")) {

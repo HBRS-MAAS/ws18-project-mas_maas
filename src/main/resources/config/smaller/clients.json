@@ -1,0 +1,50 @@
+[
+  {
+    "name": "Sunspear Bakery",
+    "location": null,
+    "type": 1,
+    "orders": [
+      {
+        "delivery_date": {
+          "day": 2,
+          "hour": 18
+        },
+        "products": {
+          "Bread": 1,
+          "Muffin": 3,
+          "Berliner": 3,
+          "Bagel": 1,
+          "Donut": 7
+
+        },
+        "order_date": {
+          "day": 1,
+          "hour": 4
+        },
+        "customer_id": "customer-001",
+        "guid": "order-001"
+    },
+     {
+       "delivery_date": {
+         "day": 2,
+         "hour": 18
+       },
+       "products": {
+         "Bread": 5,
+         "Muffin": 2,
+         "Berliner": 5,
+         "Bagel": 2,
+         "Donut": 5
+
+       },
+       "order_date": {
+         "day": 1,
+         "hour": 4
+       },
+       "customer_id": "customer-001",
+       "guid": "order-002"
+     }
+    ],
+    "guid": "customer-001"
+  }
+]

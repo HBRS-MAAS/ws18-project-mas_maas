@@ -6,6 +6,7 @@ import java.util.Scanner;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.maas.utils.Time;
 
 import org.maas.JSONConverter;
 import org.maas.messages.PreparationNotification;
@@ -33,7 +34,6 @@ import org.maas.agents.BaseAgent;
 public class PreparationTableAgent extends BaseAgent {
     private AID doughManagerAgent;
 
-    //private AtomicBoolean processingMessage = new AtomicBoolean(false);
     private AtomicBoolean preparationInProcess = new AtomicBoolean(false);
     private AtomicInteger stepCounter = new AtomicInteger(0);
 
@@ -45,6 +45,7 @@ public class PreparationTableAgent extends BaseAgent {
 
     private Vector<String> guids;
     private Vector<Integer> productQuantities;
+    private int totalQuantity;
     private String productType;
     private Vector<Step> steps;
 
@@ -52,6 +53,8 @@ public class PreparationTableAgent extends BaseAgent {
     private int curStepIndex = 0;
     private String stepAction;
     private int productIndex = 0;
+
+    private AtomicBoolean isInProductionTime = new AtomicBoolean(false);
 
     protected void setup() {
         super.setup();
@@ -72,12 +75,7 @@ public class PreparationTableAgent extends BaseAgent {
 
         doughPrepTable.setAvailable(true);
 
-
-        stepCounter.set(0);
-
-        // Time tracker behavior
         addBehaviour(new timeTracker());
-
         addBehaviour(new ReceiveProposalRequests());
         addBehaviour(new ReceivePreparationRequests());
     }
@@ -97,8 +95,8 @@ public class PreparationTableAgent extends BaseAgent {
             if (!baseAgent.getAllowAction()) {
                 return;
             }else{
-                // if (preparationInProcess.get() && !fullPrepDone.get()){
-                if (preparationInProcess.get()){
+
+                if (preparationInProcess.get() && isInProductionTime.get()){
                     int curCount = stepCounter.incrementAndGet();
                     System.out.println(">>>>> DoughPrep Counter -> " + getAID().getLocalName() + " " + stepCounter + " <<<<<");
                     addBehaviour(new Preparation());
@@ -106,6 +104,21 @@ public class PreparationTableAgent extends BaseAgent {
             }
             if (messageProcessing.get() <= 0)
             {
+                // Production time is from midnight to lunch (from 00.00 hrs to 12 hrs)
+                if ((baseAgent.getCurrentTime().greaterThan(new Time(baseAgent.getCurrentDay(), 0, 0)) ||
+
+                        baseAgent.getCurrentTime().equals(new Time(baseAgent.getCurrentDay(), 0, 0))) &&
+
+                        baseAgent.getCurrentTime().lessThan(new Time(baseAgent.getCurrentDay(), 12, 0)))
+                {
+
+                    isInProductionTime.set(true);
+                }
+                else{
+
+                    isInProductionTime.set(false);
+                }
+
                 baseAgent.finished();
             }
         }
@@ -117,7 +130,7 @@ public class PreparationTableAgent extends BaseAgent {
 
             MessageTemplate mt = MessageTemplate.and(
                 MessageTemplate.MatchPerformative(ACLMessage.CFP),
-                MessageTemplate.MatchConversationId("preparation-request")); //MessageTemplate.MatchConversationId("preparation-request"));
+                MessageTemplate.MatchConversationId("preparation-request"));
 
             ACLMessage msg = baseAgent.receive(mt);
 
@@ -128,7 +141,6 @@ public class PreparationTableAgent extends BaseAgent {
                 ACLMessage reply = msg.createReply();
                 if (doughPrepTable.isAvailable()){
                 	// System.out.println(getAID().getLocalName() + " is available");
-                    // fullPrepDone.set(false);
                     reply.setPerformative(ACLMessage.PROPOSE);
                     reply.setContent("Hey I am free, do you wanna use me ;)?" + content);
                 }else{
@@ -153,7 +165,6 @@ public class PreparationTableAgent extends BaseAgent {
             messageProcessing.incrementAndGet();
 
             MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL);
-                // MessageTemplate.MatchConversationId("preparation-request"));
 
             ACLMessage msg = baseAgent.receive(mt);
 
@@ -165,28 +176,29 @@ public class PreparationTableAgent extends BaseAgent {
                     // System.out.println(getAID().getLocalName()  + " is already taken");
                     reply.setPerformative(ACLMessage.FAILURE);
                     reply.setContent("doughPrepTable is taken");
-                    //reply.setConversationId("preparation-request");
-                    //baseAgent.sendMessage(reply);
                     // System.out.println(getAID().getLocalName() + " failed preparation of " + msg.getContent());
                 }
                 else{
                     doughPrepTable.setAvailable(false);
+
                     String content = msg.getContent();
-                    System.out.println("***** > " + getAID().getLocalName() + " WILL perform preparation for " + msg.getSender() + "Preparation information -> " + content);
+                    // System.out.println(getAID().getLocalName() + " WILL perform preparation for \n \t"
+                    //             + msg.getSender().getLocalName() + ": " + content);
 
                     PreparationRequest preparationRequest = JSONConverter.parsePreparationRequest(content);
 
                     reply.setPerformative(ACLMessage.INFORM);
                     reply.setContent("Preparation request was received " + content);
-                    //reply.setConversationId("preparation-request");
-                    //baseAgent.sendMessage(reply);
 
                     guids = preparationRequest.getGuids();
                     productType = preparationRequest.getProductType();
                     steps = preparationRequest.getSteps();
                     productQuantities = preparationRequest.getProductQuantities();
-
-                    System.out.println(getAID().getLocalName() + " WILL do the following actions " + steps);
+                    for (Integer quantity : productQuantities){
+                        totalQuantity = totalQuantity + quantity;
+                    }
+                    // System.out.println(" doughPreparation table quantities " + totalQuantity);
+                    // System.out.println(getAID().getLocalName() + " WILL do the following actions " + steps);
 
                     addBehaviour(new Preparation());
                 }
@@ -203,38 +215,36 @@ public class PreparationTableAgent extends BaseAgent {
     // performs Preparation process
     private class Preparation extends OneShotBehaviour {
         public void action(){
-            // if (!preparationInProcess.get() && !fullPrepDone.get()){
             if (!preparationInProcess.get()){
 
                 preparationInProcess.set(true);
                 doughPrepTable.setAvailable(false);
 
                 if (curStepIndex < steps.size()){
-                    // Get the action and its duration
 
+                    // Get the action and its duration
                     stepAction = steps.get(curStepIndex).getAction();
 
                     if (stepAction.equals(Step.ITEM_PREPARATION_STEP)){
-                        stepDuration = steps.get(curStepIndex).getDuration() * productQuantities.get(productIndex);
+                        stepDuration = steps.get(curStepIndex).getDuration() * totalQuantity;
                     }else{
                         stepDuration = steps.get(curStepIndex).getDuration();
                     }
 
-                    System.out.println("-----> Performing " + stepAction + " for " + stepDuration
-                                      + " for product " + productType);
+                    // System.out.println("Performing dough " + stepAction + " for " + stepDuration
+                    //                   + " for " + totalQuantity + " " + productType );
 
                 }else{
                     // We have performed all preparation actions.
                     curStepIndex = 0;
-                    // fullPrepDone.set(true);
                     stepCounter.set(0);
                     preparationInProcess.set(false);
                     doughPrepTable.setAvailable(true);
+                    totalQuantity = 0;
                     addBehaviour(new SendPreparationNotification());
                 }
             }
 
-            // if (stepCounter.get() >= stepDuration && !fullPrepDone.get()){
             if (stepCounter.get() >= stepDuration){
                 curStepIndex++;
                 stepCounter.set(0);
@@ -251,7 +261,7 @@ public class PreparationTableAgent extends BaseAgent {
     private MessageTemplate mt;
     private int option = 0;
     private Gson gson = new Gson();
-    private PreparationNotification preparationNotification = new PreparationNotification(guids,productType);
+    private PreparationNotification preparationNotification = new PreparationNotification(guids,productType, productQuantities);
     private String preparationNotificationString = gson.toJson(preparationNotification);
 
        public void action() {
@@ -266,7 +276,8 @@ public class PreparationTableAgent extends BaseAgent {
 
                     baseAgent.sendMessage(msg);
 
-                    System.out.println(getAID().getLocalName() + " Sent preparationNotification to" + doughManagerAgent);
+                    System.out.println(getAID().getLocalName() + " finished dough preparation " + productQuantities + " " + productType + " for guids " + guids);
+
                     messageProcessing.decrementAndGet();
                     option = 1;
                     break;
@@ -278,7 +289,7 @@ public class PreparationTableAgent extends BaseAgent {
                     ACLMessage reply = baseAgent.receive(mt);
 
                     if (reply != null) {
-                        System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
+                        // System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
                         option = 2;
                     }
                     else {
