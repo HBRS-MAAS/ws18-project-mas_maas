@@ -42,6 +42,14 @@ Example:
 
     gradle run --args='-doughPrep -scenarioDirectory small'
 
+### Run only the **Dough Preparation Stage** with **visualization**
+
+    gradle run --args='-doughPrepVisual -scenarioDirectory nameScenarioDirectory'
+
+Example:
+
+    gradle run --args='-doughPrepVisual -scenarioDirectory small'
+
 ### Run both **Dough Preparation** and **Baking Stage**
 
     gradle run --args='-doughPrep -bakingMasMaas -baking -scenarioDirectory nameScenarioDirectory'
