@@ -91,7 +91,7 @@ public class BakingPreparationAgent extends BaseAgent {
 
                 if (preparationInProcess.get() && isInProductionTime.get()){
                     int curCount = stepCounter.incrementAndGet();
-                    System.out.println(">>>>> BakingPrep Counter -> " + getAID().getLocalName() + " " + stepCounter + " <<<<<");
+                    System.out.println("\t>>>>> BakingPrep Counter -> " + getAID().getLocalName() + " " + stepCounter + " <<<<<");
                     addBehaviour(new Preparation());
                 }
             }
@@ -192,7 +192,7 @@ public class BakingPreparationAgent extends BaseAgent {
                     }
                     // System.out.println("bakingPreparation table quantities " + totalQuantity);
                     // System.out.println(getAID().getLocalName() + " WILL do the following actions " + steps);
-
+                    messageProcessing.decrementAndGet();
                     addBehaviour(new Preparation());
                 }
                 baseAgent.sendMessage(reply);
@@ -208,7 +208,7 @@ public class BakingPreparationAgent extends BaseAgent {
     // performs Preparation process
     private class Preparation extends OneShotBehaviour {
         public void action(){
-            // TODO: Iterate over different guids
+            // messageProcessing.incrementAndGet();
             if (!preparationInProcess.get()){
                 preparationInProcess.set(true);
 
@@ -218,8 +218,8 @@ public class BakingPreparationAgent extends BaseAgent {
 
                     stepDuration = steps.get(curStepIndex).getDuration();
                     // }
-                    // System.out.println("Performing baking " + stepAction + " for " + stepDuration
-                    //                   + " for " + totalQuantity + " "+ productType);
+                    System.out.println(getAID().getLocalName() + " performing " + stepAction + " for " + stepDuration
+                                      + " for " + totalQuantity + " "+ productType + " for guids " + guids);
                 }else{
                     curStepIndex = 0;
                     stepCounter.set(0);
@@ -237,7 +237,7 @@ public class BakingPreparationAgent extends BaseAgent {
                 preparationInProcess.set(false);
                 addBehaviour(new Preparation());
             }
-
+            // messageProcessing.decrementAndGet();
         }
     }
 
@@ -255,7 +255,7 @@ public class BakingPreparationAgent extends BaseAgent {
         private String preparationNotificationString = gson.toJson(preparationNotification);
 
         public void action() {
-            messageProcessing.getAndIncrement();
+            messageProcessing.incrementAndGet();
             switch (option) {
                 case 0:
                     ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
@@ -267,7 +267,7 @@ public class BakingPreparationAgent extends BaseAgent {
                     baseAgent.sendMessage(msg);
 
                     option = 1;
-                    System.out.println(getAID().getLocalName() + " finished baking preparation of " + productQuantities + " "+ productType + " for guids " + guids);
+                    System.out.println(getAID().getLocalName() + " finished preparation of " + productQuantities + " "+ productType + " for guids " + guids);
                     break;
 
                 case 1:
@@ -277,18 +277,18 @@ public class BakingPreparationAgent extends BaseAgent {
                     ACLMessage reply = baseAgent.receive(mt);
 
                     if (reply != null) {
-                        System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
+                        // System.out.println(getAID().getLocalName() + " Received confirmation from " + reply.getSender());
                         option = 2;
                     }
                     else {
-                        messageProcessing.getAndDecrement();
+                        // messageProcessing.decrementAndGet();
                         block();
                     }
-                    messageProcessing.getAndDecrement();
+                    messageProcessing.decrementAndGet();
                     break;
 
                 default:
-                    messageProcessing.getAndDecrement();
+                    messageProcessing.decrementAndGet();
                     break;
                }
         }

@@ -144,7 +144,7 @@ public class DoughManager extends BaseAgent {
                 else{
 
                     isInProductionTime.set(false);
-                    System.out.println("Out of production hours");
+                    System.out.println( "\t" + bakeryId + " Out of production hours");
                     //System.out.println("Setting to false");
                 }
 
@@ -911,7 +911,7 @@ public class DoughManager extends BaseAgent {
                     cfp.addReceiver(prooferAgent);
 
                     cfp.setContent(proofingRequest);
-                    cfp.setConversationId("proofing-request");
+                    cfp.setConversationId("proofing-Request");
                     cfp.setReplyWith("cfp"+System.currentTimeMillis());
                     // System.out.println("***************************************");
                     // System.out.println("CFP for: " + proofingRequest);
@@ -920,7 +920,7 @@ public class DoughManager extends BaseAgent {
 
                     // Template to get proposals/refusals
                     mt = MessageTemplate.and(
-                         MessageTemplate.MatchConversationId("proofing-request"),
+                         MessageTemplate.MatchConversationId("proofing-Request"),
                          MessageTemplate.MatchInReplyTo(cfp.getReplyWith()));
 
                     messageProcessing.decrementAndGet();
@@ -959,7 +959,7 @@ public class DoughManager extends BaseAgent {
                     ACLMessage msg = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
                     msg.addReceiver(proofer);
                     msg.setContent(proofingRequest);
-                    msg.setConversationId("proofing-request");
+                    msg.setConversationId("proofing-Request");
                     msg.setReplyWith(proofingRequest + System.currentTimeMillis());
                     baseAgent.sendMessage(msg);
 
@@ -967,7 +967,7 @@ public class DoughManager extends BaseAgent {
                     //     + prooferAgent.getName() + " for: " + proofingRequest);
 
                     // Prepare the template to get the msg reply
-                    mt = MessageTemplate.and(MessageTemplate.MatchConversationId("proofing-request"),
+                    mt = MessageTemplate.and(MessageTemplate.MatchConversationId("proofing-Request"),
                     MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
 
                     option = 3;

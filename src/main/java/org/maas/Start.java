@@ -21,6 +21,7 @@ public class Start {
     private static boolean deliveryStage = false;
     private static boolean visualizationStage = false;
     private static boolean noAgentStarting = true;
+    private static boolean runTimeKeeper = true;
 
     private static String endTime = "000.03.00";
     private static String scenarioDirectory = "smaller";
@@ -42,6 +43,8 @@ public class Start {
         cmd.add("10000");
 
         if(isHost) {
+            cmd.add("-host");
+            cmd.add(host);
             cmd.add("-local-port");
             cmd.add(localPort);
         }
@@ -65,19 +68,19 @@ public class Start {
         if(doughPrepStage) {
             Initializer init = new DoughPrepStageInitializer();
             sb.append(init.initialize(scenarioDirectory));
-            endTime = "001.06.00";
+            endTime = "004.06.00";
         }
         if(bakingMasMaas) {
             // Initializer init = new DoughPrepStageInitializer();
             // sb.append(init.initialize(scenarioDirectory));
 			Initializer init = new BakingMasMaasInitializer();
             sb.append(init.initialize(scenarioDirectory));
-            endTime = "001.06.00";
+            endTime = "004.06.00";
         }
         if(bakingStage) {
 			Initializer init = new BakingStageInitializer();
             sb.append(init.initialize(scenarioDirectory));
-            endTime = "001.06.00";
+            endTime = "004.06.00";
         }
         if(packagingStage) {
 			Initializer init = new PackagingStageInitializer();
@@ -88,14 +91,18 @@ public class Start {
 
         }
         if(visualizationStage) {
+            Initializer init = new VisualizationInitializer();
+            sb.append(init.initialize(scenarioDirectory));
 
+            Initializer boardInit = new BoardVisualisationInitializer(endTime);
+            sb.append(boardInit.initialize(scenarioDirectory));
         }
-		if(isHost) {
-			sb.append("timekeeper:org.maas.agents.TimeKeeper(" + scenarioDirectory + ", " + endTime + ");");
-			if(noAgentStarting) {
-			    sb.append("dummy:org.maas.agents.DummyAgent;");
-            }
-		}
+		if(runTimeKeeper) {
+            sb.append("timekeeper:org.maas.agents.TimeKeeper(" + scenarioDirectory + ", " + endTime + ");");
+        }
+        if(noAgentStarting) {
+            sb.append("dummy:org.maas.agents.DummyAgent;");
+        }
         cmd.add(sb.toString());
         return cmd;
     }
@@ -104,9 +111,11 @@ public class Start {
         for (int i = 0; i < args.length; ++i) {
             if (args[i].equals("-isHost")) {
                 isHost = true;
-                continue;
+                host = args[i+1];
+                ++i;
             }
             if (args[i].equals("-host")) {
+                isHost = false;
                 host = args[i+1];
                 ++i;
             }
@@ -154,6 +163,10 @@ public class Start {
                 // TODO: implement help output
                 System.out.println();
             }
+            if (args[i].equals("-noTK")) { // no TimeKeeper
+                runTimeKeeper = false;
+            }
+
         }
         if (!isHost && (port == null || host == null)) {
             System.out.println("instance is not host and host and port have to be specified!");

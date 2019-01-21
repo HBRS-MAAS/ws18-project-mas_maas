@@ -98,7 +98,7 @@ public class PreparationTableAgent extends BaseAgent {
 
                 if (preparationInProcess.get() && isInProductionTime.get()){
                     int curCount = stepCounter.incrementAndGet();
-                    System.out.println(">>>>> DoughPrep Counter -> " + getAID().getLocalName() + " " + stepCounter + " <<<<<");
+                    System.out.println("\t >>>>> DoughPrep Counter -> " + getAID().getLocalName() + " " + stepCounter + " <<<<<");
                     addBehaviour(new Preparation());
                 }
             }
@@ -231,8 +231,8 @@ public class PreparationTableAgent extends BaseAgent {
                         stepDuration = steps.get(curStepIndex).getDuration();
                     }
 
-                    // System.out.println("Performing dough " + stepAction + " for " + stepDuration
-                    //                   + " for " + totalQuantity + " " + productType );
+                    System.out.println(getAID().getLocalName()  + " performing dough " + stepAction + " for " + stepDuration
+                                      + " for " + totalQuantity + " " + productType );
 
                 }else{
                     // We have performed all preparation actions.
