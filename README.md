@@ -42,4 +42,16 @@ Afterwards you can import the project folder.
 
     gradle run --args='-doughPrep -bakingMasMaas -baking'
 
-## Run preparation stages in different computers
+## Run preparation Dough and Baking Stages in different computers
+
+- Connect to the same network
+- Find the ip address of the server/host machine
+- Use port 5555
+
+### Run the Baking Stage in the server/host machine
+
+gradle run --args="-isHost 192.168.88.182 -localPort 5555 -bakingMasMaas -noTK"
+
+### Rung the doughStage in the client machine
+
+gradle run --args="-host 192.168.88.182 -port 5555 -doughPrep"
