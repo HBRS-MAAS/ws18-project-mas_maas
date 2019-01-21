@@ -42,7 +42,7 @@ import jade.wrapper.*;
 
 import org.maas.agents.BaseAgent;
 
-public class BakingManager extends BaseAgent {
+public class BakingInterface extends BaseAgent {
     private AID dummyOrderProcesser;
     private AID prooferAgent;
     private AID coolingRackAgent;
@@ -902,7 +902,7 @@ public class BakingManager extends BaseAgent {
 
 
                     msg.setContent(coolingRequest);
-                    msg.setConversationId("baked-products" + coolingRequestCounter);
+                    msg.setConversationId("baked-products-" + coolingRequestCounter);
                     msg.addReceiver(postBakingProcessor);
 
                     // Send bakingRequest msg to all ovenAgents

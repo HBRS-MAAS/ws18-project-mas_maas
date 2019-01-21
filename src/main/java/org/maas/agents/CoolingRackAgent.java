@@ -1,16 +1,20 @@
 package org.maas.agents;
 
-import jade.core.AID;
-import jade.core.behaviours.*;
-import jade.lang.acl.ACLMessage;
-import jade.lang.acl.MessageTemplate;
-import java.util.*;
-import com.fasterxml.jackson.core.type.TypeReference;
-import org.maas.agents.BaseAgent;
-import org.maas.objects.ProcessedProduct;
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.List;
+
 import org.maas.data.messages.ProductMessage;
+import org.maas.objects.ProcessedProduct;
 import org.maas.utils.JsonConverter;
 import org.maas.utils.Time;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+
+import jade.core.AID;
+import jade.core.behaviours.CyclicBehaviour;
+import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
 
 @SuppressWarnings("serial")
 public class CoolingRackAgent extends BaseAgent{
@@ -19,6 +23,7 @@ public class CoolingRackAgent extends BaseAgent{
     private int cooledProductConversationNumber = 0;
     private String bakeryGuid = "bakery-001";
     private boolean verbose = true;
+    private AID loggerAgent;
 
     protected void setup() {
         super.setup();
@@ -34,12 +39,17 @@ public class CoolingRackAgent extends BaseAgent{
 
         this.register("cooling-rack-agent", this.bakeryGuid+"-CoolingRackAgent");
         this.processedProductList = new ArrayList<ProcessedProduct> ();
-
+        this.getLoggerAID();
         addBehaviour(new ProcessedProductsServer(postBakingProcessor));
     }
     protected void takeDown() {
         this.deRegister();
         System.out.println("\t" + getAID().getLocalName() + ": Terminating.");
+    }
+
+    public void getLoggerAID() {
+        loggerAgent = new AID ("LoggingAgent", AID.ISLOCALNAME);
+
     }
 
     /*
@@ -85,8 +95,10 @@ public class CoolingRackAgent extends BaseAgent{
         ProductMessage p = new ProductMessage();
         p.setProducts(outMsg);
         String messageContent = JsonConverter.getJsonString(p);
-        ACLMessage message = new ACLMessage(ACLMessage.INFORM);
+        // ACLMessage message = new ACLMessage(ACLMessage.INFORM);
+        ACLMessage message = new ACLMessage(ACLMessage.AGREE); // NOTE: FOR LOGGER
         message.addReceiver(this.packagingAgent);
+        message.addReceiver(loggerAgent);
         cooledProductConversationNumber ++;
         message.setConversationId(this.bakeryGuid + "-cooled-product-" + Integer.toString(this.cooledProductConversationNumber));
         message.setContent(messageContent);

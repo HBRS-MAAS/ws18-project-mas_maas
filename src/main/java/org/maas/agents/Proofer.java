@@ -26,6 +26,7 @@ import jade.lang.acl.MessageTemplate;
 
 public class Proofer extends BaseAgent {
     private AID bakingInterfaceAgent;
+    private AID loggerAgent;
 
     private AtomicBoolean proofingInProcess = new AtomicBoolean(false);
     private AtomicInteger messageProcessing = new AtomicInteger(0);
@@ -59,6 +60,7 @@ public class Proofer extends BaseAgent {
 
         getBakingInterfaceAID();
         getDoughManagerAID();
+        this.getLoggerAID();
 
         addBehaviour(new timeTracker());
         addBehaviour(new ReceiveProposalRequests());
@@ -68,6 +70,11 @@ public class Proofer extends BaseAgent {
     protected void takeDown() {
         System.out.println(getAID().getLocalName() + ": Terminating.");
         baseAgent.deRegister();
+    }
+
+    public void getLoggerAID() {
+        loggerAgent = new AID ("LoggingAgent", AID.ISLOCALNAME);
+
     }
 
     public void getBakingInterfaceAID() {
@@ -248,6 +255,7 @@ public class Proofer extends BaseAgent {
                     msg.setContent(doughNotificationString);
                     msg.setConversationId("dough-Notification");
                     msg.addReceiver(bakingInterfaceAgent);
+                    msg.addReceiver(loggerAgent);
 
                     baseAgent.sendMessage(msg);
 

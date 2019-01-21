@@ -36,10 +36,46 @@ Afterwards you can import the project folder.
 
 ### Run only the **Dough Preparation Stage**
 
-    gradle run --args=-doughPrep
+    gradle run --args='-doughPrep -scenarioDirectory nameScenarioDirectory'
+
+Example:
+
+    gradle run --args='-doughPrep -scenarioDirectory small'
+
+### Run only the **Dough Preparation Stage** with **visualization**
+
+    gradle run --args='-doughPrepVisual -scenarioDirectory nameScenarioDirectory'
+
+Example:
+
+    gradle run --args='-doughPrepVisual -scenarioDirectory small'
 
 ### Run both **Dough Preparation** and **Baking Stage**
 
-    gradle run --args='-doughPrep -bakingMasMaas -baking'
+    gradle run --args='-doughPrep -bakingMasMaas -baking -scenarioDirectory nameScenarioDirectory'
 
-## Run preparation stages in different computers
+Example:
+
+    gradle run --args='-doughPrep -bakingMasMaas -baking -scenarioDirectory small'
+
+## Run preparation Dough and Baking Stages in different computers
+
+- Connect to the same network
+- Find the ip address of the server/host machine
+- Use port 5555
+
+### Run the Baking Stage in the server/host machine
+
+    gradle run --args="-isHost 192.168.88.182 -localPort 5555 -bakingMasMaas -scenarioDirectory nameScenarioDirectory -noTK"
+
+Example:
+
+	gradle run --args="-isHost 192.168.88.182 -localPort 5555 -bakingMasMaas -scenarioDirectory small -noTK"
+
+### Run the doughStage in the client machine
+
+    gradle run --args="-host 192.168.88.182 -port 5555 -doughPrep -scenarioDirectory nameScenarioDirectory"
+
+Example:
+
+    gradle run --args="-host 192.168.88.182 -port 5555 -doughPrep -scenarioDirectory small"

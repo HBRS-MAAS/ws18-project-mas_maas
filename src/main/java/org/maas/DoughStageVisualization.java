@@ -4,14 +4,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
 import java.util.Vector;
-import org.maas.Initializer;
-import org.maas.JSONConverter;
-import org.maas.Objects.Bakery;
-import org.maas.Objects.Equipment;
-import org.maas.Objects.Oven;
 
-public class BakingMasMaasInitializer extends Initializer {
-	private String scenarioPath;
+import org.maas.Objects.Bakery;
+
+public class DoughStageVisualization extends Initializer {
+    private String scenarioPath;
     private Vector<Bakery> bakeries;
     private Vector<String> agents = new Vector<>();
 
@@ -21,23 +18,25 @@ public class BakingMasMaasInitializer extends Initializer {
         this.scenarioPath = "src/main/resources/config/" + scenarioDirectory + "/" ;
         getBakery(this.scenarioPath);
 
-		// Create a DummyOrderProcesser agent
-        // agents.add("DummyOrderProcesser:org.mas_maas.agents.DummyOrderProcesser(" + scenarioPath + ")");
+        // Create a DummyOrderProcesser agent
+        agents.add("DummyOrderProcesser:org.mas_maas.agents.DummyOrderProcesser(" + scenarioPath + ")");
+
+        // Create looger
+        agents.add("LoggingAgent:org.mas_maas.agents.LoggingAgent(" + scenarioPath + ")");
 
         // Create agents per bakery
         for (Bakery bakery : bakeries) {
-		//Bakery bakery = bakeries.get(0);
+        //Bakery bakery = bakeries.get(0);
 
             String bakeryId = bakery.getGuid();
             System.out.println(bakeryId);
 
-            // agents.add("DoughManager_" + bakeryId + ":org.mas_maas.agents.DoughManager(" + scenarioPath + "," + bakeryId +")");
-            //
-            // agents.add("Proofer_" + bakeryId + ":org.maas.agents.Proofer(" + bakeryId + ")");
+            agents.add("DoughManager_" + bakeryId + ":org.mas_maas.agents.DoughManager(" + scenarioPath + "," + bakeryId +")");
 
-            agents.add("BakingInterface_" + bakeryId + ":org.mas_maas.agents.BakingInterface(" + scenarioPath + "," + bakeryId +")");
+            agents.add("Proofer_" + bakeryId + ":org.maas.agents.Proofer(" + bakeryId + ")");
 
-            // agents.add(bakeryId + "-cooling-rack:org.maas.agents.CoolingRackAgent(" + bakeryId + ")");
+            //Adding for testig. Remove it later!
+            // agents.add("BakingInterface_" + bakeryId + ":org.mas_maas.agents.BakingManager(" + scenarioPath + "," + bakeryId +")");
         }
 
         String agentInitString = String.join(";", agents);
