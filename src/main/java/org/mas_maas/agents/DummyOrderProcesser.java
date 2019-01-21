@@ -184,15 +184,27 @@ public class DummyOrderProcesser extends BaseAgent {
             int index = rand.nextInt(doughManagerAgents.size());
 
             AID doughManagerAgent = doughManagerAgents.get(index);
+            
+            String orderString = gson.toJson(order);
 
-            AID bakingInterfaceAgent = bakingInterfaceAgents.get(index);
+
+            if (bakingInterfaceAgents.size() > 0){
+
+                AID bakingInterfaceAgent = bakingInterfaceAgents.get(index);
+
+                addBehaviour(new sendOrder(orderString, doughManagerAgent, bakingInterfaceAgent));
+            }
+            else{
+            	
+                addBehaviour(new sendOrder(orderString, doughManagerAgent));
+            }
+
 
             // System.out.println("Order will be sent to: " + doughManagerAgent + "and" + bakingInterfaceAgent);
 
-            String orderString = gson.toJson(order);
+            
             //System.out.println("Order: " + orderString);
 
-            addBehaviour(new sendOrder(orderString, doughManagerAgent, bakingInterfaceAgent));
         }
     }
 
@@ -205,13 +217,18 @@ public class DummyOrderProcesser extends BaseAgent {
         private int repliesCnt = 0;
         private Gson gson = new Gson();
         private String orderString;
-        private AID doughManagerAgent;
-        private AID bakingInterfaceAgent;
+        private AID doughManagerAgent = null;
+        private AID bakingInterfaceAgent = null;
 
         private sendOrder(String orderString, AID doughManagerAgent, AID bakingInterfaceAgent){
             this.orderString = orderString;
             this.doughManagerAgent = doughManagerAgent;
             this.bakingInterfaceAgent = bakingInterfaceAgent;
+        }
+
+        private sendOrder(String orderString, AID doughManagerAgent){
+            this.orderString = orderString;
+            this.doughManagerAgent = doughManagerAgent;
         }
 
         public void action() {
@@ -224,7 +241,11 @@ public class DummyOrderProcesser extends BaseAgent {
                     msg.setContent(orderString);
                     msg.setConversationId("sending-Order");
                     msg.addReceiver(doughManagerAgent);
-                    msg.addReceiver(bakingInterfaceAgent);
+
+                    if (bakingInterfaceAgent != null){
+
+                        msg.addReceiver(bakingInterfaceAgent);
+                    }
 
                     // System.out.println("================================================================================");
                     // System.out.println("Sending order to: " + doughManagerAgent + "and" + bakingInterfaceAgent);

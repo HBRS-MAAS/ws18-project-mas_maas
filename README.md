@@ -38,9 +38,19 @@ Afterwards you can import the project folder.
 
     gradle run --args=-doughPrep
 
+    gradle run --args='-doughPrep -scenarioDirectory nameScenarioDirectory'
+
+    Example:
+
+    gradle run --args='-doughPrep -scenarioDirectory small'
+
 ### Run both **Dough Preparation** and **Baking Stage**
 
-    gradle run --args='-doughPrep -bakingMasMaas -baking'
+    gradle run --args='-doughPrep -bakingMasMaas -baking -scenarioDirectory nameScenarioDirectory'
+
+    Example:
+
+    gradle run --args='-doughPrep -bakingMasMaas -baking -scenarioDirectory small'
 
 ## Run preparation Dough and Baking Stages in different computers
 
@@ -50,8 +60,8 @@ Afterwards you can import the project folder.
 
 ### Run the Baking Stage in the server/host machine
 
-gradle run --args="-isHost 192.168.88.182 -localPort 5555 -bakingMasMaas -noTK"
+gradle run --args="-isHost 192.168.88.182 -localPort 5555 -bakingMasMaas -scenarioDirectory nameScenarioDirectory -noTK"
 
 ### Rung the doughStage in the client machine
 
-gradle run --args="-host 192.168.88.182 -port 5555 -doughPrep"
+gradle run --args="-host 192.168.88.182 -port 5555 -doughPrep -scenarioDirectory nameScenarioDirectory"
