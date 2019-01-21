@@ -1029,6 +1029,62 @@
 	
 	\section{Instructions for running the project}
 	
+	\subsection{Run preparation stages in one computer}
+	
+	\subsubsection*{Run only the Dough Preparation Stage}
+	
+	\begin{lstlisting}
+		gradle run --args='-doughPrep -scenarioDirectory nameScenarioDirectory'
+		
+		Example:
+		
+		gradle run --args='-doughPrep -scenarioDirectory small'
+	\end{lstlisting}
+	
+	\subsubsection*{Run both Dough Preparation and Baking Stage}
+	
+	\begin{lstlisting}
+		gradle run --args='-doughPrep -bakingMasMaas -baking -scenarioDirectory nameScenarioDirectory'
+		
+		Example:
+		
+		gradle run --args='-doughPrep -bakingMasMaas -baking -scenarioDirectory small'
+	\end{lstlisting}
+	
+	\subsection{Run preparation Dough and Baking Stages in different computers}
+	
+	\begin{itemize}
+		\item Connect to the same network
+		\item Find the ip address of the server/host machine
+		\item Use port 5555
+	\end{itemize}
+
+	\subsubsection*{Run the Baking Stage in the server/host machine}
+	
+	\begin{lstlisting}
+		gradle run --args="-isHost 192.168.88.182 -localPort 5555 -bakingMasMaas -scenarioDirectory nameScenarioDirectory -noTK"
+		
+		Example:
+		
+		gradle run --args="-isHost 192.168.88.182 -localPort 5555 -bakingMasMaas -scenarioDirectory small -noTK"
+		
+	\end{lstlisting}
+	
+	
+	
+	\subsubsection*{Run the doughStage in the client machine}
+	
+	\begin{lstlisting}
+		gradle run --args="-host 192.168.88.182 -port 5555 -doughPrep -scenarioDirectory nameScenarioDirectory"
+		
+		Example:
+		
+		gradle run --args="-host 192.168.88.182 -port 5555 -doughPrep -scenarioDirectory small"
+		
+		
+	\end{lstlisting}
+	
+	
 
 		\bibliography{bibliography}{}
 		\bibliographystyle{plain}
