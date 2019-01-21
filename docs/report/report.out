@@ -1,0 +1,13 @@
+\BOOKMARK [1][-]{section.1}{Introduction}{}% 1
+\BOOKMARK [1][-]{section.2}{System architecture}{}% 2
+\BOOKMARK [1][-]{section.3}{Agents}{}% 3
+\BOOKMARK [2][-]{subsection.3.1}{Description of the Agents}{section.3}% 4
+\BOOKMARK [1][-]{section.4}{Objects}{}% 5
+\BOOKMARK [1][-]{section.5}{Behaviours}{}% 6
+\BOOKMARK [1][-]{section.6}{Messages}{}% 7
+\BOOKMARK [2][-]{subsection.6.1}{Order Processing Stage}{section.6}% 8
+\BOOKMARK [2][-]{subsection.6.2}{Dough Stage}{section.6}% 9
+\BOOKMARK [2][-]{subsection.6.3}{BakingStage}{section.6}% 10
+\BOOKMARK [1][-]{section.7}{Instructions for running the project}{}% 11
+\BOOKMARK [2][-]{subsection.7.1}{Run preparation stages in one computer}{section.7}% 12
+\BOOKMARK [2][-]{subsection.7.2}{Run preparation Dough and Baking Stages in different computers}{section.7}% 13

@@ -20,8 +20,8 @@ public class Start {
     private static boolean noAgentStarting = true;
     private static boolean runTimeKeeper = true;
 
-    private static String endTime = "000.03.00";
-    private static String scenarioDirectory = "smaller";
+    private static String endTime = "001.03.00";
+    private static String scenarioDirectory = "small";
 
     public static void main(String[] args) {
         if(!decodeArguments(args)) {
@@ -71,8 +71,6 @@ public class Start {
             sb.append(initV.initialize(scenarioDirectory));
         }
         if(bakingMasMaas) {
-            // Initializer init = new DoughPrepStageInitializer();
-            // sb.append(init.initialize(scenarioDirectory));
             Initializer init = new BakingMasMaasInitializer();
             sb.append(init.initialize(scenarioDirectory));
             endTime = "004.06.00";
@@ -80,12 +78,12 @@ public class Start {
         if(bakingStage) {
             Initializer init = new BakingStageInitializer();
             sb.append(init.initialize(scenarioDirectory));
-            endTime = "004.06.00";
+            endTime = "004.12.00";
         }
         if(packagingStage) {
             Initializer init = new PackagingStageInitializer();
             sb.append(init.initialize(scenarioDirectory));
-            endTime = "000.11.00";
+            endTime = "003.01.00";
         }
         if(deliveryStage) {
 
@@ -133,6 +131,10 @@ public class Start {
                 localPort = args[i+1];
                 ++i;
             }
+            if (args[i].equals("-scenarioDirectory")) {
+                scenarioDirectory = args[i+1];
+                ++i;
+            }
             if (args[i].equals("-customer")) {
                 customerStage = true;
                 noAgentStarting = false;
@@ -146,9 +148,9 @@ public class Start {
                 noAgentStarting = false;
             }
             if (args[i].equals("-bakingMasMaas")) {
-                bakingMasMaas = true;
-                noAgentStarting = false;
-            }
+               bakingMasMaas = true;
+               noAgentStarting = false;
+           }
             if (args[i].equals("-baking")) {
                 bakingStage = true;
                 noAgentStarting = false;
@@ -172,7 +174,6 @@ public class Start {
             if (args[i].equals("-noTK")) { // no TimeKeeper
                 runTimeKeeper = false;
             }
-
         }
         if (!isHost && (port == null || host == null)) {
             System.out.println("instance is not host and host and port have to be specified!");

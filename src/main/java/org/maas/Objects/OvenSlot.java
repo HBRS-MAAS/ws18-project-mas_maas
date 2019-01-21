@@ -1,7 +1,7 @@
 package org.maas.Objects;
 
 public class OvenSlot {
-    public final static float STARTING_TEMP = 0;
+    public final static float STARTING_TEMP = 25; 
     private float currentTemp;
     private String ovenGuid;
     private String guid;
