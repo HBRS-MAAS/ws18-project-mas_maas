@@ -27,11 +27,8 @@ public class Start {
         if(!decodeArguments(args)) {
             System.out.println("No arguments given. Using default arguments!");
         }
-
-        System.out.println("!\n\n\n\n\nHello World\n\n\n\n\n\n!");
         List<String> cmd = buildCMD();
         jade.Boot.main(cmd.toArray(new String[cmd.size()]));
-        System.out.println("!\n\n\n\n\n Goodbye World \n\n\n\n\n\n!");
     }
 
     public static List<String> buildCMD() {
@@ -65,14 +62,18 @@ public class Start {
             sb.append(init.initialize(scenarioDirectory));
         }
         if(doughPrepStage) {
+            //endTime = "004.06.00";
+            endTime = "001.02.00";
             Initializer init = new DoughPrepStageInitializer();
             sb.append(init.initialize(scenarioDirectory));
-            endTime = "004.06.00";
+
+            Initializer initV = new DoughStageVisualization(endTime);
+            sb.append(initV.initialize(scenarioDirectory));
         }
         if(bakingMasMaas) {
             // Initializer init = new DoughPrepStageInitializer();
             // sb.append(init.initialize(scenarioDirectory));
-			Initializer init = new BakingMasMaasInitializer();
+            Initializer init = new BakingMasMaasInitializer();
             sb.append(init.initialize(scenarioDirectory));
             endTime = "004.06.00";
         }
@@ -96,7 +97,7 @@ public class Start {
             Initializer boardInit = new BoardVisualisationInitializer(endTime);
             sb.append(boardInit.initialize(scenarioDirectory));
         }
-		if(runTimeKeeper) {
+        if(runTimeKeeper) {
             sb.append("timekeeper:org.maas.agents.TimeKeeper(" + scenarioDirectory + ", " + endTime + ");");
         }
         if(noAgentStarting) {

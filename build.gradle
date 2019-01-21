@@ -4,8 +4,8 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'application'
 
-//mainClassName = 'org.maas.Start'
-mainClassName = 'org.maas.GraphicsTest'
+mainClassName = 'org.maas.Start'
+//mainClassName = 'org.maas.GraphicsTest'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
