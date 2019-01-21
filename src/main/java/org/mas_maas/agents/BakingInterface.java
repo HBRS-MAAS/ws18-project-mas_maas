@@ -42,7 +42,7 @@ import jade.wrapper.*;
 
 import org.maas.agents.BaseAgent;
 
-public class BakingManager extends BaseAgent {
+public class BakingInterface extends BaseAgent {
     private AID dummyOrderProcesser;
     private AID prooferAgent;
     private AID coolingRackAgent;
