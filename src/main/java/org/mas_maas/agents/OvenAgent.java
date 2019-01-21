@@ -37,6 +37,7 @@ import org.maas.agents.BaseAgent;
 
 public class OvenAgent extends BaseAgent {
     private AID bakingManagerAgent;
+    private AID loggerAgent;
 
     private AtomicBoolean bakingAllowed = new AtomicBoolean(false);
     private AtomicBoolean heatingAllowed = new AtomicBoolean(false);
@@ -87,6 +88,8 @@ public class OvenAgent extends BaseAgent {
 
         this.register(this.ovenName, "JADE-bakery");
 
+        this.getLoggerAID();
+
         //oven.setAvailable(true);
         getOvens();
 
@@ -106,6 +109,11 @@ public class OvenAgent extends BaseAgent {
     protected void takeDown() {
         System.out.println(getAID().getLocalName() + ": Terminating.");
         this.deRegister();
+    }
+
+    public void getLoggerAID() {
+        loggerAgent = new AID ("LoggingAgent", AID.ISLOCALNAME);
+
     }
 
     public void getBakingManagerAID() {
@@ -484,6 +492,7 @@ public class OvenAgent extends BaseAgent {
                     msg.setContent(bakingNotificationString);
                     msg.setConversationId("baking-notification");
                     msg.addReceiver(bakingManagerAgent);
+                    msg.addReceiver(loggerAgent);
 
                     baseAgent.sendMessage(msg);
 

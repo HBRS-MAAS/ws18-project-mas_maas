@@ -33,6 +33,7 @@ import org.maas.agents.BaseAgent;
 
 public class PreparationTableAgent extends BaseAgent {
     private AID doughManagerAgent;
+    private AID loggerAgent;
 
     private AtomicBoolean preparationInProcess = new AtomicBoolean(false);
     private AtomicInteger stepCounter = new AtomicInteger(0);
@@ -68,6 +69,7 @@ public class PreparationTableAgent extends BaseAgent {
         }
 
         this.getDoughManagerAID();
+        this.getLoggerAID();
 
         System.out.println("Hello! " + getAID().getLocalName() + " is ready." + "its DougManager is: " + doughManagerAgent.getName());
 
@@ -87,6 +89,11 @@ public class PreparationTableAgent extends BaseAgent {
 
     public void getDoughManagerAID() {
         doughManagerAgent = new AID (doughManagerName, AID.ISLOCALNAME);
+
+    }
+
+    public void getLoggerAID() {
+        loggerAgent = new AID ("LoggingAgent", AID.ISLOCALNAME);
 
     }
 
@@ -273,6 +280,7 @@ public class PreparationTableAgent extends BaseAgent {
                     msg.setConversationId("preparation-notification");
 
                     msg.addReceiver(doughManagerAgent);
+                    msg.addReceiver(loggerAgent);
 
                     baseAgent.sendMessage(msg);
 

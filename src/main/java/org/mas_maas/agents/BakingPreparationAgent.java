@@ -27,6 +27,7 @@ import org.maas.agents.BaseAgent;
 
 public class BakingPreparationAgent extends BaseAgent {
     private AID bakingManagerAgent;
+    private AID loggerAgent;
 
     private AtomicBoolean preparationInProcess = new AtomicBoolean(false);
     private AtomicBoolean fullPrepDone = new AtomicBoolean(false);
@@ -61,6 +62,7 @@ public class BakingPreparationAgent extends BaseAgent {
         }
 
         this.getBakingManagerAID();
+        this.getLoggerAID();
 
         System.out.println("Hello! " + getAID().getLocalName() + " is ready." + "its bakingManager is: " + bakingManagerAgent.getName());
         this.register(bakingPreparationAgentName, "JADE-bakery");
@@ -77,6 +79,11 @@ public class BakingPreparationAgent extends BaseAgent {
     protected void takeDown() {
         System.out.println(getAID().getLocalName() + ": Terminating.");
         this.deRegister();
+    }
+
+    public void getLoggerAID() {
+        loggerAgent = new AID ("LoggingAgent", AID.ISLOCALNAME);
+
     }
 
     public void getBakingManagerAID() {
@@ -262,6 +269,7 @@ public class BakingPreparationAgent extends BaseAgent {
                     msg.setContent(preparationNotificationString);
                     msg.setConversationId("preparationBaking-notification");
                     msg.addReceiver(bakingManagerAgent);
+                    msg.addReceiver(loggerAgent);
 
                     // msg.setReplyWith("msg" + System.currentTimeMillis());
                     baseAgent.sendMessage(msg);

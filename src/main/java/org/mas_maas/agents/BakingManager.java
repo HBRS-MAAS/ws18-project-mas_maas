@@ -902,7 +902,7 @@ public class BakingManager extends BaseAgent {
 
 
                     msg.setContent(coolingRequest);
-                    msg.setConversationId("baked-products" + coolingRequestCounter);
+                    msg.setConversationId("baked-products-" + coolingRequestCounter);
                     msg.addReceiver(postBakingProcessor);
 
                     // Send bakingRequest msg to all ovenAgents

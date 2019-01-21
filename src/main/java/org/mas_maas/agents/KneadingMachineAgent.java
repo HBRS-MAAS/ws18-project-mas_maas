@@ -29,6 +29,7 @@ import jade.lang.acl.MessageTemplate;
 import org.maas.agents.BaseAgent;
 public class KneadingMachineAgent extends BaseAgent {
     private AID doughManagerAgent;
+    private AID loggerAgent;
 
     private AtomicBoolean kneadingInProcess = new AtomicBoolean(false);
     private AtomicInteger messageProcessing = new AtomicInteger(0);
@@ -59,6 +60,8 @@ public class KneadingMachineAgent extends BaseAgent {
 
         this.getDoughManagerAID();
 
+        this.getLoggerAID();
+
         System.out.println("Hello! " + getAID().getLocalName() + " is ready." + "its DougManager is: " + doughManagerName);
 
         this.register(this.kneadingMachineName, "JADE-bakery");
@@ -79,6 +82,11 @@ public class KneadingMachineAgent extends BaseAgent {
 
     public void getDoughManagerAID() {
         doughManagerAgent = new AID (doughManagerName, AID.ISLOCALNAME);
+
+    }
+
+    public void getLoggerAID() {
+        loggerAgent = new AID ("LoggingAgent", AID.ISLOCALNAME);
 
     }
 
@@ -239,6 +247,7 @@ public class KneadingMachineAgent extends BaseAgent {
                     msg.setConversationId("kneading-notification");
 
                     msg.addReceiver(doughManagerAgent);
+                    msg.addReceiver(loggerAgent);
 
                     baseAgent.sendMessage(msg);
 
