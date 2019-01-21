@@ -1041,6 +1041,16 @@
 
 		gradle run --args='-doughPrep -scenarioDirectory small'
 	\end{lstlisting}
+	
+	\subsubsection*{Run only the Dough Preparation Stage with visualization}
+	
+	\begin{lstlisting}
+	gradle run --args='-doughPrepVisual -scenarioDirectory nameScenarioDirectory'
+	
+	Example:
+	
+	gradle run --args='-doughPrepVisual -scenarioDirectory small'
+	\end{lstlisting}
 
 	\subsubsection*{Run both Dough Preparation and Baking Stage}
 
@@ -1105,6 +1115,13 @@
     to the Timekeeper agent for the last time, it parses the CSV file and
     displays a graph showing the performance. The CSV can be used for debugging
     or more elaborate data analysis later.
+    
+    \begin{figure}[h!]
+    	\begin{center}
+    		\includegraphics[scale=0.25]{images/visualization.png}
+    		\caption{Visualization of the dough stage}
+    	\end{center}
+    \end{figure}
 
 
 
