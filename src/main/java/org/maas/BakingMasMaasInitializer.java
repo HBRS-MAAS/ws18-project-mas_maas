@@ -35,7 +35,7 @@ public class BakingMasMaasInitializer extends Initializer {
             //
             // agents.add("Proofer_" + bakeryId + ":org.maas.agents.Proofer(" + bakeryId + ")");
 
-            agents.add("BakingInterface_" + bakeryId + ":org.mas_maas.agents.BakingManager(" + scenarioPath + "," + bakeryId +")");
+            agents.add("BakingInterface_" + bakeryId + ":org.mas_maas.agents.BakingInterface(" + scenarioPath + "," + bakeryId +")");
 
             // agents.add(bakeryId + "-cooling-rack:org.maas.agents.CoolingRackAgent(" + bakeryId + ")");
         }

@@ -22,6 +22,11 @@ import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
+import jade.domain.DFService;
+import jade.domain.FIPAException;
+import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.ServiceDescription;
+
 public class DummyOrderProcesser extends BaseAgent {
     private ArrayList<AID> doughManagerAgents = new ArrayList<AID>();
     private ArrayList<AID> bakingInterfaceAgents = new ArrayList<AID>();
@@ -87,23 +92,77 @@ public class DummyOrderProcesser extends BaseAgent {
         }
     }
 
+    // public void getDoughManagerAIDs(){
+    //     // For now get just the first one to test
+    //     for (Bakery bakery : bakeries) {
+    //     //Bakery bakery = bakeries.get(0);
+    //         String doughManagerAgentName = "DoughManager_" + bakery.getGuid();
+    //         doughManagerAgents.add(new AID (doughManagerAgentName, AID.ISLOCALNAME));
+    //     }
+    // }
+
     public void getDoughManagerAIDs(){
         // For now get just the first one to test
+
+        DFAgentDescription template = new DFAgentDescription();
+        ServiceDescription sd = new ServiceDescription();
+
         for (Bakery bakery : bakeries) {
         //Bakery bakery = bakeries.get(0);
             String doughManagerAgentName = "DoughManager_" + bakery.getGuid();
-            doughManagerAgents.add(new AID (doughManagerAgentName, AID.ISLOCALNAME));
+            sd.setType(doughManagerAgentName);
+            template.addServices(sd);
+            // doughManagerAgents.add(new AID (doughManagerAgentName, AID.ISLOCALNAME));
+            try {
+                DFAgentDescription[] result = DFService.search(this, template);
+                for (int i = 0; i < result.length; ++i) {
+                    // doughManagerAgents[j] = result[i].getName();
+                    doughManagerAgents.add(result[i].getName());
+                    // System.out.println(doughManagerAgents[j].getName());
+                }
+            }
+            catch (FIPAException fe) {
+                System.out.println("-----> Failed to find " + doughManagerAgentName);
+                fe.printStackTrace();
+            }
         }
     }
 
     public void getBakingInterfaceAIDs(){
         // For now get just the first one to test
+
+        DFAgentDescription template = new DFAgentDescription();
+        ServiceDescription sd = new ServiceDescription();
+
         for (Bakery bakery : bakeries) {
         //Bakery bakery = bakeries.get(0);
             String bakingInterfaceAgentName = "BakingInterface_" + bakery.getGuid();
-            bakingInterfaceAgents.add(new AID (bakingInterfaceAgentName, AID.ISLOCALNAME));
+            sd.setType(bakingInterfaceAgentName);
+            template.addServices(sd);
+            // doughManagerAgents.add(new AID (doughManagerAgentName, AID.ISLOCALNAME));
+            try {
+                DFAgentDescription[] result = DFService.search(this, template);
+                for (int i = 0; i < result.length; ++i) {
+                    // doughManagerAgents[j] = result[i].getName();
+                    bakingInterfaceAgents.add(result[i].getName());
+                    // System.out.println(doughManagerAgents[j].getName());
+                }
+            }
+            catch (FIPAException fe) {
+                System.out.println("-----> Failed to find " + bakingInterfaceAgentName);
+                fe.printStackTrace();
+            }
         }
     }
+
+    // public void getBakingInterfaceAIDs(){
+    //     // For now get just the first one to test
+    //     for (Bakery bakery : bakeries) {
+    //     //Bakery bakery = bakeries.get(0);
+    //         String bakingInterfaceAgentName = "BakingInterface_" + bakery.getGuid();
+    //         bakingInterfaceAgents.add(new AID (bakingInterfaceAgentName, AID.ISLOCALNAME));
+    //     }
+    // }
 
     private void getOrderInfo() throws FileNotFoundException{
         String clientFile = new Scanner(new File(this.scenarioPath+ "clients.json")).useDelimiter("\\Z").next();
