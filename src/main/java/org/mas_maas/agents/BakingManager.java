@@ -511,38 +511,6 @@ public class BakingManager extends BaseAgent {
 
         coolingRequests.add(coolingRequest);
 
-        // System.out.println("-------> Cooling Request:" + coolingRequests);
-
-
-        // // Checks the needsCooling WorkQueue and creates a coolingRequestMessage
-        // Vector<ProductStatus> products = needsCooling.getProductBatch();
-        //
-        //
-        //
-        // if (products != null) {
-        //
-        //     // Vector<String> guids = new Vector<String>();
-        //     // Vector<Integer> productQuantities = new Vector<Integer>();
-        //
-        //     for (ProductStatus productStatus : products) {
-        //         System.out.println("Products: " + productStatus);
-        //
-        //         //String guid = productStatus.getProduct().getGuid();
-        //         float coolingDuration = productStatus.getProduct().getRecipe().getActionTime(Step.COOLING_STEP);
-        //         // int boxingTemp = productStatus.getProduct().getPackaging().getBoxingTemp();
-        //         int quantity = productStatus.getAmount();
-        //
-        //         System.out.println("-------> Product type :" + guid + " coolingDuration: " + coolingDuration + " quantity: " + quantity);
-        //
-        //         CoolingRequest coolingRequest = new CoolingRequest();
-        //         coolingRequest.addCoolingRequest(guid, coolingDuration, quantity);
-        //         coolingRequests.add(coolingRequest);
-        //         System.out.println("-------> Cooling Request:" + coolingRequests);
-        //     }
-        //
-        //
-        // }
-
         return coolingRequests;
     }
 
@@ -611,8 +579,8 @@ public class BakingManager extends BaseAgent {
 
             if (msg != null) {
                 // System.out.println("======================================");
-                // System.out.println("-------> " + getAID().getLocalName()+" Received Baking Notification from "
-//                + msg.getSender() + " for: " + msg.getContent());
+               //  System.out.println("-------> " + getAID().getLocalName()+" Received Baking Notification from "
+               // + msg.getSender() + " for: " + msg.getContent());
                 // System.out.println("======================================");
                 String bakingNotificationString = msg.getContent();
 
@@ -868,7 +836,7 @@ public class BakingManager extends BaseAgent {
                 reply = baseAgent.receive(mt);
                 if (reply != null) {
                     if (reply.getPerformative() == ACLMessage.INFORM) {
-                        // System.out.println(getAID().getLocalName()+ " baking confirmation received from -> \n \t"
+                        // System.out.println(getAID().getLocalName()+ " baking preparation confirmation received from -> \n \t"
                         //     +reply.getSender().getLocalName() + " for: " + reply.getContent());
                         }
                         else{

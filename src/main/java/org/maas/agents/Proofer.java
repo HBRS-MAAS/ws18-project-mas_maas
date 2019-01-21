@@ -89,7 +89,7 @@ public class Proofer extends BaseAgent {
            }else{
                if (proofingInProcess.get() && isInProductionTime.get()){
                    int curCount = proofingCounter.incrementAndGet();
-                   System.out.println(">>>>> Proofing Counter -> " + getAID().getLocalName() + " " + proofingCounter + " <<<<<");
+                   System.out.println("\t >>>>> Proofing Counter -> " + getAID().getLocalName() + " " + proofingCounter + " <<<<<");
                    addBehaviour(new Proofing());
                }
            }
@@ -121,7 +121,7 @@ public class Proofer extends BaseAgent {
 
            MessageTemplate mt = MessageTemplate.and(
                MessageTemplate.MatchPerformative(ACLMessage.CFP),
-               MessageTemplate.MatchConversationId("proofing-request"));
+               MessageTemplate.MatchConversationId("proofing-Request"));
 
            ACLMessage msg = baseAgent.receive(mt);
 
