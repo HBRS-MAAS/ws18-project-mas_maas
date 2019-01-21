@@ -1,32 +1,24 @@
 package org.mas_maas.agents;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.Scanner;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.maas.JSONConverter;
+import org.maas.Objects.KneadingMachine;
+import org.maas.agents.BaseAgent;
 import org.maas.messages.KneadingNotification;
 import org.maas.messages.KneadingRequest;
 import org.maas.utils.Time;
-// import org.mas_maas.objects.Bakery;
-import org.maas.Objects.Equipment;
-import org.maas.Objects.KneadingMachine;
 
 import com.google.gson.Gson;
 
 import jade.core.AID;
-import jade.core.behaviours.*;
-import jade.domain.DFService;
-import jade.domain.FIPAException;
-import jade.domain.FIPAAgentManagement.DFAgentDescription;
-import jade.domain.FIPAAgentManagement.ServiceDescription;
+import jade.core.behaviours.Behaviour;
+import jade.core.behaviours.CyclicBehaviour;
+import jade.core.behaviours.OneShotBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-
-import org.maas.agents.BaseAgent;
 public class KneadingMachineAgent extends BaseAgent {
     private AID doughManagerAgent;
     private AID loggerAgent;
@@ -87,7 +79,6 @@ public class KneadingMachineAgent extends BaseAgent {
 
     public void getLoggerAID() {
         loggerAgent = new AID ("LoggingAgent", AID.ISLOCALNAME);
-
     }
 
     private class timeTracker extends CyclicBehaviour {
@@ -140,11 +131,11 @@ public class KneadingMachineAgent extends BaseAgent {
 
                 ACLMessage reply = msg.createReply();
                 if (kneadingMachine.isAvailable()){
-                	//System.out.println(getAID().getLocalName() + " is available");
+                    //System.out.println(getAID().getLocalName() + " is available");
                     reply.setPerformative(ACLMessage.PROPOSE);
                     reply.setContent("Hey I am free, do you wanna use me ;)? " + content);
                 }else{
-                	// System.out.println(getAID().getLocalName() + " is unavailable");
+                    // System.out.println(getAID().getLocalName() + " is unavailable");
                     reply.setPerformative(ACLMessage.REFUSE);
                     reply.setContent("Sorry, I am married potato :c " + content);
                 }

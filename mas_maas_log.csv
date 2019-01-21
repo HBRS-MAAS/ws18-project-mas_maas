@@ -1,0 +1,15 @@
+12, KneadingMachineAgent, bakery-001, kneading-machine-001
+12, KneadingMachineAgent, bakery-001, kneading-machine-002
+12, KneadingMachineAgent, bakery-001, kneading-machine-003
+18, KneadingMachineAgent, bakery-001, kneading-machine-004
+28, KneadingMachineAgent, bakery-001, kneading-machine-002
+84, DoughPrepTableAgent, bakery-001, prep-table-003
+91, Proofer, bakery-001
+138, DoughPrepTableAgent, bakery-001, prep-table-002
+148, Proofer, bakery-001
+278, DoughPrepTableAgent, bakery-001, prep-table-003
+288, Proofer, bakery-001
+329, DoughPrepTableAgent, bakery-001, prep-table-001
+339, Proofer, bakery-001
+344, DoughPrepTableAgent, bakery-001, prep-table-002
+353, Proofer, bakery-001

@@ -37,7 +37,10 @@ public class LoggingAgent extends BaseAgent {
         Object[] args = getArguments();
         if (args != null && args.length > 0) {
             scenarioPath = (String) args[0];
-            String endTimeString = (String) args[1];
+            //String endTimeString = (String) args[1];
+            //MetaInfo metaInfo = JSONConverter.parseMetaInfo(scenarioPath + "meta.json");
+
+            String endTimeString = new String("01.02.00");
             endTime = new Time(endTimeString);
         } else {
             scenarioPath = "small";
@@ -70,6 +73,7 @@ public class LoggingAgent extends BaseAgent {
 
     protected void appendToBuffer(String str)
     {
+        System.out.println("APPEND TO BUFFER n\n\n\n\n\n" + str + "\n\n\n\n");
         String cleaned = processGetSender(str);
         //stringBuffer.append(str + '\n');
         //stringBuffer.append(baseAgent.getCurrentTime().toString() + ", ");
@@ -133,6 +137,7 @@ public class LoggingAgent extends BaseAgent {
             }
         }
 
+        System.out.println("CLEANED STRING\n\n\n\n\n\n" + cleanedString + "\n\n\n\n");
         return cleanedString;
     }
 

@@ -67,8 +67,8 @@ public class Start {
             Initializer init = new DoughPrepStageInitializer();
             sb.append(init.initialize(scenarioDirectory));
 
-            Initializer initV = new DoughStageVisualization(endTime);
-            sb.append(initV.initialize(scenarioDirectory));
+            //Initializer initV = new DoughStageVisualization(endTime);
+            //sb.append(initV.initialize(scenarioDirectory));
         }
         if(bakingMasMaas) {
             Initializer init = new BakingMasMaasInitializer();
