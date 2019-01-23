@@ -233,7 +233,7 @@ public class PreparationTableAgent extends BaseAgent {
                     stepAction = steps.get(curStepIndex).getAction();
 
                     if (stepAction.equals(Step.ITEM_PREPARATION_STEP)){
-                        stepDuration = steps.get(curStepIndex).getDuration() * totalQuantity;
+                        stepDuration = steps.get(curStepIndex).getDuration(); //* totalQuantity;
                     }else{
                         stepDuration = steps.get(curStepIndex).getDuration();
                     }
