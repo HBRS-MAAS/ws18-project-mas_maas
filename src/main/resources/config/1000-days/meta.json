@@ -11,7 +11,7 @@
   "bakeries": 5,
   "timeStep": {
     "day": 0,
-    "minute": 10,
+    "minute": 1,
     "hour": 0
   }
 }

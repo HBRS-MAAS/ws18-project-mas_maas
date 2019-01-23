@@ -14,8 +14,7 @@ This project contains the dough preparation and baking stage for the MAAS WS 18/
 * JADE v.4.5.0
 * ...
 
-## How to run
-Just install gradle and run:
+Install gradle and run:
 
     gradle run
 
@@ -31,6 +30,12 @@ To use this project with eclipse run
 
 This command will create the necessary eclipse files.
 Afterwards you can import the project folder.
+
+## How to run
+
+- Change the time step in the `scenarioDirectory/meta.json` file to 1 minute.
+
+- The simulation will end at the `endTime` indicated in the `Start.java` file. Line 67 for the DoughPrep stage and line 83 for the bakingMasMaas stage (the baking stage implemented by team mas_maas).
 
 ## Run preparation stages in one computer
 
