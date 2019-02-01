@@ -22,7 +22,7 @@ public class DoughStageVisualization extends Initializer {
         agents.add("DummyOrderProcesser:org.mas_maas.agents.DummyOrderProcesser(" + scenarioPath + ")");
 
         // Create looger
-        agents.add("LoggingAgent:org.mas_maas.agents.LoggingAgent(" + scenarioPath + ")");
+        // agents.add("LoggingAgent:org.mas_maas.agents.LoggingAgent(" + scenarioPath + ")");
 
         // Create agents per bakery
         for (Bakery bakery : bakeries) {

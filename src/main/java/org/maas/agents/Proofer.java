@@ -77,9 +77,33 @@ public class Proofer extends BaseAgent {
 
     }
 
-    public void getBakingInterfaceAID() {
-        bakingInterfaceAgentName = "BakingInterface_" + bakeryId;
-        bakingInterfaceAgent = new AID(bakingInterfaceAgentName, AID.ISLOCALNAME);
+    // public void getBakingInterfaceAID() {
+    //     bakingInterfaceAgentName = "BakingInterface_" + bakeryId;
+    //     bakingInterfaceAgent = new AID(bakingInterfaceAgentName, AID.ISLOCALNAME);
+    // }
+
+    public void getBakingInterfaceAID(){
+        // For now get just the first one to test
+
+        DFAgentDescription template = new DFAgentDescription();
+        ServiceDescription sd = new ServiceDescription();
+        //Bakery bakery = bakeries.get(0);
+        String bakingInterfaceAgentName = bakeryId + "-OverManager" ;
+        sd.setName(bakingInterfaceAgentName);
+        template.addServices(sd);
+        // doughManagerAgents.add(new AID (dummyOrderProcesserName, AID.ISLOCALNAME));
+        try {
+            DFAgentDescription[] result = DFService.search(this, template);
+            for (int i = 0; i < result.length; ++i) {
+                // doughManagerAgents[j] = result[i].getName();
+                bakingInterfaceAgent = result[0].getName();
+                System.out.println("---------> DHARMIN " + result[i].getName());
+            }
+        }
+        catch (FIPAException fe) {
+            System.out.println("-----> Failed to find " + bakingInterfaceAgentName);
+            fe.printStackTrace();
+        }
     }
 
     public void getDoughManagerAID() {
@@ -255,7 +279,12 @@ public class Proofer extends BaseAgent {
                     msg.setContent(doughNotificationString);
                     msg.setConversationId("dough-Notification");
                     msg.addReceiver(bakingInterfaceAgent);
-                    msg.addReceiver(loggerAgent);
+//                    try{
+//                        msg.addReceiver(loggerAgent);
+//
+//                    }catch(){
+//
+//                    }
 
                     baseAgent.sendMessage(msg);
 

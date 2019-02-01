@@ -19,6 +19,10 @@ import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import jade.domain.DFService;
+import jade.domain.FIPAException;
+import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.ServiceDescription;
 public class KneadingMachineAgent extends BaseAgent {
     private AID doughManagerAgent;
     private AID loggerAgent;
@@ -238,7 +242,12 @@ public class KneadingMachineAgent extends BaseAgent {
                     msg.setConversationId("kneading-notification");
 
                     msg.addReceiver(doughManagerAgent);
-                    msg.addReceiver(loggerAgent);
+//                    try{
+//                        msg.addReceiver(loggerAgent);
+//
+//                    }catch(FIPAException fe) {
+//
+//                    }
 
                     baseAgent.sendMessage(msg);
 

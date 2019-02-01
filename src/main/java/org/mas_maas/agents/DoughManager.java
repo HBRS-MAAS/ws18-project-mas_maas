@@ -47,6 +47,7 @@ import org.maas.agents.BaseAgent;
 public class DoughManager extends BaseAgent {
     private AID dummyOrderProcesser;
     private AID prooferAgent;
+    // private ArrayList<AID> dummyOrderProcessers = new ArrayList<AID>();
 
     private ArrayList<AID> preparationTableAgents = new ArrayList<AID>();
     private ArrayList<AID> kneadingMachineAgents = new ArrayList<AID>();
@@ -238,15 +239,64 @@ public class DoughManager extends BaseAgent {
 
     }
 
-    public void getDummyOrderProcesserAID() {
-        String dummyOrderProcesserName = "DummyOrderProcesser";
-        dummyOrderProcesser = new AID(dummyOrderProcesserName, AID.ISLOCALNAME);
+    // public void getDummyOrderProcesserAID() {
+    //     // String dummyOrderProcesserName = "DummyOrderProcesser";
+    //     String dummyOrderProcesserName = bakeryId;
+    //     dummyOrderProcesser = new AID(dummyOrderProcesserName, AID.ISLOCALNAME);
+    // }
+
+    public void getDummyOrderProcesserAID(){
+        // For now get just the first one to test
+
+        DFAgentDescription template = new DFAgentDescription();
+        ServiceDescription sd = new ServiceDescription();
+        //Bakery bakery = bakeries.get(0);
+        String dummyOrderProcesserName = bakeryId + "-OrderProcessing";
+        sd.setType(dummyOrderProcesserName);
+        template.addServices(sd);
+        // doughManagerAgents.add(new AID (dummyOrderProcesserName, AID.ISLOCALNAME));
+        try {
+            DFAgentDescription[] result = DFService.search(this, template);
+            for (int i = 0; i < result.length; ++i) {
+                // doughManagerAgents[j] = result[i].getName();
+                dummyOrderProcesser = result[0].getName();
+                // System.out.println("---------> " + result[i].getName());
+            }
+        }
+        catch (FIPAException fe) {
+            System.out.println("-----> Failed to find " + dummyOrderProcesserName);
+            fe.printStackTrace();
+        }
     }
 
     public void getProoferAID() {
         String prooferAgentName = "Proofer_" + bakeryId;
         prooferAgent = new AID(prooferAgentName, AID.ISLOCALNAME);
     }
+
+    // public void getProoferAID(){
+    //     // For now get just the first one to test
+    //
+    //     DFAgentDescription template = new DFAgentDescription();
+    //     ServiceDescription sd = new ServiceDescription();
+    //     //Bakery bakery = bakeries.get(0);
+    //     String prooferAgentName = bakeryId + "-OrderProcessing";
+    //     sd.setType(prooferAgentName);
+    //     template.addServices(sd);
+    //     // doughManagerAgents.add(new AID (prooferAgentName, AID.ISLOCALNAME));
+    //     try {
+    //         DFAgentDescription[] result = DFService.search(this, template);
+    //         for (int i = 0; i < result.length; ++i) {
+    //             // doughManagerAgents[j] = result[i].getName();
+    //             prooferAgent = result[0].getName();
+    //             // System.out.println("---------> " + result[i].getName());
+    //         }
+    //     }
+    //     catch (FIPAException fe) {
+    //         System.out.println("-----> Failed to find " + prooferAgentName);
+    //         fe.printStackTrace();
+    //     }
+    // }
 
     // Behaviour that checks the needsKneading workqueue and activates CFP for requesting kneading
     private class checkingKneadingWorkqueue extends CyclicBehaviour{
@@ -503,8 +553,8 @@ public class DoughManager extends BaseAgent {
             ACLMessage msg = myAgent.receive(mt);
             if (msg != null) {
                 String content = msg.getContent();
-                // System.out.println(getAID().getLocalName() + " received order " + content +
-                //                     "\n \t from " + msg.getSender().getName());
+                System.out.println("-------------->" + getAID().getLocalName() + " received order " + content +
+                                    "\n \t from " + msg.getSender().getName());
                 OrderMas order = JSONConverter.parseOrder(content);
 
                 ACLMessage reply = msg.createReply();

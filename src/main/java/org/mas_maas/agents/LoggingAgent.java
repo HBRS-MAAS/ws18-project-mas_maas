@@ -55,9 +55,9 @@ public class LoggingAgent extends BaseAgent {
         addBehaviour(new ReceiveKneadingNotification());
         addBehaviour(new ReceivePreparationNotification());
         addBehaviour(new ReceiveDoughNotification());
-        addBehaviour(new ReceiveBakingNotification());
-        addBehaviour(new ReceiveBakingPreparationNotification());
-        addBehaviour(new ReceiveCooling());
+        // addBehaviour(new ReceiveBakingNotification());
+        // addBehaviour(new ReceiveBakingPreparationNotification());
+        // addBehaviour(new ReceiveCooling());
 
 
         try {
@@ -162,7 +162,7 @@ public class LoggingAgent extends BaseAgent {
                     String[] args = new String[] {""};
                     GraphicsTest.main(args);
                     //System.out.println("I've called for a new thread");
-                    //GraphicsTest graph = new GraphicsTest(); 
+                    //GraphicsTest graph = new GraphicsTest();
                     //Thread graphThread = new Thread(graph);
                     //graphThread.start();
                 }
@@ -238,65 +238,65 @@ public class LoggingAgent extends BaseAgent {
         }
     }
 
-    private class ReceiveBakingNotification extends CyclicBehaviour {
-        private static final long serialVersionUID = 1L;
-
-        public void action() {
-            messageProcessing.incrementAndGet();
-
-            MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
-                    MessageTemplate.MatchConversationId("baking-notification"));
-            ACLMessage msg = baseAgent.receive(mt);
-
-            if (msg != null) {
-                appendToBuffer( msg.getSender() + ", " + msg.getContent());
-                messageProcessing.decrementAndGet();
-
-            } else {
-                messageProcessing.decrementAndGet();
-                block();
-            }
-        }
-    }
-
-    private class ReceiveBakingPreparationNotification extends CyclicBehaviour {
-        private static final long serialVersionUID = 1L;
-
-        public void action() {
-            messageProcessing.incrementAndGet();
-
-            MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
-                    MessageTemplate.MatchConversationId("preparationBaking-notification"));
-            ACLMessage msg = baseAgent.receive(mt);
-
-            if (msg != null) {
-                appendToBuffer( msg.getSender() + ", " + msg.getContent());
-                messageProcessing.decrementAndGet();
-
-            } else {
-                messageProcessing.decrementAndGet();
-                block();
-            }
-        }
-    }
-
-    private class ReceiveCooling extends CyclicBehaviour{
-        private static final long serialVersionUID = 1L;
-
-        public void action(){
-            messageProcessing.incrementAndGet();
-
-            MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.AGREE);
-            ACLMessage msg = baseAgent.receive(mt);
-            if (msg != null) {
-                appendToBuffer( msg.getSender() + ", " + msg.getContent());
-                messageProcessing.decrementAndGet();
-
-            } else {
-                messageProcessing.decrementAndGet();
-                block();
-            }
-
-        }
-    }
+    // private class ReceiveBakingNotification extends CyclicBehaviour {
+    //     private static final long serialVersionUID = 1L;
+    //
+    //     public void action() {
+    //         messageProcessing.incrementAndGet();
+    //
+    //         MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
+    //                 MessageTemplate.MatchConversationId("baking-notification"));
+    //         ACLMessage msg = baseAgent.receive(mt);
+    //
+    //         if (msg != null) {
+    //             appendToBuffer( msg.getSender() + ", " + msg.getContent());
+    //             messageProcessing.decrementAndGet();
+    //
+    //         } else {
+    //             messageProcessing.decrementAndGet();
+    //             block();
+    //         }
+    //     }
+    // }
+    //
+    // private class ReceiveBakingPreparationNotification extends CyclicBehaviour {
+    //     private static final long serialVersionUID = 1L;
+    //
+    //     public void action() {
+    //         messageProcessing.incrementAndGet();
+    //
+    //         MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
+    //                 MessageTemplate.MatchConversationId("preparationBaking-notification"));
+    //         ACLMessage msg = baseAgent.receive(mt);
+    //
+    //         if (msg != null) {
+    //             appendToBuffer( msg.getSender() + ", " + msg.getContent());
+    //             messageProcessing.decrementAndGet();
+    //
+    //         } else {
+    //             messageProcessing.decrementAndGet();
+    //             block();
+    //         }
+    //     }
+    // }
+    //
+    // private class ReceiveCooling extends CyclicBehaviour{
+    //     private static final long serialVersionUID = 1L;
+    //
+    //     public void action(){
+    //         messageProcessing.incrementAndGet();
+    //
+    //         MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.AGREE);
+    //         ACLMessage msg = baseAgent.receive(mt);
+    //         if (msg != null) {
+    //             appendToBuffer( msg.getSender() + ", " + msg.getContent());
+    //             messageProcessing.decrementAndGet();
+    //
+    //         } else {
+    //             messageProcessing.decrementAndGet();
+    //             block();
+    //         }
+    //
+    //     }
+    // }
 }

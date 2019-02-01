@@ -28,7 +28,10 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-
+import jade.domain.DFService;
+import jade.domain.FIPAException;
+import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.ServiceDescription;
 import org.maas.agents.BaseAgent;
 
 public class PreparationTableAgent extends BaseAgent {
@@ -232,11 +235,12 @@ public class PreparationTableAgent extends BaseAgent {
                     // Get the action and its duration
                     stepAction = steps.get(curStepIndex).getAction();
 
-                    if (stepAction.equals(Step.ITEM_PREPARATION_STEP)){
-                        stepDuration = steps.get(curStepIndex).getDuration() * totalQuantity;
-                    }else{
-                        stepDuration = steps.get(curStepIndex).getDuration();
-                    }
+                    // if (stepAction.equals(Step.ITEM_PREPARATION_STEP)){
+                    //     stepDuration = steps.get(curStepIndex).getDuration() * totalQuantity;
+                    // }else{
+                    //     stepDuration = steps.get(curStepIndex).getDuration();
+                    // }
+                    stepDuration = steps.get(curStepIndex).getDuration();
 
                     System.out.println(getAID().getLocalName()  + " performing dough " + stepAction + " for " + stepDuration
                                       + " for " + totalQuantity + " " + productType );
@@ -280,7 +284,12 @@ public class PreparationTableAgent extends BaseAgent {
                     msg.setConversationId("preparation-notification");
 
                     msg.addReceiver(doughManagerAgent);
-                    msg.addReceiver(loggerAgent);
+//                    try{
+//                        msg.addReceiver(loggerAgent);
+//
+//                    }catch(FIPAException fe) {
+//
+//                    }
 
                     baseAgent.sendMessage(msg);
 

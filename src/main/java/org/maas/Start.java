@@ -64,7 +64,7 @@ public class Start {
         }
         if(doughPrepStage) {
             //endTime = "004.06.00";
-            endTime = "001.02.00";
+            endTime = "003.02.00";
             Initializer init = new DoughPrepStageInitializer();
             sb.append(init.initialize(scenarioDirectory));
 
@@ -108,12 +108,12 @@ public class Start {
         if(noAgentStarting) {
             sb.append("dummy:org.maas.agents.DummyAgent;");
         }
-        if(isHost) {
-            sb.append("timekeeper:org.maas.agents.TimeKeeper(" + scenarioDirectory + ", " + endTime + ");");
-            if(noAgentStarting) {
-                sb.append("dummy:org.maas.agents.DummyAgent;");
-            }
-        }
+//         if(isHost) {
+//             sb.append("timekeeper:org.maas.agents.TimeKeeper(" + scenarioDirectory + ", " + endTime + ");");
+//             if(noAgentStarting) {
+//                 sb.append("dummy:org.maas.agents.DummyAgent;");
+//             }
+//         }
         cmd.add(sb.toString());
         return cmd;
     }

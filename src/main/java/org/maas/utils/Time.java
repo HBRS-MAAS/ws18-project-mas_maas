@@ -17,7 +17,7 @@ public class Time {
         this.minute = Integer.parseInt(time[2]);
     }
     public Time (int timeSteps, Time singleTimeStep) {
-        this.day = 0;
+        this.day = 1;
         this.hour = 0;
         this.minute = 0;
         for (int i = 0; i < timeSteps; i++) {
@@ -25,7 +25,7 @@ public class Time {
         }
     }
     public Time (){
-        this.day = 0;
+        this.day = 1;
         this.hour = 0;
         this.minute = 0;
     }
